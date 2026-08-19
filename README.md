@@ -30,7 +30,7 @@ Only distribute content you own or are authorized to redistribute. NexaPlay does
 
 Friends receive only `NexaPlay-Setup-v1.5.0.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
 
-Keep `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-v1.5.0.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and export work immediately; clicking **Done** saves locally and updates `catalog/nexaplay-catalog.json` on GitHub. **Optional community-server publishing** remains available later for shared ratings.
+Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and export work immediately; clicking **Done** saves locally and updates `catalog/nexaplay-catalog.json` on GitHub. **Optional community-server publishing** remains available later for shared ratings.
 
 ## Your first catalog
 
@@ -38,7 +38,7 @@ Keep `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-v1.5.0.exe` private. It uses th
 2. Enter the game title and choose **Auto-Fill Game**. NexaPlay finds the Steam App ID and builds the metadata portion of the page.
 3. Paste the direct game archive URL. The URL can be long and does not need to contain the game name.
 4. Optionally paste separate update and Online Fix archive links. Empty package types stay hidden from the public game page.
-5. In **Settings**, add your own SteamGridDB API key to include automatic community artwork matching.
+5. In Owner Studio, choose **SteamGridDB key…**, open the official API key page, and save your key. It is encrypted for your Windows account and is never shipped to players. Friends receive the resulting artwork URLs automatically and do not need a key.
 6. Put `Run Me!.bat` in the game archive. NexaPlay launches it automatically; the executable field is only a fallback.
 7. Add SHA-256 checksums whenever possible, then click **Done**. Owner Studio saves locally and publishes the catalog to GitHub; players sync it automatically at startup or when they click **Sync library**.
 

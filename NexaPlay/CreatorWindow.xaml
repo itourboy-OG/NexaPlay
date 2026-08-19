@@ -17,6 +17,7 @@
             <Button Style="{StaticResource GhostButton}" Content="Remove" Margin="8,0,0,0" Click="Remove_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Import catalog" Margin="22,0,0,0" Click="Import_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Export catalog" Margin="8,0,0,0" Click="Export_Click" />
+            <Button x:Name="ArtworkKeyButton" Style="{StaticResource GhostButton}" Content="SteamGridDB key…" Margin="8,0,0,0" Click="ArtworkKey_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Optional online publishing…" Margin="8,0,0,0" Click="Connection_Click" />
         </WrapPanel>
         <Border Grid.Row="2" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="6">

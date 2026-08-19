@@ -18,7 +18,7 @@ public partial class App : Application
             var connected = !string.IsNullOrWhiteSpace(ownerSettings.CommunityUrl) && !string.IsNullOrWhiteSpace(adminKey);
 
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.5.0");
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.5.1");
             var api = new OwnerApiClient(http);
             var catalogService = new CatalogService(http);
             var settingsService = new SettingsService();
@@ -37,6 +37,12 @@ public partial class App : Application
             var github = new GitHubCatalogPublisher();
             var studio = new CreatorWindow(catalog, catalogService, appSettings, settingsService, http);
             studio.SetGitHubMode(GitHubCatalogPublisher.Repository);
+            studio.SetArtworkKeyStatus(settingsService.GetSteamGridDbKey(appSettings).Length > 0);
+            studio.ConfigureArtworkKeyAction = () =>
+            {
+                var keyWindow = new SteamGridDbKeyWindow(appSettings, settingsService) { Owner = studio };
+                if (keyWindow.ShowDialog() == true) studio.SetArtworkKeyStatus(settingsService.GetSteamGridDbKey(appSettings).Length > 0);
+            };
             studio.ConfigurePublishingAction = () =>
             {
                 var setup = new OwnerSetupWindow(ownerSettings.CommunityUrl) { Owner = studio };
