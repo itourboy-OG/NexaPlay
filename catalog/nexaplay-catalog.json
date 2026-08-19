@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T21:44:01.4617713Z",
+  "UpdatedUtc": "2026-08-19T21:45:12.4112751Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -316,7 +316,7 @@
       "Featured": false
     },
     {
-      "Id": "e468f1c616374abcba10c5f0a951dd0c",
+      "Id": "5ed7c4c3b4ac479e8dd9e0beeeb6ef57",
       "Title": "Mortal Shell II",
       "Description": "Their Flesh Is Your Weapon. Mortal Shell II is a standalone sequel action-RPG with adrenaline-charged, high-stakes combat. Possess warrior Shells, dethrone false gods, redeem a ravaged world.",
       "DownloadUrl": "https://tunnel5.dlproxy.uk/download/UJW_GXST4mvtjRov2D2Lk5nq3HcGBBfBojLlX-tUQUdpSy0aI3Ff5Y5WoikuB9uJpUPL4pQ5PzWaJZGiejjas6gdRq_lCD560y2r7YX_nDe4cV_Zr7eCHVe11PFvGC9XqbEufNRvwOQvWiwYsEod7btB96caENSgxKHHZ3_6EdT5VC9sPAaZvSfOnP0oMr5EPKuA1-01z3bp8bRuqi3wZDQ_9DZMjXEVOTHgaxno6Dq1EL58cauV4BnG-L6J6b78Dt13-PpgPmlAQc4wNkLVC_8FwXkO8rOsLEieYWnJZJBOSIvH9vX35HIUB7RB-9NOZZveaR4OQsg4b_OkoLo-BJLY1idnSGiKC0dAqLfXcBhvNTvqk-DOvrcJ6DrvrVnztttg8rsVt4ZZ1MXJse4vhQ?sig=8esFU2oFbLRnKVHj1KZ3PF-Sjm4Y6UkcGUherFCKELk",
@@ -336,7 +336,7 @@
       "IsMultiplayer": false,
       "CommunityRating": 4.1,
       "RatingCount": 3415,
-      "UpdatedUtc": "2026-08-19T21:42:00Z",
+      "UpdatedUtc": "2026-08-19T21:44:00Z",
       "SteamAppId": 2584270,
       "SteamGridDbId": 5491529,
       "CoverUrl": "https://cdn2.steamgriddb.com/grid/269fbbf79a58d66e7291ee5694ea2076.png",
