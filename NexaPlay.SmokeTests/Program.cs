@@ -111,6 +111,8 @@ try
     Require(detectedGpu.Length > 0, "GPU detection failed.");
     Require(!SystemRequirementsService.IsVirtualGpu(detectedGpu), $"A virtual GPU was selected: {detectedGpu}");
     Require(SystemRequirementsService.DetectRamGb() > 0 && SystemRequirementsService.DetectOs().StartsWith("Windows", StringComparison.Ordinal), "RAM/Windows detection failed.");
+    Require(SystemRequirementsService.GetTechnicalCityGameUrl("Forza Horizon 6") == "https://technical.city/en/system-requirements/forza-horizon-6" &&
+        SystemRequirementsService.GetTechnicalCityGameUrl("PEAK") == "https://technical.city/en/system-requirements/peak", "Technical City game-link generation failed.");
     var bundledCatalogPath = Path.Combine(AppContext.BaseDirectory, "default-catalog.json");
     var bundledCatalog = await JsonFile.ReadAsync<CatalogDocument>(bundledCatalogPath);
     Require(bundledCatalog?.Games.Any(item => item.Title == "PEAK") == true && bundledCatalog.Games.Any(item => item.Title == "Forza Horizon 6"), "The friend installer catalog is missing the current games.");
@@ -147,7 +149,7 @@ try
     }
 
     Console.WriteLine($"Detected physical GPU: {detectedGpu}");
-    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, download speed/ETA labels, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, and CPU/GPU/RAM/Windows detection{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
+    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, download speed/ETA labels, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, CPU/GPU/RAM/Windows detection, and Technical City game links{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
 }
 finally
 {

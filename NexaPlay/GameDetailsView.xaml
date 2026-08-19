@@ -20,6 +20,7 @@
                     <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,4">
                         <Button x:Name="PlayButton" Style="{StaticResource PrimaryButton}" Content="▶  PLAY" Padding="18,13" Click="Play_Click"/>
                         <Button x:Name="DownloadJumpButton" Style="{StaticResource GhostButton}" Content="↓  DOWNLOAD OPTIONS" Padding="18,12" Margin="0,8,0,0" Click="DownloadJump_Click"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="◫  FULL FPS CHECK  •  TECHNICAL CITY ↗" Padding="18,11" Margin="0,8,0,0" Click="TechnicalCity_Click"/>
                         <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Button x:Name="FavoriteButton" Style="{StaticResource GhostButton}" Content="♡  FAVORITE" Padding="10,9" Click="Favorite_Click"/><Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="⚑  REPORT" Padding="10,9" Margin="7,0,0,0" Click="Report_Click"/></Grid>
                     </StackPanel>
                 </Grid>
@@ -42,7 +43,7 @@
 
                     <TextBlock Text="SYSTEM REQUIREMENTS" FontSize="17" FontWeight="Black" Margin="0,28,0,0"/>
                     <Grid x:Name="RequirementsGrid" Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Border Background="#111622" CornerRadius="4" Padding="16"><StackPanel><TextBlock Text="MINIMUM" Foreground="{StaticResource CyanBrush}" FontWeight="Bold" FontSize="9"/><TextBlock Text="{Binding MinimumRequirementsDisplay}" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="19" Margin="0,9,0,0"/></StackPanel></Border><Border Grid.Column="1" Background="#111622" CornerRadius="4" Padding="16" Margin="10,0,0,0"><StackPanel><TextBlock Text="RECOMMENDED" Foreground="#BDAEFF" FontWeight="Bold" FontSize="9"/><TextBlock Text="{Binding RecommendedRequirementsDisplay}" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="19" Margin="0,9,0,0"/></StackPanel></Border></Grid>
-                    <Button Style="{StaticResource GhostButton}" Content="CHECK PC COMPATIBILITY  —  PARTIAL" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CanIRun_Click"/>
+                    <Button Style="{StaticResource GhostButton}" Content="LOCAL PC CHECK  —  WINDOWS, RAM &amp; STORAGE" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CanIRun_Click"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1">

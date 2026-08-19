@@ -9,10 +9,11 @@ public partial class HardwareProfileWindow : Window
 {
     private readonly AppSettings _settings;
     private readonly SettingsService _settingsService;
+    private readonly GameEntry _game;
 
     public HardwareProfileWindow(GameEntry game, AppSettings settings, SettingsService settingsService)
     {
-        InitializeComponent(); _settings = settings; _settingsService = settingsService;
+        InitializeComponent(); _game = game; _settings = settings; _settingsService = settingsService;
         CpuBox.Text = string.IsNullOrWhiteSpace(settings.ProfileCpu) ? SystemRequirementsService.DetectCpu() : settings.ProfileCpu;
         GpuBox.Text = string.IsNullOrWhiteSpace(settings.ProfileGpu) || SystemRequirementsService.IsVirtualGpu(settings.ProfileGpu)
             ? SystemRequirementsService.DetectGpu()
@@ -30,6 +31,6 @@ public partial class HardwareProfileWindow : Window
         await _settingsService.SaveAsync(_settings); DialogResult = true; Close();
     }
 
-    private void OpenWebsite_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("https://www.systemrequirementslab.com/cyri") { UseShellExecute = true });
+    private void OpenWebsite_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo(SystemRequirementsService.GetTechnicalCityGameUrl(_game.Title)) { UseShellExecute = true });
     private void Cancel_Click(object sender, RoutedEventArgs e) { DialogResult = false; Close(); }
 }

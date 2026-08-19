@@ -1,6 +1,8 @@
 using Microsoft.Win32;
 using System.Management;
+using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace NexaPlay.Services;
 
@@ -36,7 +38,28 @@ public static class SystemRequirementsService
                 ? "RESULT: Unknown — this game has no numeric requirements NexaPlay can check."
                 : "PARTIAL RESULT: The automatically checked minimum requirements pass.";
         return headline + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, checks) + Environment.NewLine + Environment.NewLine +
-            "This is not a guaranteed can-run verdict. NexaPlay checks Windows, RAM, and storage, but it cannot reliably rank every CPU and GPU without a maintained hardware-performance database.";
+            "This is not a guaranteed can-run verdict. NexaPlay checks Windows, RAM, and storage locally. Use the Technical City button for maintained CPU/GPU rankings and FPS estimates.";
+    }
+
+    public static string GetTechnicalCityGameUrl(string title)
+    {
+        var decomposed = title.Trim().Normalize(NormalizationForm.FormD);
+        var slug = new StringBuilder();
+        var needsSeparator = false;
+        foreach (var character in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(character) == UnicodeCategory.NonSpacingMark) continue;
+            if (char.IsLetterOrDigit(character))
+            {
+                if (needsSeparator && slug.Length > 0 && slug[^1] != '-') slug.Append('-');
+                slug.Append(char.ToLowerInvariant(character));
+                needsSeparator = false;
+            }
+            else needsSeparator = slug.Length > 0;
+        }
+        return slug.Length == 0
+            ? "https://technical.city/en/can-i-run-it"
+            : $"https://technical.city/en/system-requirements/{slug}";
     }
 
     public static string DetectCpu() { try { return Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0")?.GetValue("ProcessorNameString")?.ToString()?.Trim() ?? ""; } catch { return ""; } }
