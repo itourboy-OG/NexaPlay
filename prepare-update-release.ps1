@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = $PSScriptRoot
 [xml]$project = Get-Content -LiteralPath (Join-Path $projectRoot 'NexaPlay\NexaPlay.csproj')
 $version = [string]$project.Project.PropertyGroup.Version
-$installer = Join-Path $projectRoot "installer\output\NexaPlay-Setup-v$version.exe"
+$installer = Join-Path $projectRoot "NEXAPLAY - USE THESE\NexaPlay-Setup-v$version.exe"
 if (-not (Test-Path -LiteralPath $installer)) { throw "Build the v$version player installer first: $installer" }
 $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash
 $manifest = [ordered]@{

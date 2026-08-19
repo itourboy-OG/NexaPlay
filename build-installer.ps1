@@ -34,8 +34,12 @@ Write-Host 'Compiling the Windows installer...'
 & $innoCompiler "/DMyAppVersion=$version" (Join-Path $installerDir 'NexaPlay.iss')
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE." }
 
-$installerPath = Join-Path $installerDir "output\NexaPlay-Setup-v$version.exe"
-if (-not (Test-Path -LiteralPath $installerPath)) { throw "The installer was not created at $installerPath." }
+$compiledInstaller = Join-Path $installerDir "output\NexaPlay-Setup-v$version.exe"
+if (-not (Test-Path -LiteralPath $compiledInstaller)) { throw "The installer was not created at $compiledInstaller." }
+$easyFolder = Join-Path $projectRoot 'NEXAPLAY - USE THESE'
+New-Item -ItemType Directory -Path $easyFolder -Force | Out-Null
+$installerPath = Join-Path $easyFolder "NexaPlay-Setup-v$version.exe"
+Move-Item -LiteralPath $compiledInstaller -Destination $installerPath -Force
 $installer = Get-Item -LiteralPath $installerPath
 $hash = Get-FileHash -LiteralPath $installerPath -Algorithm SHA256
 Write-Host ''

@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = $PSScriptRoot
 $projectFile = Join-Path $projectRoot 'NexaPlay.Owner\NexaPlay.Owner.csproj'
 $publishDir = Join-Path $projectRoot 'owner-publish'
-$outputDir = Join-Path $projectRoot 'owner-tools'
+$outputDir = Join-Path $projectRoot 'NEXAPLAY - USE THESE'
 
 [xml]$project = Get-Content -LiteralPath $projectFile
 $version = [string]$project.Project.PropertyGroup.Version

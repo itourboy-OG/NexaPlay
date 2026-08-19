@@ -30,7 +30,7 @@ Only distribute content you own or are authorized to redistribute. NexaPlay does
 
 Friends receive only `NexaPlay-Setup-v1.5.0.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
 
-Keep `owner-tools\NexaPlay-Owner-Studio-v1.5.0.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and export work immediately; clicking **Done** saves locally and updates `catalog/nexaplay-catalog.json` on GitHub. **Optional community-server publishing** remains available later for shared ratings.
+Keep `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-v1.5.0.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and export work immediately; clicking **Done** saves locally and updates `catalog/nexaplay-catalog.json` on GitHub. **Optional community-server publishing** remains available later for shared ratings.
 
 ## Your first catalog
 
@@ -75,4 +75,4 @@ Push-Location .\server; npm test; Pop-Location
 .\build-installer.ps1
 ```
 
-The player installer is written to `installer\output\NexaPlay-Setup-v1.5.0.exe`. It does not expose Creator Studio. The private owner tool is built separately and must not be shared. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.
+Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.5.0.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.
