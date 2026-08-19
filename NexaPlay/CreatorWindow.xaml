@@ -1,0 +1,40 @@
+<Window x:Class="NexaPlay.CreatorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NexaPlay Creator Studio" Width="1040" Height="680" MinWidth="860" MinHeight="560"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}">
+    <Grid Margin="24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Grid>
+            <StackPanel><StackPanel Orientation="Horizontal"><TextBlock Text="CREATOR STUDIO" FontSize="26" FontWeight="Black" /><Border x:Name="ModeBadge" Background="#173B34" BorderBrush="#2E8A70" BorderThickness="1" CornerRadius="3" Padding="9,4" Margin="14,1,0,0" VerticalAlignment="Center"><TextBlock x:Name="ModeBadgeText" Text="LOCAL OWNER MODE" Foreground="#75E8BF" FontSize="9" FontWeight="Bold" /></Border></StackPanel><TextBlock x:Name="ModeHelpText" Text="Changes save on this PC. No server URL or owner key is required." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" /></StackPanel>
+            <Image Source="Assets/NexaPlay-512.png" Width="58" Height="58" HorizontalAlignment="Right" />
+        </Grid>
+        <WrapPanel Grid.Row="1" Margin="0,22,0,16">
+            <Button Style="{StaticResource PrimaryButton}" Content="＋ Add game automatically" Click="Add_Click" />
+            <Button x:Name="RefreshAllButton" Style="{StaticResource GhostButton}" Content="↻ Refresh all metadata" Margin="8,0,0,0" Click="RefreshAll_Click" />
+            <Button Style="{StaticResource GhostButton}" Content="Edit" Margin="8,0,0,0" Click="Edit_Click" />
+            <Button Style="{StaticResource GhostButton}" Content="Duplicate" Margin="8,0,0,0" Click="Duplicate_Click" />
+            <Button Style="{StaticResource GhostButton}" Content="Remove" Margin="8,0,0,0" Click="Remove_Click" />
+            <Button Style="{StaticResource GhostButton}" Content="Import catalog" Margin="22,0,0,0" Click="Import_Click" />
+            <Button Style="{StaticResource GhostButton}" Content="Export catalog" Margin="8,0,0,0" Click="Export_Click" />
+            <Button Style="{StaticResource GhostButton}" Content="Optional online publishing…" Margin="8,0,0,0" Click="Connection_Click" />
+        </WrapPanel>
+        <Border Grid.Row="2" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="6">
+            <ListView x:Name="GamesList" Background="Transparent" BorderThickness="0" Foreground="White" MouseDoubleClick="GamesList_MouseDoubleClick">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Game" Width="250" DisplayMemberBinding="{Binding Title}" />
+                        <GridViewColumn Header="Version" Width="100" DisplayMemberBinding="{Binding Version}" />
+                        <GridViewColumn Header="Steam App ID" Width="120" DisplayMemberBinding="{Binding SteamAppId}" />
+                        <GridViewColumn Header="Developer" Width="170" DisplayMemberBinding="{Binding Developer}" />
+                        <GridViewColumn Header="Download link" Width="300" DisplayMemberBinding="{Binding DownloadUrl}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Border>
+        <Grid Grid.Row="3" Margin="0,16,0,0">
+            <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+            <Button Style="{StaticResource PrimaryButton}" Content="Done" HorizontalAlignment="Right" Click="Done_Click" />
+        </Grid>
+    </Grid>
+</Window>

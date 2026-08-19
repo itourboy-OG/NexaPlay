@@ -1,0 +1,13 @@
+{
+  "name": "nexaplay-community-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Owner-controlled catalog, ratings, and reports service for NexaPlay",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

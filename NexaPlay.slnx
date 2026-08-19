@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="NexaPlay/NexaPlay.csproj" />
+  <Project Path="NexaPlay.Owner/NexaPlay.Owner.csproj" />
+  <Project Path="NexaPlay.SmokeTests/NexaPlay.SmokeTests.csproj" />
+</Solution>

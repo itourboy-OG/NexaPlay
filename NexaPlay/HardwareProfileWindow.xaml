@@ -1,0 +1,24 @@
+<Window x:Class="NexaPlay.HardwareProfileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="My Gaming PC — NexaPlay" Width="820" Height="720" MinWidth="720" MinHeight="620"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}">
+    <Grid Margin="28"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel><TextBlock Text="CAN I RUN IT?" FontSize="28" FontWeight="Black"/><TextBlock Text="Save this PC once. NexaPlay will use it for every game." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/></StackPanel>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,22,0,18"><StackPanel Margin="0,0,12,0">
+            <Border Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="14" Padding="20"><StackPanel><TextBlock Text="YOUR GAMING PC" Foreground="{StaticResource CyanBrush}" FontWeight="Bold" FontSize="11"/><TextBlock Text="NexaPlay detected what Windows exposes. Add or correct the GPU if needed." Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,6,0,14"/>
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="105"/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                    <TextBlock Text="CPU" VerticalAlignment="Center"/><TextBox x:Name="CpuBox" Grid.Column="1" Margin="0,4"/>
+                    <TextBlock Grid.Row="1" Text="GPU" VerticalAlignment="Center"/><TextBox x:Name="GpuBox" Grid.Row="1" Grid.Column="1" Margin="0,4" ToolTip="Example: NVIDIA GeForce RTX 4070"/>
+                    <TextBlock Grid.Row="2" Text="RAM (GB)" VerticalAlignment="Center"/><TextBox x:Name="RamBox" Grid.Row="2" Grid.Column="1" Margin="0,4"/>
+                    <TextBlock Grid.Row="3" Text="Windows" VerticalAlignment="Center"/><TextBox x:Name="OsBox" Grid.Row="3" Grid.Column="1" Margin="0,4"/>
+                </Grid></StackPanel></Border>
+            <Grid Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                <Border Background="#111622" CornerRadius="12" Padding="18" Margin="0,0,7,0"><StackPanel><TextBlock Text="MINIMUM" Foreground="{StaticResource CyanBrush}" FontWeight="Bold" FontSize="10"/><TextBlock x:Name="MinimumText" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="20" Margin="0,10,0,0"/></StackPanel></Border>
+                <Border Grid.Column="1" Background="#111622" CornerRadius="12" Padding="18" Margin="7,0,0,0"><StackPanel><TextBlock Text="RECOMMENDED" Foreground="#BDAEFF" FontWeight="Bold" FontSize="10"/><TextBlock x:Name="RecommendedText" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="20" Margin="0,10,0,0"/></StackPanel></Border>
+            </Grid>
+            <TextBlock Text="NexaPlay checks RAM, Windows, and free storage locally. CPU and GPU performance is shown for comparison because accurate ranking needs a continuously maintained hardware database." Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,14,0,0"/>
+        </StackPanel></ScrollViewer>
+        <Grid Grid.Row="2"><Button Style="{StaticResource GhostButton}" Content="Open Can You RUN It website" HorizontalAlignment="Left" Click="OpenWebsite_Click"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button Style="{StaticResource GhostButton}" Content="Cancel" Click="Cancel_Click"/><Button Style="{StaticResource PrimaryButton}" Content="Save profile &amp; check" Margin="10,0,0,0" Click="Save_Click"/></StackPanel></Grid>
+    </Grid>
+</Window>

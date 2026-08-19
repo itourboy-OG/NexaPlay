@@ -1,0 +1,81 @@
+<UserControl x:Class="NexaPlay.GameDetailsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource BgBrush}">
+    <ScrollViewer x:Name="DetailsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel>
+            <Grid Height="330" ClipToBounds="True" CacheMode="BitmapCache">
+                <Image Source="{Binding HeroUrl}" Stretch="UniformToFill" Opacity="0.58"/>
+                <Rectangle><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#26090B12" Offset="0"/><GradientStop Color="#FF090B12" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
+                <Button Style="{StaticResource GhostButton}" Content="←  BACK TO LIBRARY" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,24" Padding="13,8" Click="Back_Click"/>
+                <Grid Margin="34,62,34,28">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="*"/><ColumnDefinition Width="270"/></Grid.ColumnDefinitions>
+                    <Border Width="150" Height="220" CornerRadius="2" BorderBrush="#7260BA" BorderThickness="1" Background="#171C2B" ClipToBounds="True" VerticalAlignment="Bottom"><Image Source="{Binding CoverUrl}" Stretch="UniformToFill"/></Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="18,0,24,4">
+                        <WrapPanel Margin="0,0,0,8"><Border Background="#193C44" CornerRadius="3" Padding="8,4" Margin="0,0,7,0"><TextBlock Text="{Binding MultiplayerLabel}" Foreground="#78EEFF" FontWeight="Bold" FontSize="9"/></Border><Border Background="#35255A" CornerRadius="3" Padding="8,4"><TextBlock Text="{Binding Version, StringFormat=VERSION {0}}" Foreground="#D7C8FF" FontWeight="Bold" FontSize="9"/></Border></WrapPanel>
+                        <TextBlock Text="{Binding Title}" FontSize="34" FontWeight="Black" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding TagLine}" Foreground="#BAC3D7" FontSize="10" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><TextBlock Text="{Binding Stars}" Foreground="#FFD66B" FontSize="16"/><TextBlock Text="{Binding RatingLabel}" Foreground="#DDE2ED" Margin="9,2,0,0"/><TextBlock Text="{Binding LastUpdatedLabel}" Foreground="#A5AEC2" Margin="18,2,0,0"/></StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,4">
+                        <Button x:Name="PlayButton" Style="{StaticResource PrimaryButton}" Content="▶  PLAY" Padding="18,13" Click="Play_Click"/>
+                        <Button x:Name="DownloadJumpButton" Style="{StaticResource GhostButton}" Content="↓  DOWNLOAD OPTIONS" Padding="18,12" Margin="0,8,0,0" Click="DownloadJump_Click"/>
+                        <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Button x:Name="FavoriteButton" Style="{StaticResource GhostButton}" Content="♡  FAVORITE" Padding="10,9" Click="Favorite_Click"/><Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="⚑  REPORT" Padding="10,9" Margin="7,0,0,0" Click="Report_Click"/></Grid>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <Grid Margin="34,0,34,46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="350"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,28,0">
+                    <TextBlock Text="ABOUT THIS GAME" FontSize="17" FontWeight="Black"/>
+                    <TextBlock Text="{Binding Description}" Foreground="#C2CADB" FontSize="13" LineHeight="21" TextWrapping="Wrap" Margin="0,11,0,0"/>
+                    <Grid Margin="0,20,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Border Background="#111622" CornerRadius="4" Padding="14"><StackPanel><TextBlock Text="DEVELOPER" Foreground="#727E99" FontSize="9" FontWeight="Bold"/><TextBlock Text="{Binding Developer}" Margin="0,5,0,0"/></StackPanel></Border><Border Grid.Column="1" Background="#111622" CornerRadius="4" Padding="14" Margin="9,0,0,0"><StackPanel><TextBlock Text="RELEASE DATE" Foreground="#727E99" FontSize="9" FontWeight="Bold"/><TextBlock Text="{Binding ReleaseDate}" Margin="0,5,0,0"/></StackPanel></Border></Grid>
+
+                    <StackPanel x:Name="MediaSection" Margin="0,28,0,0">
+                        <Grid><TextBlock Text="MEDIA" FontSize="17" FontWeight="Black"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button x:Name="TrailerButton" Style="{StaticResource GhostButton}" Content="▶ Trailer" Padding="13,7" Click="Trailer_Click"/><Button x:Name="GameplayButton" Style="{StaticResource GhostButton}" Content="▶ Gameplay" Padding="13,7" Margin="7,0,0,0" Click="Gameplay_Click"/></StackPanel></Grid>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,12,0,0"><ItemsControl x:Name="ScreenshotsList"><ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><Border Width="280" Height="158" Margin="0,0,10,8" CornerRadius="2" Background="#151A29" BorderBrush="#303851" BorderThickness="1" ClipToBounds="True"><Image Source="{Binding}" Stretch="UniformToFill"/></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer>
+                    </StackPanel>
+
+                    <Border x:Name="GuideSection" Background="#111622" BorderBrush="#293149" BorderThickness="1" CornerRadius="4" Padding="18" Margin="0,26,0,0"><StackPanel><TextBlock Text="INSTALLATION GUIDE" FontSize="15" FontWeight="Black"/><TextBlock Text="{Binding InstallationGuideDisplay}" Foreground="#C0C8D8" TextWrapping="Wrap" LineHeight="20" Margin="0,10,0,0"/></StackPanel></Border>
+                    <Border x:Name="NotesSection" Background="#201A15" BorderBrush="#604727" BorderThickness="1" CornerRadius="4" Padding="18" Margin="0,10,0,0"><StackPanel><TextBlock Text="IMPORTANT NOTES" Foreground="#FFD08A" FontSize="15" FontWeight="Black"/><TextBlock Text="{Binding ImportantNotesDisplay}" Foreground="#E4CEAE" TextWrapping="Wrap" LineHeight="20" Margin="0,10,0,0"/></StackPanel></Border>
+
+                    <TextBlock Text="SYSTEM REQUIREMENTS" FontSize="17" FontWeight="Black" Margin="0,28,0,0"/>
+                    <Grid x:Name="RequirementsGrid" Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Border Background="#111622" CornerRadius="4" Padding="16"><StackPanel><TextBlock Text="MINIMUM" Foreground="{StaticResource CyanBrush}" FontWeight="Bold" FontSize="9"/><TextBlock Text="{Binding MinimumRequirementsDisplay}" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="19" Margin="0,9,0,0"/></StackPanel></Border><Border Grid.Column="1" Background="#111622" CornerRadius="4" Padding="16" Margin="10,0,0,0"><StackPanel><TextBlock Text="RECOMMENDED" Foreground="#BDAEFF" FontWeight="Bold" FontSize="9"/><TextBlock Text="{Binding RecommendedRequirementsDisplay}" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="19" Margin="0,9,0,0"/></StackPanel></Border></Grid>
+                    <Button Style="{StaticResource GhostButton}" Content="CAN I RUN IT?  —  CHECK THIS PC" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CanIRun_Click"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <Border Background="#111622" BorderBrush="#343D59" BorderThickness="1" CornerRadius="5" Padding="20">
+                        <StackPanel>
+                            <TextBlock Text="RATE THIS GAME" FontSize="17" FontWeight="Black"/>
+                            <TextBlock x:Name="RatingHelperText" Text="Your vote updates the community score for everyone." Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,12"/>
+                            <UniformGrid Columns="5">
+                                <Button x:Name="Star1" Style="{StaticResource RatingButton}" Content="★" Tag="1" Click="Rate_Click"/>
+                                <Button x:Name="Star2" Style="{StaticResource RatingButton}" Content="★" Tag="2" Click="Rate_Click"/>
+                                <Button x:Name="Star3" Style="{StaticResource RatingButton}" Content="★" Tag="3" Click="Rate_Click"/>
+                                <Button x:Name="Star4" Style="{StaticResource RatingButton}" Content="★" Tag="4" Click="Rate_Click"/>
+                                <Button x:Name="Star5" Style="{StaticResource RatingButton}" Content="★" Tag="5" Click="Rate_Click"/>
+                            </UniformGrid>
+                            <TextBlock x:Name="RatingStatus" Foreground="#9CA7BD" FontSize="10" Margin="0,9,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border x:Name="DownloadSection" Background="#111622" BorderBrush="#343D59" BorderThickness="1" CornerRadius="5" Padding="20" Margin="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock Text="DOWNLOAD CENTER" FontSize="18" FontWeight="Black"/>
+                            <TextBlock x:Name="DownloadCenterDescription" Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,14"/>
+                            <Border Background="#181E2D" CornerRadius="3" Padding="13"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="FULL GAME" FontWeight="Bold"/><TextBlock x:Name="GameDownloadInfo" Foreground="#909BB3" FontSize="10" Margin="0,3,0,0"/></StackPanel><Button x:Name="GameDownloadButton" Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Download" Padding="12,7" Click="DownloadGame_Click"/></Grid></Border>
+                            <Border x:Name="UpdatePackageCard" Background="#181E2D" CornerRadius="3" Padding="13" Margin="0,8,0,0"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="LATEST UPDATE" FontWeight="Bold"/><TextBlock x:Name="UpdateDownloadInfo" Foreground="#909BB3" FontSize="10" Margin="0,3,0,0"/></StackPanel><Button x:Name="UpdateDownloadButton" Grid.Column="1" Style="{StaticResource GhostButton}" Content="Update" Padding="12,7" Click="DownloadUpdate_Click"/></Grid></Border>
+                            <Border x:Name="OnlineFixPackageCard" Background="#181E2D" CornerRadius="3" Padding="13" Margin="0,8,0,0"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="ONLINE FIX" FontWeight="Bold"/><TextBlock x:Name="FixDownloadInfo" Foreground="#909BB3" FontSize="10" Margin="0,3,0,0"/></StackPanel><Button x:Name="FixDownloadButton" Grid.Column="1" Style="{StaticResource GhostButton}" Content="Download" Padding="12,7" Click="DownloadFix_Click"/></Grid></Border>
+                            <Border x:Name="ProgressPanel" Background="#0E131F" CornerRadius="3" Padding="13" Margin="0,12,0,0" Visibility="Collapsed"><StackPanel><TextBlock x:Name="ActivityText" Text="Preparing…" FontSize="11" TextWrapping="Wrap"/><ProgressBar x:Name="DownloadProgress" Margin="0,8,0,0"/><Button Style="{StaticResource GhostButton}" Content="Open Downloads" Padding="9,6" Margin="0,9,0,0" Click="OpenDownloads_Click"/></StackPanel></Border>
+                            <Separator Margin="0,15" Background="#30374B"/>
+                            <TextBlock Text="DOWNLOAD INFO" Foreground="#77839C" FontWeight="Bold" FontSize="9"/>
+                            <TextBlock x:Name="DownloadInfoText" Foreground="#C6CDDC" FontSize="11" TextWrapping="Wrap" LineHeight="18" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

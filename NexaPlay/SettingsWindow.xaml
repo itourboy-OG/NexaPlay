@@ -1,0 +1,26 @@
+<Window x:Class="NexaPlay.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NexaPlay Settings" Width="780" Height="520" MinWidth="680" MinHeight="480"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}">
+    <Grid Margin="26">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel><TextBlock Text="SETTINGS" FontSize="26" FontWeight="Black" /><TextBlock Text="Library storage, catalog updates, and artwork access." Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" /></StackPanel>
+        <StackPanel Grid.Row="1" Margin="0,24,0,0">
+            <TextBlock Text="GAME LIBRARY FOLDER" FontSize="11" FontWeight="Bold" Foreground="{StaticResource CyanBrush}" />
+            <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBox x:Name="LibraryBox" IsReadOnly="True" /><Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="Browse…" Margin="10,0,0,0" Click="Browse_Click" /></Grid>
+            <TextBlock Text="Downloaded archives and extracted games stay here. The installer never includes this folder." Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,7,0,0" />
+
+            <TextBlock Text="REMOTE CATALOG URL" FontSize="11" FontWeight="Bold" Foreground="{StaticResource CyanBrush}" Margin="0,26,0,0" />
+            <TextBox x:Name="CatalogUrlBox" Margin="0,8,0,0" />
+            <TextBlock Text="Use a trusted direct HTTPS link to your exported nexaplay-catalog.json. Anyone controlling this URL can change download links." Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,7,0,0" />
+            <CheckBox x:Name="AutoSyncBox" Content="Sync this catalog when NexaPlay starts" Foreground="White" Margin="0,10,0,0" />
+
+            <CheckBox x:Name="KeepArchivesBox" Content="Keep ZIP/RAR archives after a successful install" Foreground="White" Margin="0,24,0,0" />
+        </StackPanel>
+        <Grid Grid.Row="2">
+            <Button Style="{StaticResource GhostButton}" Content="Open local data folder" HorizontalAlignment="Left" Click="OpenData_Click" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button Style="{StaticResource GhostButton}" Content="Cancel" Click="Cancel_Click" /><Button Style="{StaticResource PrimaryButton}" Content="Save settings" Margin="10,0,0,0" Click="Save_Click" /></StackPanel>
+        </Grid>
+    </Grid>
+</Window>

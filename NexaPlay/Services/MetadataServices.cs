@@ -1,0 +1,198 @@
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Net;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
+namespace NexaPlay.Services;
+
+public sealed class SteamMetadataService(HttpClient httpClient)
+{
+    public async Task<SteamMatch> SearchAsync(string title, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(title)) throw new InvalidOperationException("A game title is required for Steam matching.");
+        var url = "https://store.steampowered.com/search/suggest" +
+            $"?term={Uri.EscapeDataString(title.Trim())}&f=games&cc=US&l=english&v=1&use_store_query=1&use_search_spellcheck=1";
+        using var response = await httpClient.GetAsync(url, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        var html = await response.Content.ReadAsStringAsync(cancellationToken);
+        var ids = Regex.Matches(html, "data-ds-appid=\\\"(?<id>\\d+)\\\"", RegexOptions.IgnoreCase)
+            .Select(match => int.Parse(match.Groups["id"].Value, System.Globalization.CultureInfo.InvariantCulture))
+            .Distinct()
+            .Take(5)
+            .ToList();
+        if (ids.Count == 0) throw new InvalidOperationException($"Steam did not find a match for “{title}”. You can still enter the information manually.");
+
+        SteamMatch? best = null;
+        var bestScore = double.MinValue;
+        foreach (var id in ids)
+        {
+            try
+            {
+                var metadata = await FetchAsync(id, cancellationToken);
+                var score = TitleScore(title, metadata.Title);
+                if (score > bestScore) { bestScore = score; best = new SteamMatch(id, metadata); }
+                if (score >= 99) break;
+            }
+            catch when (!cancellationToken.IsCancellationRequested) { }
+        }
+        return best ?? throw new InvalidOperationException($"Steam did not return usable metadata for “{title}”.");
+    }
+
+    public async Task<SteamMetadata> FetchAsync(int appId, CancellationToken cancellationToken = default)
+    {
+        var url = $"https://store.steampowered.com/api/appdetails?appids={appId}&cc=us&l=en";
+        using var response = await httpClient.GetAsync(url, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var json = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+        if (!json.RootElement.TryGetProperty(appId.ToString(), out var root) ||
+            !root.TryGetProperty("success", out var success) || !success.GetBoolean() ||
+            !root.TryGetProperty("data", out var data))
+            throw new InvalidOperationException("Steam did not return metadata for that App ID.");
+
+        static string Text(JsonElement parent, string name) =>
+            parent.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() ?? "" : "";
+        static string FirstArrayName(JsonElement parent, string name)
+        {
+            if (!parent.TryGetProperty(name, out var list) || list.ValueKind != JsonValueKind.Array || list.GetArrayLength() == 0) return "";
+            var first = list[0];
+            return first.ValueKind == JsonValueKind.String ? first.GetString() ?? "" : Text(first, "name");
+        }
+
+        var title = Text(data, "name");
+        var description = CleanText(Text(data, "short_description"));
+        var developer = FirstArrayName(data, "developers");
+        var publisher = FirstArrayName(data, "publishers");
+        var date = data.TryGetProperty("release_date", out var release) ? Text(release, "date") : "";
+        var genres = new List<string>();
+        if (data.TryGetProperty("genres", out var genreList) && genreList.ValueKind == JsonValueKind.Array)
+            genres.AddRange(genreList.EnumerateArray().Select(x => Text(x, "description")).Where(x => x.Length > 0));
+        var tags = new List<string>();
+        if (data.TryGetProperty("categories", out var categoryList) && categoryList.ValueKind == JsonValueKind.Array)
+            tags.AddRange(categoryList.EnumerateArray().Select(x => Text(x, "description")).Where(IsUsefulTag));
+        var isMultiplayer = tags.Any(tag => tag.Contains("multi-player", StringComparison.OrdinalIgnoreCase) ||
+            tag.Contains("multiplayer", StringComparison.OrdinalIgnoreCase) || tag.Contains("co-op", StringComparison.OrdinalIgnoreCase) ||
+            tag.Contains("pvp", StringComparison.OrdinalIgnoreCase));
+        var minimum = "";
+        var recommended = "";
+        if (data.TryGetProperty("pc_requirements", out var requirements) && requirements.ValueKind == JsonValueKind.Object)
+        {
+            minimum = CleanRequirements(Text(requirements, "minimum"));
+            recommended = CleanRequirements(Text(requirements, "recommended"));
+        }
+        var minimumRamGb = ExtractRequirementGb(minimum, "ram", "memory");
+        var requiredStorageGb = ExtractRequirementGb(minimum, "storage", "space", "disk");
+        var hero = Text(data, "background_raw");
+        if (hero.Length == 0) hero = Text(data, "background");
+        var cover = $"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{appId}/library_600x900.jpg";
+        var screenshots = new List<string>();
+        if (data.TryGetProperty("screenshots", out var screenshotList) && screenshotList.ValueKind == JsonValueKind.Array)
+            screenshots.AddRange(screenshotList.EnumerateArray().Select(x => Text(x, "path_full")).Where(x => x.Length > 0).Take(8));
+        var trailer = "";
+        if (data.TryGetProperty("movies", out var movies) && movies.ValueKind == JsonValueKind.Array && movies.GetArrayLength() > 0)
+        {
+            var firstMovie = movies[0];
+            if (firstMovie.TryGetProperty("mp4", out var mp4))
+                trailer = Text(mp4, "max").Length > 0 ? Text(mp4, "max") : Text(mp4, "480");
+        }
+        var (communityRating, ratingCount) = await FetchRatingAsync(appId, cancellationToken);
+        return new SteamMetadata(title, description, developer, publisher, date, genres, tags, isMultiplayer,
+            communityRating, ratingCount, minimum, recommended, minimumRamGb, requiredStorageGb,
+            cover, hero, screenshots, trailer);
+    }
+
+    private async Task<(double Rating, int Count)> FetchRatingAsync(int appId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var response = await httpClient.GetAsync($"https://store.steampowered.com/appreviews/{appId}?json=1&language=all&purchase_type=all&num_per_page=0", cancellationToken);
+            response.EnsureSuccessStatusCode();
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            if (!json.RootElement.TryGetProperty("query_summary", out var summary)) return (0, 0);
+            var total = summary.TryGetProperty("total_reviews", out var totalValue) ? totalValue.GetInt32() : 0;
+            var positive = summary.TryGetProperty("total_positive", out var positiveValue) ? positiveValue.GetInt32() : 0;
+            return total > 0 ? (Math.Round(positive * 5d / total, 1), total) : (0, 0);
+        }
+        catch when (!cancellationToken.IsCancellationRequested) { return (0, 0); }
+    }
+
+    private static bool IsUsefulTag(string value) =>
+        value.Contains("multi", StringComparison.OrdinalIgnoreCase) || value.Contains("co-op", StringComparison.OrdinalIgnoreCase) ||
+        value.Contains("pvp", StringComparison.OrdinalIgnoreCase) || value.Contains("single-player", StringComparison.OrdinalIgnoreCase) ||
+        value.Contains("cross-platform", StringComparison.OrdinalIgnoreCase) || value.Contains("split screen", StringComparison.OrdinalIgnoreCase);
+
+    private static string CleanRequirements(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var withLines = Regex.Replace(value, "<(br|/p|/li)[^>]*>", "\n", RegexOptions.IgnoreCase);
+        withLines = Regex.Replace(withLines, "<li[^>]*>", "• ", RegexOptions.IgnoreCase);
+        var withoutTags = WebUtility.HtmlDecode(Regex.Replace(withLines, "<[^>]+>", " "));
+        var lines = withoutTags.Replace("\r", "").Split('\n')
+            .Select(line => Regex.Replace(line, "\\s+", " ").Trim())
+            .Where(line => line.Length > 0 && !line.Equals("Minimum:", StringComparison.OrdinalIgnoreCase) && !line.Equals("Recommended:", StringComparison.OrdinalIgnoreCase));
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    private static double? ExtractRequirementGb(string requirements, params string[] keywords)
+    {
+        foreach (var line in requirements.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!keywords.Any(keyword => line.Contains(keyword, StringComparison.OrdinalIgnoreCase))) continue;
+            var match = Regex.Match(line, "(?<value>\\d+(?:\\.\\d+)?)\\s*GB", RegexOptions.IgnoreCase);
+            if (match.Success && double.TryParse(match.Groups["value"].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var value)) return value;
+        }
+        return null;
+    }
+
+    private static double TitleScore(string requested, string candidate)
+    {
+        static string Normalize(string value) => string.Join(' ', Regex.Split(value.ToLowerInvariant(), "[^a-z0-9]+").Where(part => part.Length > 0));
+        var left = Normalize(requested); var right = Normalize(candidate);
+        if (left == right) return 100;
+        if (right.StartsWith(left, StringComparison.Ordinal) || left.StartsWith(right, StringComparison.Ordinal)) return 85;
+        var leftWords = left.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+        var rightWords = right.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+        var union = leftWords.Union(rightWords).Count();
+        return union == 0 ? 0 : leftWords.Intersect(rightWords).Count() * 70d / union;
+    }
+
+    private static string CleanText(string value)
+    {
+        var withoutTags = Regex.Replace(value, "<[^>]+>", " ");
+        return Regex.Replace(WebUtility.HtmlDecode(withoutTags), "\\s+", " ").Trim();
+    }
+}
+
+public sealed class SteamGridDbService(HttpClient httpClient)
+{
+    public async Task<ArtworkResult> FindArtworkAsync(string title, string apiKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Add your SteamGridDB API key in Settings first.");
+        using var search = new HttpRequestMessage(HttpMethod.Get,
+            $"https://www.steamgriddb.com/api/v2/search/autocomplete/{Uri.EscapeDataString(title)}");
+        search.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey.Trim());
+        using var response = await httpClient.SendAsync(search, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+        var data = json.RootElement.GetProperty("data");
+        if (data.GetArrayLength() == 0) throw new InvalidOperationException("No SteamGridDB match was found for that title.");
+        var id = data[0].GetProperty("id").GetInt32();
+
+        var coverTask = GetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/grids/game/{id}?dimensions=600x900&types=static", apiKey, cancellationToken);
+        var heroTask = GetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/heroes/game/{id}?types=static", apiKey, cancellationToken);
+        await Task.WhenAll(coverTask, heroTask);
+        return new ArtworkResult(id, await coverTask, await heroTask);
+    }
+
+    private async Task<string> GetFirstUrlAsync(string url, string apiKey, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey.Trim());
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+        var data = json.RootElement.GetProperty("data");
+        return data.GetArrayLength() > 0 && data[0].TryGetProperty("url", out var urlValue) ? urlValue.GetString() ?? "" : "";
+    }
+}

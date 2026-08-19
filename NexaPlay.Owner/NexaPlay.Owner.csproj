@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>NexaPlay.Owner</AssemblyName>
+    <RootNamespace>NexaPlay.Owner</RootNamespace>
+    <Version>1.5.0</Version>
+    <Company>SauceBoyz</Company>
+    <Product>NexaPlay Owner Studio</Product>
+    <ApplicationIcon>..\NexaPlay\Assets\NexaPlay.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NexaPlay\NexaPlay.csproj" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.9" />
+    <Resource Include="..\NexaPlay\Assets\NexaPlay.ico" Link="Assets\NexaPlay.ico" />
+    <Resource Include="..\NexaPlay\Assets\NexaPlay-512.png" Link="Assets\NexaPlay-512.png" />
+    <None Include="..\NexaPlay\default-catalog.json" Link="default-catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Page Include="..\NexaPlay\CreatorWindow.xaml" Link="CreatorWindow.xaml" />
+    <Compile Include="..\NexaPlay\CreatorWindow.xaml.cs" Link="CreatorWindow.xaml.cs" DependentUpon="CreatorWindow.xaml" />
+    <Page Include="..\NexaPlay\GameEditorWindow.xaml" Link="GameEditorWindow.xaml" />
+    <Compile Include="..\NexaPlay\GameEditorWindow.xaml.cs" Link="GameEditorWindow.xaml.cs" DependentUpon="GameEditorWindow.xaml" />
+  </ItemGroup>
+</Project>

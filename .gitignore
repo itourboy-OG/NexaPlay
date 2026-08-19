@@ -1,0 +1,12 @@
+bin/
+obj/
+publish/
+.vs/
+installer/output/
+installer/previous/
+owner-publish/
+owner-tools/
+*.user
+*.suo
+*.pdb
+NexaPlay-startup.log

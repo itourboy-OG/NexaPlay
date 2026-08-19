@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>NexaPlay</AssemblyName>
+    <RootNamespace>NexaPlay</RootNamespace>
+    <Version>1.5.0</Version>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <FileVersion>1.5.0.0</FileVersion>
+    <InformationalVersion>1.5.0</InformationalVersion>
+    <Company>SauceBoyz</Company>
+    <Authors>SauceBoyz</Authors>
+    <Product>NexaPlay</Product>
+    <Description>A gamer-built Windows game library made by SauceBoyz.</Description>
+    <ApplicationIcon>Assets\NexaPlay.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SharpCompress" Version="0.50.3" />
+    <PackageReference Include="System.Management" Version="9.0.9" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.9" />
+    <Resource Include="Assets\NexaPlay.ico" />
+    <Resource Include="Assets\NexaPlay-512.png" />
+    <None Include="Assets\NexaPlay-Source.png" />
+    <None Include="default-catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="update-channel.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="CreatorWindow.xaml" />
+    <Page Remove="GameEditorWindow.xaml" />
+    <Compile Remove="CreatorWindow.xaml.cs" />
+    <Compile Remove="GameEditorWindow.xaml.cs" />
+  </ItemGroup>
+</Project>
