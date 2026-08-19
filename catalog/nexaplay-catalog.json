@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T21:36:54.7857118Z",
+  "UpdatedUtc": "2026-08-19T21:44:01.4617713Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -310,6 +310,65 @@
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1067360/e30e68edf114897622e35b9639703bf82872c196/ss_e30e68edf114897622e35b9639703bf82872c196.1920x1080.jpg?t=1786694191",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1067360/53cc2d06bc4baabc1eff70a3af346f87dce60cf7/ss_53cc2d06bc4baabc1eff70a3af346f87dce60cf7.1920x1080.jpg?t=1786694191",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1067360/0d01e8dde1ed81f04d15f88faef7e2aa17a0bbf7/ss_0d01e8dde1ed81f04d15f88faef7e2aa17a0bbf7.1920x1080.jpg?t=1786694191"
+      ],
+      "ReportUrl": "",
+      "SupportEmail": "",
+      "Featured": false
+    },
+    {
+      "Id": "e468f1c616374abcba10c5f0a951dd0c",
+      "Title": "Mortal Shell II",
+      "Description": "Their Flesh Is Your Weapon. Mortal Shell II is a standalone sequel action-RPG with adrenaline-charged, high-stakes combat. Possess warrior Shells, dethrone false gods, redeem a ravaged world.",
+      "DownloadUrl": "https://tunnel5.dlproxy.uk/download/UJW_GXST4mvtjRov2D2Lk5nq3HcGBBfBojLlX-tUQUdpSy0aI3Ff5Y5WoikuB9uJpUPL4pQ5PzWaJZGiejjas6gdRq_lCD560y2r7YX_nDe4cV_Zr7eCHVe11PFvGC9XqbEufNRvwOQvWiwYsEod7btB96caENSgxKHHZ3_6EdT5VC9sPAaZvSfOnP0oMr5EPKuA1-01z3bp8bRuqi3wZDQ_9DZMjXEVOTHgaxno6Dq1EL58cauV4BnG-L6J6b78Dt13-PpgPmlAQc4wNkLVC_8FwXkO8rOsLEieYWnJZJBOSIvH9vX35HIUB7RB-9NOZZveaR4OQsg4b_OkoLo-BJLY1idnSGiKC0dAqLfXcBhvNTvqk-DOvrcJ6DrvrVnztttg8rsVt4ZZ1MXJse4vhQ?sig=8esFU2oFbLRnKVHj1KZ3PF-Sjm4Y6UkcGUherFCKELk",
+      "UpdateDownloadUrl": "",
+      "OnlineFixDownloadUrl": "",
+      "Version": "92163",
+      "Developer": "Cold Symmetry",
+      "Publisher": "Playstack",
+      "ReleaseDate": "Aug 20, 2026",
+      "Genres": [
+        "Action",
+        "RPG"
+      ],
+      "Tags": [
+        "Single-player"
+      ],
+      "IsMultiplayer": false,
+      "CommunityRating": 4.1,
+      "RatingCount": 3415,
+      "UpdatedUtc": "2026-08-19T21:42:00Z",
+      "SteamAppId": 2584270,
+      "SteamGridDbId": 5491529,
+      "CoverUrl": "https://cdn2.steamgriddb.com/grid/269fbbf79a58d66e7291ee5694ea2076.png",
+      "HeroUrl": "https://cdn2.steamgriddb.com/hero/8d752112e7cda7b1b63c0e4b0f05db3e.png",
+      "ArchivePassword": "",
+      "UpdateArchivePassword": "",
+      "OnlineFixArchivePassword": "",
+      "ExecutablePath": "",
+      "InstallFolderName": "",
+      "Sha256": "",
+      "UpdateSha256": "",
+      "OnlineFixSha256": "",
+      "DownloadSizeBytes": null,
+      "UpdateSizeBytes": null,
+      "OnlineFixSizeBytes": null,
+      "InstallationGuide": "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.",
+      "ImportantNotes": "Only install games from sources you trust and are authorized to use.\n\nKeep enough free storage for both the downloaded archive and the extracted game.\n\nIf the game does not start, check the game folder for included redistributables or support instructions.",
+      "MinimumRequirements": "\u2022 OS: Windows 10 / 11\r\n\u2022 Processor: Intel Core i7-10700K @ 3.8 GHz or better or AMD Ryzen 5 3600 @ 3.6 GHz or better\r\n\u2022 Memory: 16 GB RAM\r\n\u2022 Graphics: NVIDIA GeForce RTX 2060 SUPER 8 GB or AMD Radeon RX 6600 8 GB\r\n\u2022 DirectX: Version 12\r\n\u2022 Storage: 70 GB available space\r\n\u2022 Additional Notes: SSD required",
+      "RecommendedRequirements": "",
+      "MinimumRamGb": 16,
+      "RequiredStorageGb": 70,
+      "TrailerUrl": "",
+      "GameplayUrl": "",
+      "ScreenshotUrls": [
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/a38e76ebe240fb97b0d81e5a38569c0991d3ca63/ss_a38e76ebe240fb97b0d81e5a38569c0991d3ca63.1920x1080.jpg?t=1787146410",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/25aef0e6c4291d8708b53c5e8aaa66bc9859592f/ss_25aef0e6c4291d8708b53c5e8aaa66bc9859592f.1920x1080.jpg?t=1787146410",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/c00a163b2843460386cad95df44de5d47a79fc26/ss_c00a163b2843460386cad95df44de5d47a79fc26.1920x1080.jpg?t=1787146410",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/c38138e1c7c7c84636a08b2729bd983728f2c597/ss_c38138e1c7c7c84636a08b2729bd983728f2c597.1920x1080.jpg?t=1787146410",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/5d8abca2b0c59292425e091aeb013f1eca948cbb/ss_5d8abca2b0c59292425e091aeb013f1eca948cbb.1920x1080.jpg?t=1787146410",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/8109ee13458b04eb59cad18872996c3f802e7d7f/ss_8109ee13458b04eb59cad18872996c3f802e7d7f.1920x1080.jpg?t=1787146410",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/8297dcfff135bf0d0ab519bf535b183979c1b718/ss_8297dcfff135bf0d0ab519bf535b183979c1b718.1920x1080.jpg?t=1787146410",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2584270/cb7f0b41a6bbe71705bd0971dcaa0df3dd146381/ss_cb7f0b41a6bbe71705bd0971dcaa0df3dd146381.1920x1080.jpg?t=1787146410"
       ],
       "ReportUrl": "",
       "SupportEmail": "",
