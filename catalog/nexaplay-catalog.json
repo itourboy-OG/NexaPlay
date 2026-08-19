@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T21:23:24.7817867Z",
+  "UpdatedUtc": "2026-08-19T21:24:50.1213177Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -192,7 +192,7 @@
       "Featured": false
     },
     {
-      "Id": "2427314415f247b89d75bc932257eb92",
+      "Id": "61662cde6de14a3c85156e69c05ca226",
       "Title": "Machine Party",
       "Description": "Machine Party is a collection of violent party games where failure is lethal. Gather your friends and endure high stakes situations to prove your life is worth more than theirs. Survival is unlikely.",
       "DownloadUrl": "https://tunnel5.dlproxy.uk/download/IYB6eN06Nw3Z3rLbul4pKtUol1uHhGfNU5oWo9VP6IvjDfcWwqlnPBHsU72PbXOGaa_BOAVSSDdYOz2J1_fDmYZy5PjEQWZat4fmnozz7VOVyGRTWRdrLIc9GZJGRvWrUevZkdC6b5RM8mNoKd6z91KPnJSQJ1rvuweUS07hdgnDcX6cfAQYaXZNtLGQr0sq4BDZbbn_0CLQvwrzuUvmhzaa1Wu2x730zeAl0cNAhVlwUyEbYKPuZgy6pr4IP_WOE6kA6ZlAKfrRXxli-aER_UWshunkHbZr8ligVZ1-JD2m6I-e8kXj7Qk54lT6avPtsyLPMOU3qNcyY5Z0Z7rV1dzB_oir_kNEsM2kczKOuJ1_EHJFE-kOIbAIZ_X3XGdSCkl7LbSTbiCE56_xRqSoUA?sig=5r7VBMrvV0P1eON3LmWOO0nw4Ey-JQTZOczncPVjpU0",
@@ -216,7 +216,7 @@
       "IsMultiplayer": true,
       "CommunityRating": 4.4,
       "RatingCount": 3856,
-      "UpdatedUtc": "2026-08-19T21:22:00Z",
+      "UpdatedUtc": "2026-08-19T21:24:00Z",
       "SteamAppId": 4108000,
       "SteamGridDbId": null,
       "CoverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4108000/library_600x900.jpg",
