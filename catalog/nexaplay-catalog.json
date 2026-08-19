@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T21:33:53.1067711Z",
+  "UpdatedUtc": "2026-08-19T21:36:54.7857118Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -255,7 +255,7 @@
       "Featured": false
     },
     {
-      "Id": "1f4bad81237f40e1a054da9c6c8f10af",
+      "Id": "9fd17a2155f941ebafe8b8b62e12900d",
       "Title": "Pax Autocratica",
       "Description": "Build a grand totalitarian colony and personally storm roguelite battlefields with your soldiers. Shape citizens fears, loyalties, bonds, and feuds. Capture enemies, convert them into true believers. Sacrifice the weak. Feed the strong. Wield absolute power and make every life bend to your will.",
       "DownloadUrl": "https://tunnel5.dlproxy.uk/download/OESpy1bzIpKuqcmNtruAMwQ69cuOgQnawRqOg8BMzet-cBWN8u3MOLBHwUVYsUX6DGsS-oG2tbHRs5VYOP7uBLTHe-d__FxGIxsQxgHTEji6gBdt-kGDZq0w9KTldohUDRa6vlv7o8iXnqeAn5xj0kdVPSHX1UwCrxgxxQypyO_w9Jn7-CSkqEZwAuek0VEBHCepxWYuSOFURf6c0CKHrae6JeMr7bAyIbYb_dgcRv2qdeJdaanJD3PR4zCp2Gl_hsQojav6OmtBUSryE7E1jThVexfpktbkzZnFt3KT5k1eeigY6_hpUcfiRA1gcX0K45wllQPXK-c_Dp4XBAr3k14AAdQsRx-u8RNthoT9uf8tBetknQ6C1uXXEeAlVCiumeSjoLiW1VYJgGXIlytppg?sig=aGMARvf88vddrS2otdcJdQsY7F0fn-9JRnKSl87EVVY",
@@ -277,7 +277,7 @@
       "IsMultiplayer": false,
       "CommunityRating": 4.6,
       "RatingCount": 2340,
-      "UpdatedUtc": "2026-08-19T21:33:00Z",
+      "UpdatedUtc": "2026-08-19T21:34:00Z",
       "SteamAppId": 1067360,
       "SteamGridDbId": null,
       "CoverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1067360/library_600x900.jpg",
