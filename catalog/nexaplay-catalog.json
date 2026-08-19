@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T21:55:55.3261386Z",
+  "UpdatedUtc": "2026-08-19T21:56:29.4098069Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -375,7 +375,7 @@
       "Featured": false
     },
     {
-      "Id": "be2ba4551f3041b382c56c1196ffcefa",
+      "Id": "1c68073d40c14746b6ba90835dac1047",
       "Title": "Assassin\u0027s Creed Black Flag Resynced",
       "Description": "The iconic solo pirate adventure returns. Sail the Caribbean as Edward Kenway during the Golden Age of Piracy in this faithfully enhanced remake featuring stunning visuals, upgraded gameplay, and new content.",
       "DownloadUrl": "https://tunnel5.dlproxy.uk/download/bAwPf-KNl1_tbItDjt6nXzUvLL00ifnG1S9I4zeWBsnqfjg8x3ThHt5Jk_A0OZdIdArw_Sp68BsjOa9YkwKTv_E_cawo65GcVpb3r7nmL_SsuwezvzKS_HMMZBCpUW_RdoRK0UvJozFAHBpaftlJq5N6LoUQgiZ4W5wKJTZ0m8cJADkza81F6kB-qMd-S1GjYSto2h7mdeUmzgbwbywdB6AiXZWMtHoc49PakXparQ3zxt18GP6sLgN3juh8XIyvvB-zt3e0bMMJUEg4LDHspkKaBpqH2SGnpCx8iTOmoLgVeAGuQ9QkzgIDoT7Zma92M34tZt4iMDy8ab9nGahY5lQL4uFkPXfWc3JOlMldsz9HuKjBjtNZCDd-ZwoPLFQisq7bul8Cvi6zdKCsjI2lcmsLeh6YwPyYlFusWQgFyMGG14yXCCzyIeh5LOBm4Z1k?sig=QSQU_J92UM7DYvD2HdJOji4p8TLtLHvPfiNvtwnE-LE",
@@ -395,7 +395,7 @@
       "IsMultiplayer": false,
       "CommunityRating": 4,
       "RatingCount": 28282,
-      "UpdatedUtc": "2026-08-19T21:55:00Z",
+      "UpdatedUtc": "2026-08-19T21:56:00Z",
       "SteamAppId": 3751950,
       "SteamGridDbId": 5526159,
       "CoverUrl": "https://cdn2.steamgriddb.com/grid/a9f7e2af063303f02fd5d479c8816c79.png",
