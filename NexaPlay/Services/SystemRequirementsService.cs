@@ -8,27 +8,35 @@ public static class SystemRequirementsService
 {
     public static string Check(GameEntry game, string libraryFolder, AppSettings settings)
     {
-        var checks = new List<string>(); var passed = true;
+        var checks = new List<string>(); var passed = true; var automaticChecks = 0;
         var ramGb = settings.ProfileRamGb ?? DetectRamGb();
-        if (game.MinimumRamGb is > 0) { var ok = ramGb >= game.MinimumRamGb.Value; passed &= ok; checks.Add($"{(ok ? "✓" : "✕")} RAM: {ramGb:0.#} GB / {game.MinimumRamGb:0.#} GB minimum"); }
+        if (game.MinimumRamGb is > 0) { automaticChecks++; var ok = ramGb >= game.MinimumRamGb.Value; passed &= ok; checks.Add($"{(ok ? "✓" : "✕")} RAM: {ramGb:0.#} GB / {game.MinimumRamGb:0.#} GB minimum"); }
         else checks.Add($"• RAM: {ramGb:0.#} GB (Steam did not publish a numeric minimum)");
 
         var profileOs = string.IsNullOrWhiteSpace(settings.ProfileOs) ? DetectOs() : settings.ProfileOs;
         var needsWindows11 = game.MinimumRequirements.Contains("Windows 11", StringComparison.OrdinalIgnoreCase);
         var needsWindows10 = game.MinimumRequirements.Contains("Windows 10", StringComparison.OrdinalIgnoreCase);
         var osOk = (!needsWindows11 || profileOs.Contains("Windows 11", StringComparison.OrdinalIgnoreCase)) && (!needsWindows10 || profileOs.Contains("Windows 10", StringComparison.OrdinalIgnoreCase) || profileOs.Contains("Windows 11", StringComparison.OrdinalIgnoreCase));
-        passed &= osOk; checks.Add($"{(osOk ? "✓" : "✕")} Windows: {profileOs}");
+        if (needsWindows10 || needsWindows11) automaticChecks++;
+        passed &= osOk; checks.Add($"{(needsWindows10 || needsWindows11 ? (osOk ? "✓" : "✕") : "•")} Windows: {profileOs}");
         try
         {
             var root = Path.GetPathRoot(Path.GetFullPath(libraryFolder)); var freeGb = root is null ? 0 : new DriveInfo(root).AvailableFreeSpace / 1024d / 1024d / 1024d;
-            if (game.RequiredStorageGb is > 0) { var ok = freeGb >= game.RequiredStorageGb.Value; passed &= ok; checks.Add($"{(ok ? "✓" : "✕")} Storage: {freeGb:0.#} GB free / {game.RequiredStorageGb:0.#} GB required"); }
+            if (game.RequiredStorageGb is > 0) { automaticChecks++; var ok = freeGb >= game.RequiredStorageGb.Value; passed &= ok; checks.Add($"{(ok ? "✓" : "✕")} Storage: {freeGb:0.#} GB free / {game.RequiredStorageGb:0.#} GB required"); }
             else checks.Add($"• Storage: {freeGb:0.#} GB free (no numeric minimum published)");
         }
         catch { checks.Add("• Storage: could not read the library drive"); }
-        checks.Add($"• CPU: {(string.IsNullOrWhiteSpace(settings.ProfileCpu) ? "Not entered" : settings.ProfileCpu)}");
-        checks.Add($"• GPU: {(string.IsNullOrWhiteSpace(settings.ProfileGpu) ? "Not entered" : settings.ProfileGpu)}");
-        var headline = passed ? "This PC passes the automatic RAM, Windows, and storage checks." : "This PC does not pass every automatic check.";
-        return headline + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, checks) + Environment.NewLine + Environment.NewLine + "Compare the saved CPU/GPU with the requirements shown on the game page, or use Can You RUN It for a maintained hardware ranking.";
+        var cpu = string.IsNullOrWhiteSpace(settings.ProfileCpu) ? DetectCpu() : settings.ProfileCpu;
+        var gpu = string.IsNullOrWhiteSpace(settings.ProfileGpu) || IsVirtualGpu(settings.ProfileGpu) ? DetectGpu() : settings.ProfileGpu;
+        checks.Add($"? CPU: {(string.IsNullOrWhiteSpace(cpu) ? "Could not detect" : cpu)} — performance not ranked");
+        checks.Add($"? GPU: {(string.IsNullOrWhiteSpace(gpu) ? "Could not detect" : gpu)} — performance not ranked");
+        var headline = !passed
+            ? "RESULT: This PC fails at least one checked minimum requirement."
+            : automaticChecks == 0
+                ? "RESULT: Unknown — this game has no numeric requirements NexaPlay can check."
+                : "PARTIAL RESULT: The automatically checked minimum requirements pass.";
+        return headline + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, checks) + Environment.NewLine + Environment.NewLine +
+            "This is not a guaranteed can-run verdict. NexaPlay checks Windows, RAM, and storage, but it cannot reliably rank every CPU and GPU without a maintained hardware-performance database.";
     }
 
     public static string DetectCpu() { try { return Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0")?.GetValue("ProcessorNameString")?.ToString()?.Trim() ?? ""; } catch { return ""; } }

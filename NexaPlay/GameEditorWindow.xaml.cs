@@ -89,7 +89,7 @@ public partial class GameEditorWindow : Window
                 try
                 {
                     using var artworkTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                    var artwork = await _artwork.FindArtworkAsync(TitleBox.Text.Trim(), artworkKey, artworkTimeout.Token);
+                    var artwork = await _artwork.FindArtworkAsync(TitleBox.Text.Trim(), artworkKey, specifiedId, artworkTimeout.Token);
                     SgdbIdBox.Text = artwork.SteamGridDbId.ToString(CultureInfo.InvariantCulture);
                     if (artwork.CoverUrl.Length > 0) CoverBox.Text = artwork.CoverUrl;
                     if (artwork.HeroUrl.Length > 0) HeroBox.Text = artwork.HeroUrl;
@@ -141,7 +141,8 @@ public partial class GameEditorWindow : Window
         try
         {
             StatusText.Text = "Searching SteamGridDB…";
-            var result = await _artwork.FindArtworkAsync(TitleBox.Text.Trim(), _settingsService.GetSteamGridDbKey(_settings));
+            var steamId = int.TryParse(SteamIdBox.Text.Trim(), out var parsedSteamId) ? parsedSteamId : (int?)null;
+            var result = await _artwork.FindArtworkAsync(TitleBox.Text.Trim(), _settingsService.GetSteamGridDbKey(_settings), steamId);
             SgdbIdBox.Text = result.SteamGridDbId.ToString(); if (result.CoverUrl.Length > 0) CoverBox.Text = result.CoverUrl; if (result.HeroUrl.Length > 0) HeroBox.Text = result.HeroUrl;
             StatusText.Text = "SteamGridDB artwork added. Review the match before saving.";
         }

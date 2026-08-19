@@ -1,7 +1,7 @@
 {
-  "version": "1.5.0",
-  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.5.0/NexaPlay-Setup-v1.5.0.exe",
-  "sha256": "820E127B0363D7890BC9F23D0F2D64B0C208A8EDA81301AF3F254546EF90CAF7",
+  "version": "1.6.0",
+  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.6.0/NexaPlay-Setup-v1.6.0.exe",
+  "sha256": "659CA39DB99AFFE564BF4A0444158EE82F741730DD24B6F51AFB4013E98BE103",
   "notes": "Latest NexaPlay improvements and fixes from SauceBoyz.",
-  "publishedUtc": "2026-08-19T18:40:51.9413219Z"
+  "publishedUtc": "2026-08-19T19:26:30.5769335Z"
 }

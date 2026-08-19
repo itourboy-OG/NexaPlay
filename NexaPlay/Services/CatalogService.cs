@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace NexaPlay.Services;
 
@@ -40,7 +41,11 @@ public sealed class CatalogService(HttpClient httpClient)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
             throw new InvalidOperationException("Remote catalogs must use a trusted HTTPS URL.");
-        using var response = await httpClient.GetAsync(uri, cancellationToken);
+        var freshUri = AddCacheBuster(uri);
+        using var request = new HttpRequestMessage(HttpMethod.Get, freshUri);
+        request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
+        request.Headers.Pragma.ParseAdd("no-cache");
+        using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
         var mediaType = response.Content.Headers.ContentType?.MediaType ?? "";
         if (mediaType.Contains("html", StringComparison.OrdinalIgnoreCase))
@@ -52,6 +57,14 @@ public sealed class CatalogService(HttpClient httpClient)
         Normalize(document);
         await SaveAsync(document);
         return document;
+    }
+
+    private static Uri AddCacheBuster(Uri uri)
+    {
+        var builder = new UriBuilder(uri);
+        var separator = string.IsNullOrWhiteSpace(builder.Query) ? "" : builder.Query.TrimStart('?') + "&";
+        builder.Query = $"{separator}nexaplay_refresh={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        return builder.Uri;
     }
 
     public static void Validate(CatalogDocument document)

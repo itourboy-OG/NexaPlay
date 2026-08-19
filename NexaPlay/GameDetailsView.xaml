@@ -42,7 +42,7 @@
 
                     <TextBlock Text="SYSTEM REQUIREMENTS" FontSize="17" FontWeight="Black" Margin="0,28,0,0"/>
                     <Grid x:Name="RequirementsGrid" Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Border Background="#111622" CornerRadius="4" Padding="16"><StackPanel><TextBlock Text="MINIMUM" Foreground="{StaticResource CyanBrush}" FontWeight="Bold" FontSize="9"/><TextBlock Text="{Binding MinimumRequirementsDisplay}" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="19" Margin="0,9,0,0"/></StackPanel></Border><Border Grid.Column="1" Background="#111622" CornerRadius="4" Padding="16" Margin="10,0,0,0"><StackPanel><TextBlock Text="RECOMMENDED" Foreground="#BDAEFF" FontWeight="Bold" FontSize="9"/><TextBlock Text="{Binding RecommendedRequirementsDisplay}" Foreground="#C2CADB" TextWrapping="Wrap" LineHeight="19" Margin="0,9,0,0"/></StackPanel></Border></Grid>
-                    <Button Style="{StaticResource GhostButton}" Content="CAN I RUN IT?  —  CHECK THIS PC" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CanIRun_Click"/>
+                    <Button Style="{StaticResource GhostButton}" Content="CHECK PC COMPATIBILITY  —  PARTIAL" HorizontalAlignment="Left" Margin="0,12,0,0" Click="CanIRun_Click"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1">

@@ -167,32 +167,75 @@ public sealed class SteamMetadataService(HttpClient httpClient)
 public sealed class SteamGridDbService(HttpClient httpClient)
 {
     public async Task<ArtworkResult> FindArtworkAsync(string title, string apiKey, CancellationToken cancellationToken = default)
+        => await FindArtworkAsync(title, apiKey, null, cancellationToken);
+
+    public async Task<ArtworkResult> FindArtworkAsync(string title, string apiKey, int? steamAppId, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Add your SteamGridDB API key in Settings first.");
-        using var search = new HttpRequestMessage(HttpMethod.Get,
-            $"https://www.steamgriddb.com/api/v2/search/autocomplete/{Uri.EscapeDataString(title)}");
-        search.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey.Trim());
+        if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Add your SteamGridDB API key from the Owner Studio toolbar first.");
+        var id = steamAppId is int appId
+            ? await TryFindBySteamIdAsync(appId, apiKey, cancellationToken)
+            : null;
+        id ??= await FindBestTitleMatchAsync(title, apiKey, cancellationToken);
+
+        var coverTask = TryGetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/grids/game/{id}?dimensions=600x900&types=static", apiKey, cancellationToken);
+        var heroTask = TryGetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/heroes/game/{id}?types=static", apiKey, cancellationToken);
+        await Task.WhenAll(coverTask, heroTask);
+        var cover = await coverTask;
+        var hero = await heroTask;
+        if (cover.Length == 0 && hero.Length == 0)
+            throw new InvalidOperationException("SteamGridDB found the game, but it does not have a usable static cover or hero image yet.");
+        return new ArtworkResult(id.Value, cover, hero);
+    }
+
+    private async Task<int?> TryFindBySteamIdAsync(int appId, string apiKey, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = CreateRequest($"https://www.steamgriddb.com/api/v2/games/steam/{appId}", apiKey);
+            using var response = await httpClient.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode) return null;
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            return json.RootElement.TryGetProperty("data", out var data) && data.TryGetProperty("id", out var id) ? id.GetInt32() : null;
+        }
+        catch when (!cancellationToken.IsCancellationRequested) { return null; }
+    }
+
+    private async Task<int> FindBestTitleMatchAsync(string title, string apiKey, CancellationToken cancellationToken)
+    {
+        using var search = CreateRequest($"https://www.steamgriddb.com/api/v2/search/autocomplete/{Uri.EscapeDataString(title)}", apiKey);
         using var response = await httpClient.SendAsync(search, cancellationToken);
         response.EnsureSuccessStatusCode();
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
         var data = json.RootElement.GetProperty("data");
         if (data.GetArrayLength() == 0) throw new InvalidOperationException("No SteamGridDB match was found for that title.");
-        var id = data[0].GetProperty("id").GetInt32();
-
-        var coverTask = GetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/grids/game/{id}?dimensions=600x900&types=static", apiKey, cancellationToken);
-        var heroTask = GetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/heroes/game/{id}?types=static", apiKey, cancellationToken);
-        await Task.WhenAll(coverTask, heroTask);
-        return new ArtworkResult(id, await coverTask, await heroTask);
+        static string Normalize(string value) => string.Concat(value.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+        var normalizedTitle = Normalize(title);
+        foreach (var candidate in data.EnumerateArray())
+        {
+            var name = candidate.TryGetProperty("name", out var value) ? value.GetString() ?? "" : "";
+            if (Normalize(name) == normalizedTitle) return candidate.GetProperty("id").GetInt32();
+        }
+        return data[0].GetProperty("id").GetInt32();
     }
 
-    private async Task<string> GetFirstUrlAsync(string url, string apiKey, CancellationToken cancellationToken)
+    private async Task<string> TryGetFirstUrlAsync(string url, string apiKey, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        try
+        {
+            using var request = CreateRequest(url, apiKey);
+            using var response = await httpClient.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode) return "";
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var data = json.RootElement.GetProperty("data");
+            return data.GetArrayLength() > 0 && data[0].TryGetProperty("url", out var urlValue) ? urlValue.GetString() ?? "" : "";
+        }
+        catch when (!cancellationToken.IsCancellationRequested) { return ""; }
+    }
+
+    private static HttpRequestMessage CreateRequest(string url, string apiKey)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey.Trim());
-        using var response = await httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
-        var data = json.RootElement.GetProperty("data");
-        return data.GetArrayLength() > 0 && data[0].TryGetProperty("url", out var urlValue) ? urlValue.GetString() ?? "" : "";
+        return request;
     }
 }

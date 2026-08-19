@@ -17,6 +17,7 @@ public partial class CreatorWindow : Window
     private string _modeStatus = "Local owner mode — changes are saved on this PC.";
     public CatalogDocument Catalog => _catalog;
     public Action? ConfigurePublishingAction { get; set; }
+    public Action? ConfigureArtworkKeyAction { get; set; }
 
     public CreatorWindow(CatalogDocument catalog, CatalogService catalogService, AppSettings settings, SettingsService settingsService, HttpClient http)
     {
@@ -59,6 +60,9 @@ public partial class CreatorWindow : Window
     }
 
     private void Connection_Click(object sender, RoutedEventArgs e) => ConfigurePublishingAction?.Invoke();
+    private void ArtworkKey_Click(object sender, RoutedEventArgs e) => ConfigureArtworkKeyAction?.Invoke();
+
+    public void SetArtworkKeyStatus(bool configured) => ArtworkKeyButton.Content = configured ? "SteamGridDB key ✓" : "SteamGridDB key…";
 
     private async void Add_Click(object sender, RoutedEventArgs e)
     {
@@ -95,7 +99,7 @@ public partial class CreatorWindow : Window
                     try
                     {
                         using var artTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                        var art = await artwork.FindArtworkAsync(game.Title, artworkKey, artTimeout.Token);
+                        var art = await artwork.FindArtworkAsync(game.Title, artworkKey, game.SteamAppId, artTimeout.Token);
                         game.SteamGridDbId = art.SteamGridDbId; if (art.CoverUrl.Length > 0) game.CoverUrl = art.CoverUrl; if (art.HeroUrl.Length > 0) game.HeroUrl = art.HeroUrl;
                     }
                     catch { }

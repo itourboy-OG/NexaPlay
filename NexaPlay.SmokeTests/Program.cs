@@ -16,6 +16,11 @@ try
 {
     var clean = DownloadService.SafeName("My: Game? <Test>");
     Require(!clean.Any(Path.GetInvalidFileNameChars().Contains), "Filename sanitization failed.");
+    var keySettings = new AppSettings();
+    var keyService = new SettingsService();
+    const string testArtworkKey = "steamgriddb-owner-only-test-key-123456";
+    keyService.SetSteamGridDbKey(keySettings, testArtworkKey);
+    Require(keySettings.ProtectedSteamGridDbKey.Length > 0 && !keySettings.ProtectedSteamGridDbKey.Contains(testArtworkKey, StringComparison.Ordinal) && keyService.GetSteamGridDbKey(keySettings) == testArtworkKey, "SteamGridDB key encryption round-trip failed.");
     var catalog = new CatalogDocument { Games = [new GameEntry { Title = "Test Game", DownloadUrl = "https://example.test/game.zip", UpdateDownloadUrl = "https://example.test/update.zip", OnlineFixDownloadUrl = "https://example.test/fix.zip", Tags = ["CO-OP"], IsMultiplayer = true, CommunityRating = 4.7, RatingCount = 120 }] };
     CatalogService.Validate(catalog);
     var duplicateRejected = false;
