@@ -106,6 +106,6 @@ public partial class GameDetailsView : UserControl
     {
         if (_game is null) return;
         var profile = new HardwareProfileWindow(_game, _settings, new SettingsService()) { Owner = Window.GetWindow(this) };
-        if (profile.ShowDialog() == true) MessageBox.Show(SystemRequirementsService.Check(_game, _settings.LibraryFolder, _settings), $"Can I run {_game.Title}?", MessageBoxButton.OK, MessageBoxImage.Information);
+        if (profile.ShowDialog() == true) MessageBox.Show(SystemRequirementsService.Check(_game, _settings.LibraryFolder, _settings), $"PC compatibility — {_game.Title}", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

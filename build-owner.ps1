@@ -22,6 +22,9 @@ if ($LASTEXITCODE -ne 0) { throw "Owner Studio publish failed with exit code $LA
 New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 $source = Join-Path $publishDir 'NexaPlay.Owner.exe'
 $destination = Join-Path $outputDir "NexaPlay-Owner-Studio-v$version.exe"
+Get-ChildItem -LiteralPath $outputDir -File -Filter 'NexaPlay-Owner-Studio-v*.exe' |
+    Where-Object { $_.FullName -ne $destination } |
+    Remove-Item -Force
 Copy-Item -LiteralPath $source -Destination $destination -Force
 $file = Get-Item -LiteralPath $destination
 $hash = Get-FileHash -LiteralPath $destination -Algorithm SHA256

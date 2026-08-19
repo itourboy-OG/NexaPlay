@@ -39,6 +39,9 @@ if (-not (Test-Path -LiteralPath $compiledInstaller)) { throw "The installer was
 $easyFolder = Join-Path $projectRoot 'NEXAPLAY - USE THESE'
 New-Item -ItemType Directory -Path $easyFolder -Force | Out-Null
 $installerPath = Join-Path $easyFolder "NexaPlay-Setup-v$version.exe"
+Get-ChildItem -LiteralPath $easyFolder -File -Filter 'NexaPlay-Setup-v*.exe' |
+    Where-Object { $_.FullName -ne $installerPath } |
+    Remove-Item -Force
 Move-Item -LiteralPath $compiledInstaller -Destination $installerPath -Force
 $installer = Get-Item -LiteralPath $installerPath
 $hash = Get-FileHash -LiteralPath $installerPath -Algorithm SHA256

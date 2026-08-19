@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>NexaPlay.Owner</AssemblyName>
     <RootNamespace>NexaPlay.Owner</RootNamespace>
-    <Version>1.5.1</Version>
+    <Version>1.6.0</Version>
     <Company>SauceBoyz</Company>
     <Product>NexaPlay Owner Studio</Product>
     <ApplicationIcon>..\NexaPlay\Assets\NexaPlay.ico</ApplicationIcon>

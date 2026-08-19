@@ -99,7 +99,7 @@ public partial class CreatorWindow : Window
                     try
                     {
                         using var artTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                        var art = await artwork.FindArtworkAsync(game.Title, artworkKey, artTimeout.Token);
+                        var art = await artwork.FindArtworkAsync(game.Title, artworkKey, game.SteamAppId, artTimeout.Token);
                         game.SteamGridDbId = art.SteamGridDbId; if (art.CoverUrl.Length > 0) game.CoverUrl = art.CoverUrl; if (art.HeroUrl.Length > 0) game.HeroUrl = art.HeroUrl;
                     }
                     catch { }

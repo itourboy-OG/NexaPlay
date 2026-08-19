@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace NexaPlay;
 
@@ -29,11 +30,16 @@ public partial class MainWindow : Window
     private bool _favoritesOnly;
     private FrameworkElement? _currentPage;
     private UpdateRelease? _availableUpdate;
+    private readonly DispatcherTimer _catalogRefreshTimer;
+    private string? _openGameId;
+    private int _catalogSyncInProgress;
+    private bool _initialized;
+    private DateTime _lastCatalogSyncAttemptUtc = DateTime.MinValue;
 
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.5.0 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.6.0 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -49,7 +55,15 @@ public partial class MainWindow : Window
         DetailsPage.OpenDownloadsAction = ShowDownloadsPage;
         _currentPage = LibraryPage;
         SetSelectedNav(LibraryNav);
+        _catalogRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMinutes(5) };
+        _catalogRefreshTimer.Tick += async (_, _) => await SyncCatalogAsync(false);
         Loaded += async (_, _) => await InitializeAsync();
+        Activated += async (_, _) =>
+        {
+            if (_initialized && DateTime.UtcNow - _lastCatalogSyncAttemptUtc >= TimeSpan.FromMinutes(2))
+                await SyncCatalogAsync(false);
+        };
+        Closed += (_, _) => _catalogRefreshTimer.Stop();
     }
 
     private async Task InitializeAsync()
@@ -72,13 +86,15 @@ public partial class MainWindow : Window
             if (_settings.AutoSyncCatalog && !string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl))
             {
                 StatusText.Text = "Syncing catalog…";
-                try { _catalog = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl); }
+                try { _lastCatalogSyncAttemptUtc = DateTime.UtcNow; _catalog = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl); }
                 catch (Exception ex) { StatusText.Text = $"Catalog sync skipped: {ex.Message}"; }
             }
             RefreshInstallStates();
             ApplyFilter();
             _ = RefreshCommunityRatingsAsync();
             StatusText.Text = $"Ready  •  Library: {_settings.LibraryFolder}";
+            _initialized = true;
+            if (_settings.AutoSyncCatalog) _catalogRefreshTimer.Start();
             _ = CheckForUpdatesAsync(false);
         }
         catch (Exception ex) { ShowError("NexaPlay could not start", ex); }
@@ -175,6 +191,7 @@ public partial class MainWindow : Window
 
     private void OpenGameDetails(GameEntry game)
     {
+        _openGameId = game.Id;
         DetailsPage.ShowGame(game, _settings, !string.IsNullOrWhiteSpace(_catalog.CommunityApiUrl));
         NavigateTo(DetailsPage, null);
         StatusText.Text = $"Viewing {game.Title}";
@@ -324,12 +341,38 @@ public partial class MainWindow : Window
     private async void Sync_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) { OpenSettings(); return; }
+        await SyncCatalogAsync(true);
+    }
+
+    private async Task SyncCatalogAsync(bool userInitiated)
+    {
+        if (!_settings.AutoSyncCatalog && !userInitiated) return;
+        if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) return;
+        if (Interlocked.Exchange(ref _catalogSyncInProgress, 1) != 0) return;
+        _lastCatalogSyncAttemptUtc = DateTime.UtcNow;
         try
         {
-            StatusText.Text = "Syncing catalog…"; _catalog = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl);
-            RefreshInstallStates(); ApplyFilter(); _ = RefreshCommunityRatingsAsync(); StatusText.Text = $"Catalog synced at {DateTime.Now:t}.";
+            if (userInitiated) StatusText.Text = "Syncing the latest catalog…";
+            var refreshed = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl);
+            _catalog = refreshed;
+            RefreshInstallStates();
+            ApplyFilter();
+
+            if (_currentPage == DetailsPage && !string.IsNullOrWhiteSpace(_openGameId))
+            {
+                var refreshedGame = _catalog.Games.FirstOrDefault(game => game.Id.Equals(_openGameId, StringComparison.OrdinalIgnoreCase));
+                if (refreshedGame is null) ShowLibraryPage();
+                else DetailsPage.ShowGame(refreshedGame, _settings, !string.IsNullOrWhiteSpace(_catalog.CommunityApiUrl));
+            }
+
+            _ = RefreshCommunityRatingsAsync();
+            StatusText.Text = $"Catalog synced at {DateTime.Now:t}  •  {_catalog.Games.Count} games";
         }
-        catch (Exception ex) { ShowError("Catalog sync failed", ex); }
+        catch (Exception ex)
+        {
+            if (userInitiated) ShowError("Catalog sync failed", ex);
+        }
+        finally { Interlocked.Exchange(ref _catalogSyncInProgress, 0); }
     }
 
     private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
@@ -398,7 +441,9 @@ public partial class MainWindow : Window
         var window = new SettingsWindow(_settings, _settingsService, _catalogService) { Owner = this };
         if (window.ShowDialog() == true)
         {
-            _settings = window.Settings; Directory.CreateDirectory(_settings.LibraryFolder); RefreshInstallStates(); ApplyFilter(); StatusText.Text = "Settings saved.";
+            _settings = window.Settings; Directory.CreateDirectory(_settings.LibraryFolder); RefreshInstallStates(); ApplyFilter();
+            if (_settings.AutoSyncCatalog) _catalogRefreshTimer.Start(); else _catalogRefreshTimer.Stop();
+            StatusText.Text = "Settings saved.";
         }
     }
 
