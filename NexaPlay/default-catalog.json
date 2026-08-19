@@ -1,6 +1,7 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T19:03:00Z",
+  "UpdatedUtc": "2026-08-19T19:06:09.2809869Z",
+  "CommunityApiUrl": "",
   "Games": [
     {
       "Id": "7e8485d15713411c988bd765b05aa374",
@@ -45,8 +46,8 @@
       "OnlineFixSizeBytes": null,
       "InstallationGuide": "Installation Guide\r\nStep-by-step setup process\r\n\r\n1: Game is pre-installed / portable, therefore you do not need to install the game.\r\n\r\n2: Just extract the rar / zip file.\r\n\r\n3: Simply launch the game from Run Me!.bat",
       "ImportantNotes": "Important Notes\r\nPlease review these important details before installation\r\n\r\n1: Install necessary apps from Redist or _CommonRedist to ensure game launches without any problems.\r\n\r\n2: Always extract game in Antivirus / Defender excluded folder - Please check our FAQs to know why it is important.\r\n\r\n3: Always run the game as administrator\r\n\r\n4: For detailed guide, make sure to read Installation Guide.txt inside the game files.",
-      "MinimumRequirements": "• Requires a 64-bit processor and operating system\r\n• OS: Win 10\r\n• Processor: Intel Core i5 @ 2.5 GHz or equivalent\r\n• Memory: 8 GB RAM\r\n• Graphics: GTX 1060 or RX 6600 XT\r\n• DirectX: Version 12\r\n• Storage: 4 GB available space\r\n• Additional Notes: Requires a 64-bit processor and operating system",
-      "RecommendedRequirements": "• Requires a 64-bit processor and operating system\r\n• OS: Win 11\r\n• Processor: Intel Core i5 @ 3.0 GHz or AMD Ryzen 5 or equivalent\r\n• Memory: 16 GB RAM\r\n• Graphics: RTX 2060 or RX 7600xt or equivalent\r\n• DirectX: Version 12\r\n• Storage: 6 GB available space\r\n• Additional Notes: Requires a 64-bit processor and operating system",
+      "MinimumRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Win 10\r\n\u2022 Processor: Intel Core i5 @ 2.5 GHz or equivalent\r\n\u2022 Memory: 8 GB RAM\r\n\u2022 Graphics: GTX 1060 or RX 6600 XT\r\n\u2022 DirectX: Version 12\r\n\u2022 Storage: 4 GB available space\r\n\u2022 Additional Notes: Requires a 64-bit processor and operating system",
+      "RecommendedRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Win 11\r\n\u2022 Processor: Intel Core i5 @ 3.0 GHz or AMD Ryzen 5 or equivalent\r\n\u2022 Memory: 16 GB RAM\r\n\u2022 Graphics: RTX 2060 or RX 7600xt or equivalent\r\n\u2022 DirectX: Version 12\r\n\u2022 Storage: 6 GB available space\r\n\u2022 Additional Notes: Requires a 64-bit processor and operating system",
       "MinimumRamGb": 8,
       "RequiredStorageGb": 4,
       "TrailerUrl": "https://youtu.be/D6io5XZWBHk",
@@ -110,8 +111,8 @@
       "OnlineFixSizeBytes": null,
       "InstallationGuide": "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.",
       "ImportantNotes": "Only install games from sources you trust and are authorized to use.\n\nKeep enough free storage for both the downloaded archive and the extracted game.\n\nIf the game does not start, check the game folder for included redistributables or support instructions.",
-      "MinimumRequirements": "• Requires a 64-bit processor and operating system\r\n• OS: Windows 10 22H2 (version 19045) or higher\r\n• Processor: Intel i5-8400 OR AMD Ryzen 5 1600\r\n• Memory: 16 GB RAM\r\n• Graphics: Nvidia GTX 1650 OR AMD RX 6500 XT OR Intel Arc A380\r\n• DirectX: Version 12\r\n• Network: Broadband Internet connection\r\n• Storage: 167 GB available space\r\n• Additional Notes: SSD Required",
-      "RecommendedRequirements": "• Requires a 64-bit processor and operating system\r\n• OS: Windows 10 22H2 (version 19045) or higher\r\n• Processor: Intel i5-12400F OR AMD Ryzen 5 5600X\r\n• Memory: 16 GB RAM\r\n• Graphics: NVIDIA RTX 3060 Ti OR AMD RX 6700 XT OR Intel Arc A580\r\n• DirectX: Version 12\r\n• Network: Broadband Internet connection\r\n• Storage: 167 GB available space\r\n• Additional Notes: SSD Required",
+      "MinimumRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10 22H2 (version 19045) or higher\r\n\u2022 Processor: Intel i5-8400 OR AMD Ryzen 5 1600\r\n\u2022 Memory: 16 GB RAM\r\n\u2022 Graphics: Nvidia GTX 1650 OR AMD RX 6500 XT OR Intel Arc A380\r\n\u2022 DirectX: Version 12\r\n\u2022 Network: Broadband Internet connection\r\n\u2022 Storage: 167 GB available space\r\n\u2022 Additional Notes: SSD Required",
+      "RecommendedRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10 22H2 (version 19045) or higher\r\n\u2022 Processor: Intel i5-12400F OR AMD Ryzen 5 5600X\r\n\u2022 Memory: 16 GB RAM\r\n\u2022 Graphics: NVIDIA RTX 3060 Ti OR AMD RX 6700 XT OR Intel Arc A580\r\n\u2022 DirectX: Version 12\r\n\u2022 Network: Broadband Internet connection\r\n\u2022 Storage: 167 GB available space\r\n\u2022 Additional Notes: SSD Required",
       "MinimumRamGb": 16,
       "RequiredStorageGb": 167,
       "TrailerUrl": "",
@@ -132,3 +133,4 @@
     }
   ]
 }
+
