@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T21:24:50.1213177Z",
+  "UpdatedUtc": "2026-08-19T21:28:24.7084559Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -216,7 +216,7 @@
       "IsMultiplayer": true,
       "CommunityRating": 4.4,
       "RatingCount": 3856,
-      "UpdatedUtc": "2026-08-19T21:24:00Z",
+      "UpdatedUtc": "2026-08-19T21:25:00Z",
       "SteamAppId": 4108000,
       "SteamGridDbId": null,
       "CoverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4108000/library_600x900.jpg",
@@ -229,7 +229,7 @@
       "Sha256": "",
       "UpdateSha256": "",
       "OnlineFixSha256": "",
-      "DownloadSizeBytes": null,
+      "DownloadSizeBytes": 465616746,
       "UpdateSizeBytes": null,
       "OnlineFixSizeBytes": null,
       "InstallationGuide": "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.",
