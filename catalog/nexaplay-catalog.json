@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-19T21:16:08.6719706Z",
+  "UpdatedUtc": "2026-08-19T21:17:26.8030729Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -148,8 +148,7 @@
         "Early Access"
       ],
       "Tags": [
-        "Single-player",
-        "MultiPlayer"
+        "Single-player"
       ],
       "IsMultiplayer": true,
       "CommunityRating": 4.9,
