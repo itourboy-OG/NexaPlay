@@ -189,9 +189,12 @@ try
         var updateJson = JsonSerializer.Serialize(new UpdateRelease("9.0.0", "https://updates.example.test/NexaPlay-Setup-v9.0.0.exe", new string('A', 64), "Smoke update"), JsonFile.Options);
         var updateResponse = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(updateJson) };
         updateResponse.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        var updateService = new UpdateService(new HttpClient(new FakeHandler(updateResponse)));
+        var updateHandler = new CapturingHandler(updateResponse);
+        var updateService = new UpdateService(new HttpClient(updateHandler));
         var availableUpdate = await updateService.CheckAsync();
-        Require(updateService.IsConfigured && availableUpdate?.Version == "9.0.0", "HTTPS update manifest detection failed.");
+        Require(updateService.IsConfigured && availableUpdate?.Version == "9.0.0" &&
+            updateHandler.RequestUri?.Query.Contains("nexaplay_refresh=", StringComparison.Ordinal) == true,
+            "HTTPS update manifest detection or cache busting failed.");
     }
     finally { await File.WriteAllTextAsync(updateChannelPath, originalChannel); }
 
