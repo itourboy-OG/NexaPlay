@@ -41,7 +41,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.1 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.2 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -354,12 +354,10 @@ public partial class MainWindow : Window
         if (window.ShowDialog() != true) return;
         _settings = window.Settings; UpdateProfileUi(); StatusText.Text = "Player profile saved.";
     }
-    private void Guide_Click(object sender, RoutedEventArgs e)
+    private void OpenGettingStarted()
     {
-        SetSelectedNav(GuideNav);
         var window = new FirstRunSetupWindow(_settings, _settingsService, false) { Owner = this };
         if (window.ShowDialog() == true) { _settings = window.Settings; UpdateProfileUi(); }
-        SetSelectedNav(_currentPage == DownloadsPage ? DownloadsNav : _currentPage == LibraryPage ? (_installedOnly ? InstalledNav : _favoritesOnly ? FavoritesNav : LibraryNav) : null);
     }
     private void ShowLibraryPage() { NavigateTo(LibraryPage, _installedOnly ? InstalledNav : _favoritesOnly ? FavoritesNav : LibraryNav); StatusText.Text = $"Ready  •  Library: {_settings.LibraryFolder}"; }
     private void ShowDownloadsPage() { UpdateDownloadsUi(); NavigateTo(DownloadsPage, DownloadsNav); StatusText.Text = "Downloads and install activity"; }
@@ -412,7 +410,7 @@ public partial class MainWindow : Window
 
     private void SetSelectedNav(Button? selected)
     {
-        foreach (var button in new[] { LibraryNav, InstalledNav, FavoritesNav, DownloadsNav, SyncNav, UpdateNav, GuideNav, SettingsNav })
+        foreach (var button in new[] { LibraryNav, InstalledNav, FavoritesNav, DownloadsNav, SettingsNav })
         {
             button.Background = Brushes.Transparent; button.BorderBrush = Brushes.Transparent; button.Foreground = new SolidColorBrush(Color.FromRgb(137, 148, 170));
         }
@@ -429,12 +427,6 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(_settings.ProfileImagePath) || !File.Exists(_settings.ProfileImagePath)) return;
         try { ProfileAvatarImage.Source = PlayerProfileWindow.LoadImage(_settings.ProfileImagePath); ProfileAvatarImage.Visibility = Visibility.Visible; }
         catch { }
-    }
-
-    private async void Sync_Click(object sender, RoutedEventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) { OpenSettings(); return; }
-        await SyncCatalogAsync(true);
     }
 
     private async Task SyncCatalogAsync(bool userInitiated)
@@ -484,19 +476,29 @@ public partial class MainWindow : Window
             _availableUpdate = await _updateService.CheckAsync();
             if (_availableUpdate is not null)
             {
-                UpdateNav.Content = $"↑     Update v{_availableUpdate.Version} ready";
-                UpdateNav.Foreground = new SolidColorBrush(Color.FromRgb(117, 232, 191));
+                UpdateBannerButton.Content = $"UPDATE v{_availableUpdate.Version} READY";
+                UpdateBannerButton.IsEnabled = true;
+                UpdateBannerButton.Background = new SolidColorBrush(Color.FromRgb(43, 31, 80));
+                UpdateBannerButton.BorderBrush = new SolidColorBrush(Color.FromRgb(126, 96, 224));
+                UpdateBannerButton.Foreground = new SolidColorBrush(Color.FromRgb(235, 229, 255));
                 StatusText.Text = $"NexaPlay v{_availableUpdate.Version} is ready to install.";
             }
-            else if (userInitiated)
+            else
             {
+                UpdateBannerButton.Content = $"NEXAPLAY v{_updateService.CurrentVersion.ToString(3)} · UP TO DATE";
+                UpdateBannerButton.IsEnabled = false;
+                UpdateBannerButton.Background = new SolidColorBrush(Color.FromRgb(19, 43, 41));
+                UpdateBannerButton.BorderBrush = new SolidColorBrush(Color.FromRgb(52, 119, 100));
+                UpdateBannerButton.Foreground = new SolidColorBrush(Color.FromRgb(217, 255, 240));
                 var message = _updateService.IsConfigured ? $"You already have the latest NexaPlay version ({_updateService.CurrentVersion.ToString(3)})." : "The automatic update channel has not been published yet. Your app is working normally.";
-                MessageBox.Show(message, "NexaPlay updates", MessageBoxButton.OK, MessageBoxImage.Information);
-                StatusText.Text = message;
+                if (userInitiated) MessageBox.Show(message, "NexaPlay updates", MessageBoxButton.OK, MessageBoxImage.Information);
+                if (userInitiated) StatusText.Text = message;
             }
         }
         catch (Exception ex)
         {
+            UpdateBannerButton.Content = "UPDATE STATUS OFFLINE";
+            UpdateBannerButton.IsEnabled = true;
             if (userInitiated) ShowError("Could not check for updates", ex);
         }
     }
@@ -530,15 +532,29 @@ public partial class MainWindow : Window
         finally { _downloads.Remove(key); cancellation.Dispose(); UpdateDownloadsUi(); }
     }
 
-    private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettings();
-    private void OpenSettings()
+    private async void Settings_Click(object sender, RoutedEventArgs e) => await OpenSettingsAsync();
+    private async Task OpenSettingsAsync()
     {
         var window = new SettingsWindow(_settings, _settingsService, _catalogService) { Owner = this };
-        if (window.ShowDialog() == true)
+        var saved = window.ShowDialog() == true;
+        if (saved)
         {
             _settings = window.Settings; Directory.CreateDirectory(_settings.LibraryFolder); RefreshInstallStates(); ApplyFilter();
             if (_settings.AutoSyncCatalog) _catalogRefreshTimer.Start(); else _catalogRefreshTimer.Stop();
             StatusText.Text = "Settings saved.";
+        }
+        switch (window.RequestedAction)
+        {
+            case SettingsAction.SyncCatalog:
+                if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) { MessageBox.Show("Add a remote catalog URL in Settings first.", "NexaPlay catalog", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+                await SyncCatalogAsync(true);
+                break;
+            case SettingsAction.CheckForUpdates:
+                await CheckForUpdatesAsync(true);
+                break;
+            case SettingsAction.GettingStarted:
+                OpenGettingStarted();
+                break;
         }
     }
 
