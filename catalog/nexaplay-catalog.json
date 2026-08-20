@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-20T04:09:34.9123528Z",
+  "UpdatedUtc": "2026-08-20T04:11:11.783558Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -497,7 +497,7 @@
       "Featured": false
     },
     {
-      "Id": "c3262cc1744940c4bc028e3006b9b2e1",
+      "Id": "3f5409af28d54df192415ae8b5a09c1e",
       "Title": "MARVEL T\u014Dkon: Fighting Souls",
       "Description": "Assemble your team of legendary Marvel characters in the ultimate 4v4 tag team fighter.",
       "DownloadUrl": "https://tunnel5.dlproxy.uk/download/0XVpRiCUUX35AueUQwkjza9EqDrxnOdlSelyrKSP9fnIf7yZE7CealGgtnpSoL25Uq0FFbjvx2e6USuq4AIO8D1Z8DpxOr2Kv5t4jtaO1UJWQQZht1AfmB1lTrfevXbJlXac8poY4BB_64HI_fS79vskSkl1UoviXGBMJ8trcGomZ3qn1CrUubIi0lfndC5SL-CJlreaFuSBHU1Q1LkCzlQ8DOs4pFxKxh6pYCHBH-gugyxpXOQPcyVihfWxbGeQ1oAjnnynB14BjWcyIJWX2XyO0Bm3Z1yeQv0MTBuwjZ53d7L_2z6jnQ9ozZaevi-TdJUjBnu9S-D9qKb9T0dKGhVnRCXq0TA8u-3dpv2I-8O4p9mg4Xdd2cEhracqJu9nN7mAZpyF8HGUTJ-kc-EN5r6Rwe0CFwSgmgeGcZc9mZo?sig=JWwT7yZ34eFBHIK7zKz4c6uCai3YZp-gYlxPODKOJXg",
@@ -523,7 +523,7 @@
       "IsMultiplayer": false,
       "CommunityRating": 2.3,
       "RatingCount": 6027,
-      "UpdatedUtc": "2026-08-20T04:02:00Z",
+      "UpdatedUtc": "2026-08-20T04:09:00Z",
       "SteamAppId": 3787240,
       "SteamGridDbId": 5491277,
       "CoverUrl": "https://cdn2.steamgriddb.com/grid/714a8a77af865a55fdd1872ee975b056.png",
