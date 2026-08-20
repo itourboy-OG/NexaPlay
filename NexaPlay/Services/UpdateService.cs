@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -16,8 +17,10 @@ public sealed class UpdateService(HttpClient httpClient)
         var channel = await LoadChannelAsync(cancellationToken) ?? new UpdateChannel();
         IsConfigured = !string.IsNullOrWhiteSpace(channel.ManifestUrl);
         if (string.IsNullOrWhiteSpace(channel.ManifestUrl)) return null;
-        var manifestUri = RequireHttps(channel.ManifestUrl, "update manifest");
-        using var response = await httpClient.GetAsync(manifestUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        var manifestUri = AddRefreshToken(RequireHttps(channel.ManifestUrl, "update manifest"));
+        using var request = new HttpRequestMessage(HttpMethod.Get, manifestUri);
+        request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
+        using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
         if (response.Content.Headers.ContentLength is > 262_144) throw new InvalidDataException("The update manifest is unexpectedly large.");
         var mediaType = response.Content.Headers.ContentType?.MediaType ?? "";
@@ -78,5 +81,11 @@ public sealed class UpdateService(HttpClient httpClient)
     {
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) throw new InvalidDataException($"The {label} URL must use HTTPS.");
         return uri;
+    }
+
+    private static Uri AddRefreshToken(Uri uri)
+    {
+        var separator = string.IsNullOrEmpty(uri.Query) ? "?" : "&";
+        return new Uri(uri.AbsoluteUri + separator + "nexaplay_refresh=" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
     }
 }

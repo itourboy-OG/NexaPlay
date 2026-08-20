@@ -129,7 +129,7 @@
                             </ScrollViewer>
                         </Grid>
                     </Grid>
-                    <Border Grid.Row="1" Background="#0B0F18" BorderBrush="#222A3C" BorderThickness="0,1,0,0" Padding="14,0"><Grid><TextBlock x:Name="StatusText" Text="Ready" Foreground="#748096" FontSize="9" VerticalAlignment="Center"/><TextBlock Text="NexaPlay 1.9.5  ·  Made by SauceBoyz" HorizontalAlignment="Right" Foreground="#4F5B71" FontSize="9" VerticalAlignment="Center"/></Grid></Border>
+                    <Border Grid.Row="1" Background="#0B0F18" BorderBrush="#222A3C" BorderThickness="0,1,0,0" Padding="14,0"><Grid><TextBlock x:Name="StatusText" Text="Ready" Foreground="#748096" FontSize="9" VerticalAlignment="Center"/><TextBlock Text="NexaPlay 1.9.6  ·  Made by SauceBoyz" HorizontalAlignment="Right" Foreground="#4F5B71" FontSize="9" VerticalAlignment="Center"/></Grid></Border>
                 </Grid>
             </Grid>
         </Grid>
