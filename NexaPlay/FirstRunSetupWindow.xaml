@@ -1,0 +1,33 @@
+<Window x:Class="NexaPlay.FirstRunSetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Welcome to NexaPlay" Width="880" Height="650" MinWidth="800" MinHeight="610"
+        WindowStartupLocation="CenterOwner" Background="#080B12" Foreground="White">
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="6"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Rectangle><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#45DDF2"/><GradientStop Color="#7957F6" Offset="0.55"/><GradientStop Color="#E45BA6" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
+        <Grid Grid.Row="1" Margin="36,30,36,28">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Image Source="Assets/NexaPlay-512.png" Width="64" Height="64"/><StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="SetupTitle" Text="WELCOME TO NEXAPLAY" FontSize="29" FontWeight="Black"/><TextBlock Text="A game hub built by SauceBoyz — made for gamers who want everything in one place." Foreground="#8E99B0" FontSize="12" Margin="0,5,0,0"/></StackPanel></Grid>
+            <Grid Grid.Row="1" Margin="0,28,0,24"><Grid.ColumnDefinitions><ColumnDefinition Width="1.25*"/><ColumnDefinition Width="0.85*"/></Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="HOW IT WORKS" Foreground="#45DDF2" FontSize="10" FontWeight="Bold"/>
+                    <Border Background="#101622" BorderBrush="#2B344B" BorderThickness="1" CornerRadius="4" Padding="18" Margin="0,10,18,0"><StackPanel>
+                        <TextBlock Text="01  DISCOVER" FontWeight="Black" FontSize="13"/><TextBlock Text="Browse the live catalog, open any game, view artwork, requirements, notes, ratings, and media." Foreground="#909BB1" TextWrapping="Wrap" Margin="0,5,0,13"/>
+                        <TextBlock Text="02  DOWNLOAD YOUR WAY" FontWeight="Black" FontSize="13"/><TextBlock Text="Full Game, Update, and Online Fix are separate. You can apply an update or fix to a game you already own by choosing its folder." Foreground="#909BB1" TextWrapping="Wrap" Margin="0,5,0,13"/>
+                        <TextBlock Text="03  WATCH THE PROGRESS" FontWeight="Black" FontSize="13"/><TextBlock Text="The Downloads page shows speed, progress, time remaining, estimated finish time, and install status." Foreground="#909BB1" TextWrapping="Wrap" Margin="0,5,0,13"/>
+                        <TextBlock Text="04  STAY CURRENT" FontWeight="Black" FontSize="13"/><TextBlock Text="Catalog changes refresh automatically. App updates always show a notification and ask before downloading or installing." Foreground="#909BB1" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                    </StackPanel></Border>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="YOUR PLAYER TAG" Foreground="#BBAEFF" FontSize="10" FontWeight="Bold"/>
+                    <TextBox x:Name="UsernameBox" Margin="0,10,0,0" MaxLength="24" TextChanged="UsernameBox_TextChanged"/>
+                    <Border Height="142" Background="#15112A" BorderBrush="#463678" BorderThickness="1" CornerRadius="4" Margin="0,14,0,0" ClipToBounds="True"><Grid><TextBlock x:Name="InitialsText" Text="P" FontSize="44" FontWeight="Black" Foreground="#D8D0FF" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="AvatarImage" Stretch="UniformToFill" Visibility="Collapsed"/></Grid></Border>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button Style="{StaticResource GhostButton}" Content="Choose picture" Padding="12,8" Click="ChoosePicture_Click"/><Button x:Name="RemovePictureButton" Style="{StaticResource GhostButton}" Content="Remove" Padding="12,8" Margin="8,0,0,0" Click="RemovePicture_Click"/></StackPanel>
+                    <Border Background="#181A22" BorderBrush="#343947" BorderThickness="1" CornerRadius="3" Padding="12" Margin="0,16,0,0"><TextBlock Text="Only download games and packages you are authorized to use and trust." Foreground="#D9BE76" FontSize="10" TextWrapping="Wrap"/></Border>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="2"><TextBlock Text="You can open this guide and edit your profile from the sidebar anytime." Foreground="#68758D" VerticalAlignment="Center" FontSize="10"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button x:Name="SkipButton" Style="{StaticResource GhostButton}" Content="Skip" Click="Skip_Click"/><Button Style="{StaticResource PrimaryButton}" Content="Finish setup" Margin="10,0,0,0" Click="Finish_Click"/></StackPanel></Grid>
+        </Grid>
+    </Grid>
+</Window>

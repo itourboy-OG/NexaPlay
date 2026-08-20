@@ -180,6 +180,25 @@ public sealed class AppSettings
     public string ProfileGpu { get; set; } = "";
     public double? ProfileRamGb { get; set; }
     public string ProfileOs { get; set; } = "";
+    public bool HasCompletedSetup { get; set; }
+    public string PlayerName { get; set; } = "Player";
+    public string ProfileImagePath { get; set; } = "";
+
+    public AppSettings Clone() => new()
+    {
+        LibraryFolder = LibraryFolder,
+        RemoteCatalogUrl = RemoteCatalogUrl,
+        ProtectedSteamGridDbKey = ProtectedSteamGridDbKey,
+        AutoSyncCatalog = AutoSyncCatalog,
+        KeepArchives = KeepArchives,
+        ProfileCpu = ProfileCpu,
+        ProfileGpu = ProfileGpu,
+        ProfileRamGb = ProfileRamGb,
+        ProfileOs = ProfileOs,
+        HasCompletedSetup = HasCompletedSetup,
+        PlayerName = PlayerName,
+        ProfileImagePath = ProfileImagePath
+    };
 }
 
 public sealed record UpdateChannel(string ManifestUrl = "", string CatalogUrl = "");

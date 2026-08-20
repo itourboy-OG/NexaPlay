@@ -19,7 +19,7 @@ public partial class App : Application
             var connected = !string.IsNullOrWhiteSpace(ownerSettings.CommunityUrl) && !string.IsNullOrWhiteSpace(adminKey);
 
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.8.0");
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.9.0");
             var api = new OwnerApiClient(http);
             var playerCatalogService = new CatalogService(http);
             var catalogService = new CatalogService(http, AppPaths.OwnerCatalogFile);

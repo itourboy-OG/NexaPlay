@@ -41,14 +41,23 @@ public sealed class InstallService
     {
         if (kind == DownloadPackageKind.Game) throw new ArgumentException("Use ExtractAsync for the base game package.", nameof(kind));
         if (!game.IsInstalled || !Directory.Exists(game.InstallPath)) throw new InvalidOperationException("Install the base game before applying an update or online fix.");
-        var package = DownloadService.GetPackageInfo(game, kind);
-        await ExtractArchiveAsync(archivePath, game.InstallPath, package.Password, progress, cancellationToken);
+        await ApplyPackageToFolderAsync(game, kind, archivePath, game.InstallPath, progress, cancellationToken, requireManifest: true);
+    }
 
-        var manifestPath = Path.Combine(game.InstallPath, ManifestFileName);
-        var current = await JsonFile.ReadAsync<InstallManifest>(manifestPath, cancellationToken)
-            ?? throw new InvalidDataException("The NexaPlay install manifest is missing or damaged.");
-        var version = kind == DownloadPackageKind.Update ? game.Version : current.Version;
-        await JsonFile.WriteAtomicAsync(manifestPath, current with { Version = version, UpdatedUtc = DateTime.UtcNow }, cancellationToken);
+    public async Task ApplyPackageToFolderAsync(GameEntry game, DownloadPackageKind kind, string archivePath, string targetFolder, IProgress<DownloadProgress> progress, CancellationToken cancellationToken, bool requireManifest = false)
+    {
+        if (kind == DownloadPackageKind.Game) throw new ArgumentException("Use ExtractAsync for the base game package.", nameof(kind));
+        var installPath = Path.GetFullPath(targetFolder);
+        if (!Directory.Exists(installPath)) throw new DirectoryNotFoundException("The selected game folder no longer exists.");
+        var manifestPath = Path.Combine(installPath, ManifestFileName);
+        var current = await JsonFile.ReadAsync<InstallManifest>(manifestPath, cancellationToken);
+        if (requireManifest && current is null) throw new InvalidDataException("The NexaPlay install manifest is missing or damaged.");
+        var package = DownloadService.GetPackageInfo(game, kind);
+        await ExtractArchiveAsync(archivePath, installPath, package.Password, progress, cancellationToken);
+
+        var version = kind == DownloadPackageKind.Update ? game.Version : current?.Version ?? "External install";
+        if (current is not null)
+            await JsonFile.WriteAtomicAsync(manifestPath, current with { Version = version, UpdatedUtc = DateTime.UtcNow }, cancellationToken);
 
         var receiptFolder = Path.GetDirectoryName(archivePath)!;
         var receiptName = kind == DownloadPackageKind.Update ? "last-update.json" : "last-online-fix.json";
@@ -58,6 +67,7 @@ public sealed class InstallService
             game.Title,
             Kind = kind.ToString(),
             Version = version,
+            TargetFolder = installPath,
             Archive = Path.GetFileName(archivePath),
             AppliedUtc = DateTime.UtcNow
         }, cancellationToken);

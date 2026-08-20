@@ -97,6 +97,12 @@ try
     Require(game.InstalledVersion == "2.0" && !game.HasUpdate, "Update package did not advance the installed manifest version.");
     Require(File.Exists(Path.Combine(installed, "TestGame", "updated.txt")), "Update package was not extracted into the installed game folder.");
 
+    var externalGameFolder = Path.Combine(root, "already-owned-game");
+    Directory.CreateDirectory(externalGameFolder);
+    await install.ApplyPackageToFolderAsync(game, DownloadPackageKind.Update, updateArchive, externalGameFolder, new Progress<DownloadProgress>(), CancellationToken.None);
+    Require(File.Exists(Path.Combine(externalGameFolder, "TestGame", "updated.txt")), "A standalone update could not be applied to a user-selected game folder.");
+    Require(!File.Exists(Path.Combine(externalGameFolder, ".nexaplay.json")), "NexaPlay incorrectly claimed ownership of an external game folder.");
+
     var htmlHandler = new FakeHandler(new HttpResponseMessage(HttpStatusCode.OK)
     {
         Content = new StringContent("<html>landing page</html>") { Headers = { ContentType = new MediaTypeHeaderValue("text/html") } }
@@ -160,7 +166,7 @@ try
     }
 
     Console.WriteLine($"Detected physical GPU: {detectedGpu}");
-    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, download speed/ETA labels, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, CPU/GPU/RAM/Windows detection, and Technical City game links{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
+    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, independent external-folder update, download speed/ETA labels, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, CPU/GPU/RAM/Windows detection, and Technical City game links{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
 }
 finally
 {

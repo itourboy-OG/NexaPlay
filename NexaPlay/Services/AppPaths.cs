@@ -10,11 +10,13 @@ public static class AppPaths
     public static string UserStateFile => Path.Combine(DataRoot, "library-state.json");
     public static string CacheRoot => Path.Combine(DataRoot, "cache");
     public static string UpdatesRoot => Path.Combine(DataRoot, "updates");
+    public static string ProfileRoot => Path.Combine(DataRoot, "profile");
 
     public static void EnsureCreated()
     {
         Directory.CreateDirectory(DataRoot);
         Directory.CreateDirectory(CacheRoot);
         Directory.CreateDirectory(UpdatesRoot);
+        Directory.CreateDirectory(ProfileRoot);
     }
 }
