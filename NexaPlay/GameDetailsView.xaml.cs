@@ -42,12 +42,13 @@ public partial class GameDetailsView : UserControl
         FavoriteButton.Content = _game.IsFavorite ? "♥  FAVORITED" : "♡  FAVORITE";
         GameDownloadButton.Content = _game.HasIncompleteInstall ? "Resume install" : _game.IsInstalled ? "Reinstall" : "Download";
         GameDownloadButton.IsEnabled = !_game.IsBusy;
-        UpdateDownloadButton.IsEnabled = !_game.IsBusy && _game.IsInstalled && _game.UpdateDownloadUrl.Length > 0;
-        FixDownloadButton.IsEnabled = !_game.IsBusy && _game.IsInstalled && _game.OnlineFixDownloadUrl.Length > 0;
+        UpdateDownloadButton.IsEnabled = !_game.IsBusy && _game.UpdateDownloadUrl.Length > 0;
+        FixDownloadButton.IsEnabled = !_game.IsBusy && _game.OnlineFixDownloadUrl.Length > 0;
         UpdatePackageCard.Visibility = _game.UpdateDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         OnlineFixPackageCard.Visibility = _game.OnlineFixDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-        DownloadCenterDescription.Text = _game.UpdateDownloadUrl.Length == 0 && _game.OnlineFixDownloadUrl.Length == 0 ? "Download and install the full game." : "Choose the full game or an available add-on package.";
-        UpdateDownloadButton.Content = _game.HasUpdate ? "Install update" : "Apply";
+        DownloadCenterDescription.Text = _game.UpdateDownloadUrl.Length == 0 && _game.OnlineFixDownloadUrl.Length == 0 ? "Download and install the full game." : "Every package works separately. For an existing game outside NexaPlay, choose its folder when applying an update or Online Fix.";
+        UpdateDownloadButton.Content = _game.HasUpdate ? "Install update" : _game.IsInstalled ? "Apply update" : "Choose folder";
+        FixDownloadButton.Content = _game.IsInstalled ? "Apply fix" : "Choose folder";
         ProgressPanel.Visibility = _game.IsBusy ? Visibility.Visible : Visibility.Collapsed;
         DownloadProgress.Value = _game.Progress; ActivityText.Text = _game.Activity;
         TrailerButton.IsEnabled = _game.TrailerUrl.Length > 0; GameplayButton.IsEnabled = _game.GameplayUrl.Length > 0;

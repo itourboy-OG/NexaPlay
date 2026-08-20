@@ -1,4 +1,5 @@
 using NexaPlay.Services;
+using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Windows;
@@ -40,7 +41,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.8.0 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.0 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -74,6 +75,12 @@ public partial class MainWindow : Window
         {
             StatusText.Text = "Loading settings…";
             _settings = await _settingsService.LoadAsync();
+            if (!_settings.HasCompletedSetup)
+            {
+                var setup = new FirstRunSetupWindow(_settings, _settingsService) { Owner = this };
+                if (setup.ShowDialog() == true) _settings = setup.Settings;
+            }
+            UpdateProfileUi();
             var distribution = await UpdateService.LoadChannelAsync() ?? new UpdateChannel();
             if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl) && !string.IsNullOrWhiteSpace(distribution.CatalogUrl))
             {
@@ -251,7 +258,19 @@ public partial class MainWindow : Window
 
     private async Task ActOnGameAsync(GameEntry game, DownloadPackageKind kind)
     {
-        if (kind != DownloadPackageKind.Game && !game.IsInstalled) { ShowError("Install the base game first", new InvalidOperationException("Updates and the Online Fix are applied inside the installed game folder.")); return; }
+        string? externalTargetFolder = null;
+        if (kind != DownloadPackageKind.Game && !game.IsInstalled)
+        {
+            var packageName = kind == DownloadPackageKind.Update ? "game update" : "Online Fix";
+            var picker = new OpenFolderDialog
+            {
+                Title = $"Choose the existing {game.Title} folder for the {packageName}",
+                InitialDirectory = Directory.Exists(_settings.LibraryFolder) ? _settings.LibraryFolder : null
+            };
+            if (picker.ShowDialog(this) != true) return;
+            externalTargetFolder = picker.FolderName;
+            if (MessageBox.Show($"Apply the {packageName} inside this folder?\n\n{externalTargetFolder}\n\nMatching files from the package may be replaced.", "Confirm game folder", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        }
         if (_downloads.ContainsKey(game.Id)) return;
         var cancellation = new CancellationTokenSource();
         _downloads[game.Id] = cancellation;
@@ -277,10 +296,18 @@ public partial class MainWindow : Window
                 await _installService.ExtractAsync(game, archive, _settings.LibraryFolder, progress, cancellation.Token);
                 if (!_settings.KeepArchives && File.Exists(archive)) File.Delete(archive);
             }
+            else if (externalTargetFolder is not null) await _installService.ApplyPackageToFolderAsync(game, kind, archive, externalTargetFolder, progress, cancellation.Token);
             else await _installService.ApplyPackageAsync(game, kind, archive, progress, cancellation.Token);
             InstallService.RefreshInstallState(game, _settings.LibraryFolder); game.NotifyRuntimeChanged();
             taskItem.Percent = 100; taskItem.IsActive = false; taskItem.Phase = "Complete";
-            taskItem.Status = kind switch { DownloadPackageKind.Game => "Installed and ready to play", DownloadPackageKind.Update => $"Updated to {game.Version}", _ => "Online Fix applied" };
+            taskItem.Status = kind switch
+            {
+                DownloadPackageKind.Game => "Installed and ready to play",
+                DownloadPackageKind.Update when externalTargetFolder is not null => $"Update applied to selected folder · v{game.Version}",
+                DownloadPackageKind.Update => $"Updated to {game.Version}",
+                DownloadPackageKind.OnlineFix when externalTargetFolder is not null => "Online Fix applied to selected folder",
+                _ => "Online Fix applied"
+            };
             StatusText.Text = $"{game.Title}  •  {taskItem.Status}";
             ApplyFilter();
         }
@@ -321,6 +348,19 @@ public partial class MainWindow : Window
     private void Installed_Click(object sender, RoutedEventArgs e) { _installedOnly = true; _favoritesOnly = false; SetQuickFilter("ALL", false); PageTitle.Text = "INSTALLED"; PageSubtitle.Text = "Ready to launch"; ApplyFilter(); NavigateTo(LibraryPage, InstalledNav); }
     private void Favorites_Click(object sender, RoutedEventArgs e) { _installedOnly = false; _favoritesOnly = true; SetQuickFilter("ALL", false); PageTitle.Text = "FAVORITES"; PageSubtitle.Text = "Games you saved"; ApplyFilter(); NavigateTo(LibraryPage, FavoritesNav); }
     private void Downloads_Click(object sender, RoutedEventArgs e) => ShowDownloadsPage();
+    private void Profile_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new PlayerProfileWindow(_settings, _settingsService) { Owner = this };
+        if (window.ShowDialog() != true) return;
+        _settings = window.Settings; UpdateProfileUi(); StatusText.Text = "Player profile saved.";
+    }
+    private void Guide_Click(object sender, RoutedEventArgs e)
+    {
+        SetSelectedNav(GuideNav);
+        var window = new FirstRunSetupWindow(_settings, _settingsService, false) { Owner = this };
+        if (window.ShowDialog() == true) { _settings = window.Settings; UpdateProfileUi(); }
+        SetSelectedNav(_currentPage == DownloadsPage ? DownloadsNav : _currentPage == LibraryPage ? (_installedOnly ? InstalledNav : _favoritesOnly ? FavoritesNav : LibraryNav) : null);
+    }
     private void ShowLibraryPage() { NavigateTo(LibraryPage, _installedOnly ? InstalledNav : _favoritesOnly ? FavoritesNav : LibraryNav); StatusText.Text = $"Ready  •  Library: {_settings.LibraryFolder}"; }
     private void ShowDownloadsPage() { UpdateDownloadsUi(); NavigateTo(DownloadsPage, DownloadsNav); StatusText.Text = "Downloads and install activity"; }
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) { if (IsLoaded) ApplyFilter(); }
@@ -372,12 +412,23 @@ public partial class MainWindow : Window
 
     private void SetSelectedNav(Button? selected)
     {
-        foreach (var button in new[] { LibraryNav, InstalledNav, FavoritesNav, DownloadsNav, SyncNav, UpdateNav, SettingsNav })
+        foreach (var button in new[] { LibraryNav, InstalledNav, FavoritesNav, DownloadsNav, SyncNav, UpdateNav, GuideNav, SettingsNav })
         {
             button.Background = Brushes.Transparent; button.BorderBrush = Brushes.Transparent; button.Foreground = new SolidColorBrush(Color.FromRgb(137, 148, 170));
         }
         if (selected is null) return;
         selected.Background = new SolidColorBrush(Color.FromRgb(20, 27, 42)); selected.BorderBrush = new SolidColorBrush(Color.FromRgb(69, 221, 242)); selected.Foreground = Brushes.White;
+    }
+
+    private void UpdateProfileUi()
+    {
+        var name = string.IsNullOrWhiteSpace(_settings.PlayerName) ? "Player" : _settings.PlayerName.Trim();
+        ProfileNameText.Text = name.ToUpperInvariant();
+        ProfileInitialsText.Text = name[..1].ToUpperInvariant();
+        ProfileAvatarImage.Source = null; ProfileAvatarImage.Visibility = Visibility.Collapsed;
+        if (string.IsNullOrWhiteSpace(_settings.ProfileImagePath) || !File.Exists(_settings.ProfileImagePath)) return;
+        try { ProfileAvatarImage.Source = PlayerProfileWindow.LoadImage(_settings.ProfileImagePath); ProfileAvatarImage.Visibility = Visibility.Visible; }
+        catch { }
     }
 
     private async void Sync_Click(object sender, RoutedEventArgs e)

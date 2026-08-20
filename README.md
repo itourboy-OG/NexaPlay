@@ -18,17 +18,18 @@ NexaPlay is a native Windows game catalog, downloader, archive installer, and la
 - Interrupted-install recovery reuses a completed archive, and extraction shows live bytes for the current file instead of appearing frozen.
 - ZIP, RAR, and 7z extraction through SharpCompress.
 - `Run Me!.bat` is always the preferred launcher; a configured or detected executable is used only as a fallback.
-- Updates and Online Fix packages are stored in labeled folders inside the game and applied to the installed game folder.
+- Full Game, Update, and Online Fix downloads work independently. Updates and fixes can be applied to an existing game folder even when NexaPlay did not install the full game.
 - Optional SHA-256 verification before extraction.
 - Archive path-traversal protection and rejection of HTML landing pages posing as downloads.
 - Per-user Windows installer, Start Menu shortcut, optional desktop shortcut, upgrades, and uninstall.
-- Built-in app update checks through a small HTTPS manifest. Updates download in the Downloads page, show speed/ETA, and must pass SHA-256 verification before the installer can launch.
+- Built-in app update checks through a small HTTPS manifest. Updates are never silently installed: NexaPlay shows the available version, asks before downloading, shows speed/ETA, verifies SHA-256, and asks again before opening the normal installer.
+- First-run quick-start guide with a Skip button, plus an editable local player name and optional profile picture.
 
 Only distribute content you own or are authorized to redistribute. NexaPlay does not scrape games, bypass host protections, or provide copyrighted downloads.
 
 ## Player app and private Owner Studio
 
-Friends receive only `NexaPlay-Setup-v1.8.0.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
+Friends receive only `NexaPlay-Setup-v1.9.0.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
 
 Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and metadata refresh save to the separate Owner draft automatically. **Save** confirms a local save, **Publish** updates `catalog/nexaplay-catalog.json` on GitHub, and **Done** safely saves before closing.
 
@@ -50,7 +51,7 @@ Until that server has a public HTTPS address, friends still receive every game b
 
 NexaPlay uses public GitHub raw files for the live catalog and `update-manifest.json`, plus a GitHub Release asset for the installer. Friends never need a GitHub account or token. After building, run `prepare-update-release.ps1 -InstallerUrl <HTTPS installer asset URL>` to create the manifest with the real installer SHA-256.
 
-Catalog changes do not require an app update: players sync additions, removals, links, metadata, and artwork automatically. A newer NexaPlay app version changes the sidebar indicator to **Update v… ready**; the update downloads in the Downloads page, shows speed/ETA, verifies SHA-256, and then offers to launch the installer.
+Catalog changes do not require an app update: players sync additions, removals, links, metadata, and artwork automatically. A newer NexaPlay app version changes the sidebar indicator to **Update v… ready**. Nothing is silently installed: the player approves the download and separately approves opening the normal visible installer.
 
 ### Gofile and other file hosts
 
@@ -58,7 +59,7 @@ NexaPlay needs a direct file-download response. A normal share page often return
 
 ## Local data and privacy
 
-- Settings, the Player cache, and the separate Owner draft catalog: `%LOCALAPPDATA%\NexaPlay`
+- Settings, player profile picture, the Player cache, and the separate Owner draft catalog: `%LOCALAPPDATA%\NexaPlay`
 - Default game library: `%USERPROFILE%\Documents\NexaPlay Library`
 - SteamGridDB key and private owner key: encrypted separately with Windows Data Protection for the current user
 - Player installer payload: player app, bundled catalog, and runtime only
@@ -75,4 +76,4 @@ Push-Location .\server; npm test; Pop-Location
 .\build-installer.ps1
 ```
 
-Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.8.0.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.
+Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.9.0.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.

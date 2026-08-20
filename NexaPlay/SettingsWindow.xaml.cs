@@ -13,18 +13,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow(AppSettings settings, SettingsService settingsService, CatalogService catalogService)
     {
         InitializeComponent(); _settingsService = settingsService;
-        Settings = new AppSettings
-        {
-            LibraryFolder = settings.LibraryFolder,
-            RemoteCatalogUrl = settings.RemoteCatalogUrl,
-            ProtectedSteamGridDbKey = settings.ProtectedSteamGridDbKey,
-            AutoSyncCatalog = settings.AutoSyncCatalog,
-            KeepArchives = settings.KeepArchives,
-            ProfileCpu = settings.ProfileCpu,
-            ProfileGpu = settings.ProfileGpu,
-            ProfileRamGb = settings.ProfileRamGb,
-            ProfileOs = settings.ProfileOs
-        };
+        Settings = settings.Clone();
         LibraryBox.Text = Settings.LibraryFolder; CatalogUrlBox.Text = Settings.RemoteCatalogUrl;
         AutoSyncBox.IsChecked = Settings.AutoSyncCatalog; KeepArchivesBox.IsChecked = Settings.KeepArchives;
     }
