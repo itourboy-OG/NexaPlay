@@ -7,10 +7,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>NexaPlay.Owner</AssemblyName>
     <RootNamespace>NexaPlay.Owner</RootNamespace>
-    <Version>1.9.2</Version>
-    <AssemblyVersion>1.9.2.0</AssemblyVersion>
-    <FileVersion>1.9.2.0</FileVersion>
-    <InformationalVersion>1.9.2</InformationalVersion>
+    <Version>1.9.3</Version>
+    <AssemblyVersion>1.9.3.0</AssemblyVersion>
+    <FileVersion>1.9.3.0</FileVersion>
+    <InformationalVersion>1.9.3</InformationalVersion>
     <Company>SauceBoyz</Company>
     <Product>NexaPlay Owner Studio</Product>
     <ApplicationIcon>..\NexaPlay\Assets\NexaPlay.ico</ApplicationIcon>

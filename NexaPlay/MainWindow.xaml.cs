@@ -41,7 +41,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.2 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.3 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -478,6 +478,7 @@ public partial class MainWindow : Window
             {
                 UpdateBannerButton.Content = $"UPDATE v{_availableUpdate.Version} READY";
                 UpdateBannerButton.IsEnabled = true;
+                UpdateBannerButton.Visibility = Visibility.Visible;
                 UpdateBannerButton.Background = new SolidColorBrush(Color.FromRgb(43, 31, 80));
                 UpdateBannerButton.BorderBrush = new SolidColorBrush(Color.FromRgb(126, 96, 224));
                 UpdateBannerButton.Foreground = new SolidColorBrush(Color.FromRgb(235, 229, 255));
@@ -485,11 +486,7 @@ public partial class MainWindow : Window
             }
             else
             {
-                UpdateBannerButton.Content = $"NEXAPLAY v{_updateService.CurrentVersion.ToString(3)} · UP TO DATE";
-                UpdateBannerButton.IsEnabled = false;
-                UpdateBannerButton.Background = new SolidColorBrush(Color.FromRgb(19, 43, 41));
-                UpdateBannerButton.BorderBrush = new SolidColorBrush(Color.FromRgb(52, 119, 100));
-                UpdateBannerButton.Foreground = new SolidColorBrush(Color.FromRgb(217, 255, 240));
+                UpdateBannerButton.Visibility = Visibility.Collapsed;
                 var message = _updateService.IsConfigured ? $"You already have the latest NexaPlay version ({_updateService.CurrentVersion.ToString(3)})." : "The automatic update channel has not been published yet. Your app is working normally.";
                 if (userInitiated) MessageBox.Show(message, "NexaPlay updates", MessageBoxButton.OK, MessageBoxImage.Information);
                 if (userInitiated) StatusText.Text = message;
@@ -497,8 +494,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            UpdateBannerButton.Content = "UPDATE STATUS OFFLINE";
-            UpdateBannerButton.IsEnabled = true;
+            UpdateBannerButton.Visibility = Visibility.Collapsed;
             if (userInitiated) ShowError("Could not check for updates", ex);
         }
     }
@@ -511,7 +507,7 @@ public partial class MainWindow : Window
         if (MessageBox.Show($"Download NexaPlay v{release.Version}?{notes}\n\nThe installer will be verified before it can run.", "NexaPlay update", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         var cancellation = new CancellationTokenSource();
         _downloads[key] = cancellation;
-        var item = new DownloadTaskItem { Key = key, GameId = key, GameTitle = $"NexaPlay v{release.Version}", CoverUrl = "", Kind = DownloadPackageKind.AppUpdate, Status = "Starting…", Phase = "Downloading app update", IsActive = true };
+        var item = new DownloadTaskItem { Key = key, GameId = key, GameTitle = $"NexaPlay v{release.Version}", CoverUrl = DownloadTaskItem.NexaPlayIconUri, Kind = DownloadPackageKind.AppUpdate, Status = "Starting…", Phase = "Downloading app update", IsActive = true };
         _downloadItems.Insert(0, item); UpdateDownloadsUi(); ShowDownloadsPage();
         try
         {
