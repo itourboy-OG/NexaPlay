@@ -28,6 +28,7 @@ public partial class MainWindow : Window
     private AppSettings _settings = new();
     private bool _installedOnly;
     private bool _favoritesOnly;
+    private string _quickFilter = "ALL";
     private FrameworkElement? _currentPage;
     private UpdateRelease? _availableUpdate;
     private readonly DispatcherTimer _catalogRefreshTimer;
@@ -39,7 +40,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.7.0 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.8.0 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -55,6 +56,7 @@ public partial class MainWindow : Window
         DetailsPage.OpenDownloadsAction = ShowDownloadsPage;
         _currentPage = LibraryPage;
         SetSelectedNav(LibraryNav);
+        UpdateQuickFilterButtons();
         _catalogRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(30) };
         _catalogRefreshTimer.Tick += async (_, _) => await SyncCatalogAsync(false);
         Loaded += async (_, _) => await InitializeAsync();
@@ -129,6 +131,7 @@ public partial class MainWindow : Window
     {
         var query = SearchBox.Text.Trim();
         var games = _catalog.Games.Where(g => (!_installedOnly || g.IsInstalled) && (!_favoritesOnly || g.IsFavorite) &&
+            MatchesQuickFilter(g) &&
             (query.Length == 0 || g.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
              g.Genres.Any(x => x.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
              g.Tags.Any(x => x.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
@@ -136,14 +139,24 @@ public partial class MainWindow : Window
         _visibleGames.Clear();
         foreach (var game in games) _visibleGames.Add(game);
         GameCount.Text = $"{games.Count} GAME{(games.Count == 1 ? "" : "S")}";
+        LibraryStatsText.Text = $"{_catalog.Games.Count(g => g.IsInstalled)} INSTALLED  ·  {_catalog.Games.Count(g => g.IsFavorite)} FAVORITES";
         EmptyState.Visibility = games.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         UpdateFeatured(games.FirstOrDefault(g => g.Featured) ?? games.FirstOrDefault());
     }
+
+    private bool MatchesQuickFilter(GameEntry game) => _quickFilter switch
+    {
+        "MULTIPLAYER" => game.IsMultiplayer,
+        "COOP" => game.Tags.Concat(game.Genres).Any(value => value.Contains("co-op", StringComparison.OrdinalIgnoreCase) || value.Contains("coop", StringComparison.OrdinalIgnoreCase)),
+        "RECENT" => game.UpdatedUtc != default && game.UpdatedUtc.ToUniversalTime() >= DateTime.UtcNow.AddDays(-30),
+        _ => true
+    };
 
     private void UpdateFeatured(GameEntry? game)
     {
         if (game is null)
         {
+            FeaturedPanel.DataContext = null;
             FeaturedHero.Source = null;
             FeaturedTitle.Text = "No games found";
             FeaturedDescription.Text = "Sync the SauceBoyz catalog or try a different search.";
@@ -151,10 +164,11 @@ public partial class MainWindow : Window
             FeaturedAction.Tag = null;
             return;
         }
+        FeaturedPanel.DataContext = game;
         FeaturedAction.Visibility = Visibility.Visible;
         FeaturedTitle.Text = game.Title;
         FeaturedDescription.Text = string.IsNullOrWhiteSpace(game.Description) ? "Ready when you are." : game.Description;
-        FeaturedAction.Content = game.IsInstalled ? "Play" : "View game";
+        FeaturedAction.Content = game.IsInstalled ? "PLAY" : "VIEW GAME";
         FeaturedAction.Tag = game;
         FeaturedHero.Source = TryImage(game.HeroUrl.Length > 0 ? game.HeroUrl : game.CoverUrl);
     }
@@ -303,13 +317,41 @@ public partial class MainWindow : Window
         DownloadsEmpty.Visibility = _downloadItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private void Library_Click(object sender, RoutedEventArgs e) { _installedOnly = false; _favoritesOnly = false; PageTitle.Text = "DISCOVER"; PageSubtitle.Text = "Find your next game"; ApplyFilter(); ShowLibraryPage(); }
-    private void Installed_Click(object sender, RoutedEventArgs e) { _installedOnly = true; _favoritesOnly = false; PageTitle.Text = "INSTALLED"; PageSubtitle.Text = "Ready to launch"; ApplyFilter(); NavigateTo(LibraryPage, InstalledNav); }
-    private void Favorites_Click(object sender, RoutedEventArgs e) { _installedOnly = false; _favoritesOnly = true; PageTitle.Text = "FAVORITES"; PageSubtitle.Text = "Games you saved"; ApplyFilter(); NavigateTo(LibraryPage, FavoritesNav); }
+    private void Library_Click(object sender, RoutedEventArgs e) { _installedOnly = false; _favoritesOnly = false; SetQuickFilter("ALL", false); PageTitle.Text = "DISCOVER"; PageSubtitle.Text = "Your next game starts here"; ApplyFilter(); ShowLibraryPage(); }
+    private void Installed_Click(object sender, RoutedEventArgs e) { _installedOnly = true; _favoritesOnly = false; SetQuickFilter("ALL", false); PageTitle.Text = "INSTALLED"; PageSubtitle.Text = "Ready to launch"; ApplyFilter(); NavigateTo(LibraryPage, InstalledNav); }
+    private void Favorites_Click(object sender, RoutedEventArgs e) { _installedOnly = false; _favoritesOnly = true; SetQuickFilter("ALL", false); PageTitle.Text = "FAVORITES"; PageSubtitle.Text = "Games you saved"; ApplyFilter(); NavigateTo(LibraryPage, FavoritesNav); }
     private void Downloads_Click(object sender, RoutedEventArgs e) => ShowDownloadsPage();
     private void ShowLibraryPage() { NavigateTo(LibraryPage, _installedOnly ? InstalledNav : _favoritesOnly ? FavoritesNav : LibraryNav); StatusText.Text = $"Ready  •  Library: {_settings.LibraryFolder}"; }
     private void ShowDownloadsPage() { UpdateDownloadsUi(); NavigateTo(DownloadsPage, DownloadsNav); StatusText.Text = "Downloads and install activity"; }
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) { if (IsLoaded) ApplyFilter(); }
+
+    private void QuickFilter_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is string filter) SetQuickFilter(filter, true);
+    }
+
+    private void SetQuickFilter(string filter, bool apply)
+    {
+        _quickFilter = filter;
+        UpdateQuickFilterButtons();
+        if (apply)
+        {
+            ApplyFilter();
+            LibraryScroll.ScrollToTop();
+            StatusText.Text = filter == "ALL" ? "Showing the complete catalog." : $"Filter active: {(filter == "COOP" ? "CO-OP" : filter)}";
+        }
+    }
+
+    private void UpdateQuickFilterButtons()
+    {
+        foreach (var button in new[] { FilterAll, FilterMultiplayer, FilterCoop, FilterRecent })
+        {
+            var selected = string.Equals(button.Tag as string, _quickFilter, StringComparison.OrdinalIgnoreCase);
+            button.Background = new SolidColorBrush(selected ? Color.FromRgb(47, 38, 85) : Color.FromRgb(16, 21, 33));
+            button.BorderBrush = new SolidColorBrush(selected ? Color.FromRgb(124, 92, 250) : Color.FromRgb(40, 48, 70));
+            button.Foreground = new SolidColorBrush(selected ? Color.FromRgb(225, 219, 255) : Color.FromRgb(135, 146, 169));
+        }
+    }
 
     private void NavigateTo(FrameworkElement page, Button? navButton)
     {
@@ -332,10 +374,10 @@ public partial class MainWindow : Window
     {
         foreach (var button in new[] { LibraryNav, InstalledNav, FavoritesNav, DownloadsNav, SyncNav, UpdateNav, SettingsNav })
         {
-            button.Background = Brushes.Transparent; button.BorderBrush = Brushes.Transparent; button.Foreground = new SolidColorBrush(Color.FromRgb(170, 179, 199));
+            button.Background = Brushes.Transparent; button.BorderBrush = Brushes.Transparent; button.Foreground = new SolidColorBrush(Color.FromRgb(137, 148, 170));
         }
         if (selected is null) return;
-        selected.Background = new SolidColorBrush(Color.FromRgb(24, 30, 45)); selected.BorderBrush = new SolidColorBrush(Color.FromRgb(34, 211, 238)); selected.Foreground = Brushes.White;
+        selected.Background = new SolidColorBrush(Color.FromRgb(20, 27, 42)); selected.BorderBrush = new SolidColorBrush(Color.FromRgb(69, 221, 242)); selected.Foreground = Brushes.White;
     }
 
     private async void Sync_Click(object sender, RoutedEventArgs e)

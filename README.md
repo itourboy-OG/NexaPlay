@@ -6,7 +6,7 @@ NexaPlay is a native Windows game catalog, downloader, archive installer, and la
 
 ## What it does
 
-- Single-window gamer-focused WPF library with a redesigned sidebar, sharp cover cards, a featured banner, search, installed filtering, and favorites.
+- Professional gamer-focused WPF library with a sharp launcher sidebar, cinematic featured game, animated cover cards, live catalog status, search, installed filtering, favorites, and working Multiplayer/Co-op/Recently Updated filters.
 - In-app game pages with descriptions, tags, multiplayer status, clickable five-star ratings, screenshots, trailer/gameplay links, and update age.
 - Dedicated Downloads page with live transfer speed, bytes transferred, time remaining, estimated completion time, install phase, cancellation, and finished history.
 - Automatic safe guide/notes defaults, Steam minimum/recommended requirements, and a reusable **Can I run it?** PC profile for CPU, GPU, RAM, Windows, and storage.
@@ -28,7 +28,7 @@ Only distribute content you own or are authorized to redistribute. NexaPlay does
 
 ## Player app and private Owner Studio
 
-Friends receive only `NexaPlay-Setup-v1.7.0.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
+Friends receive only `NexaPlay-Setup-v1.8.0.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
 
 Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and metadata refresh save to the separate Owner draft automatically. **Save** confirms a local save, **Publish** updates `catalog/nexaplay-catalog.json` on GitHub, and **Done** safely saves before closing.
 
@@ -75,4 +75,4 @@ Push-Location .\server; npm test; Pop-Location
 .\build-installer.ps1
 ```
 
-Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.7.0.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.
+Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.8.0.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.
