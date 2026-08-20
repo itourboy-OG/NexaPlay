@@ -10,7 +10,7 @@
             <Image Source="Assets/NexaPlay-512.png" Width="58" Height="58" HorizontalAlignment="Right" />
         </Grid>
         <WrapPanel Grid.Row="1" Margin="0,22,0,16">
-            <Button Style="{StaticResource PrimaryButton}" Content="＋ Add game automatically" Click="Add_Click" />
+            <Button Style="{StaticResource PrimaryButton}" Content="＋ Add Games" Click="Add_Click" />
             <Button x:Name="RefreshAllButton" Style="{StaticResource GhostButton}" Content="↻ Refresh all metadata" Margin="8,0,0,0" Click="RefreshAll_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Edit" Margin="8,0,0,0" Click="Edit_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Duplicate" Margin="8,0,0,0" Click="Duplicate_Click" />
@@ -18,7 +18,6 @@
             <Button Style="{StaticResource GhostButton}" Content="Import catalog" Margin="22,0,0,0" Click="Import_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Export catalog" Margin="8,0,0,0" Click="Export_Click" />
             <Button x:Name="ArtworkKeyButton" Style="{StaticResource GhostButton}" Content="SteamGridDB key…" Margin="8,0,0,0" Click="ArtworkKey_Click" />
-            <Button Style="{StaticResource GhostButton}" Content="Optional online publishing…" Margin="8,0,0,0" Click="Connection_Click" />
         </WrapPanel>
         <Border Grid.Row="2" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="6">
             <ListView x:Name="GamesList" Background="Transparent" BorderThickness="0" Foreground="White" MouseDoubleClick="GamesList_MouseDoubleClick">
@@ -34,8 +33,18 @@
             </ListView>
         </Border>
         <Grid Grid.Row="3" Margin="0,16,0,0">
-            <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
-            <Button Style="{StaticResource PrimaryButton}" Content="Done" HorizontalAlignment="Right" Click="Done_Click" />
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" />
+                <Border x:Name="NotificationBanner" Background="#173B34" BorderBrush="#2E8A70" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,7,18,0" HorizontalAlignment="Left" Visibility="Collapsed">
+                    <TextBlock x:Name="NotificationText" Foreground="#75E8BF" FontWeight="SemiBold" />
+                </Border>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                <Button x:Name="SaveButton" Style="{StaticResource GhostButton}" Content="Save" Click="Save_Click" />
+                <Button x:Name="PublishButton" Style="{StaticResource PrimaryButton}" Content="Publish" Margin="8,0,0,0" Click="Publish_Click" />
+                <Button x:Name="DoneButton" Style="{StaticResource GhostButton}" Content="Done" Margin="8,0,0,0" Click="Done_Click" />
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>

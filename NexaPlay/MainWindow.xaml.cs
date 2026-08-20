@@ -39,7 +39,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.6.1 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.7.0 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -55,12 +55,12 @@ public partial class MainWindow : Window
         DetailsPage.OpenDownloadsAction = ShowDownloadsPage;
         _currentPage = LibraryPage;
         SetSelectedNav(LibraryNav);
-        _catalogRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMinutes(5) };
+        _catalogRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(30) };
         _catalogRefreshTimer.Tick += async (_, _) => await SyncCatalogAsync(false);
         Loaded += async (_, _) => await InitializeAsync();
         Activated += async (_, _) =>
         {
-            if (_initialized && DateTime.UtcNow - _lastCatalogSyncAttemptUtc >= TimeSpan.FromMinutes(2))
+            if (_initialized && DateTime.UtcNow - _lastCatalogSyncAttemptUtc >= TimeSpan.FromSeconds(10))
                 await SyncCatalogAsync(false);
         };
         Closed += (_, _) => _catalogRefreshTimer.Stop();
@@ -353,7 +353,9 @@ public partial class MainWindow : Window
         try
         {
             if (userInitiated) StatusText.Text = "Syncing the latest catalog…";
+            var previousUpdatedUtc = _catalog.UpdatedUtc;
             var refreshed = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl);
+            if (!userInitiated && refreshed.UpdatedUtc <= previousUpdatedUtc) return;
             _catalog = refreshed;
             RefreshInstallStates();
             ApplyFilter();

@@ -31,6 +31,17 @@ try
     await JsonFile.WriteAtomicAsync(jsonPath, catalog);
     var loaded = await JsonFile.ReadAsync<CatalogDocument>(jsonPath);
     Require(loaded?.Games.Single().Title == "Test Game", "Atomic catalog round-trip failed.");
+    var ownerCatalogPath = Path.Combine(root, "owner-catalog.json");
+    var ownerCatalogService = new CatalogService(new HttpClient(), ownerCatalogPath);
+    await ownerCatalogService.SaveAsync(catalog);
+    Require(File.Exists(ownerCatalogPath) && (await ownerCatalogService.LoadAsync()).Games.Single().Title == "Test Game", "Separate Owner Studio draft catalog failed.");
+    var remoteStamp = new DateTime(2026, 8, 20, 12, 0, 0, DateTimeKind.Utc);
+    var remoteCatalog = new CatalogDocument { UpdatedUtc = remoteStamp, Games = [new GameEntry { Title = "Remote Game" }] };
+    var remoteResponse = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(remoteCatalog, JsonFile.Options)) };
+    remoteResponse.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+    var remoteCatalogPath = Path.Combine(root, "remote-catalog.json");
+    var syncedCatalog = await new CatalogService(new HttpClient(new FakeHandler(remoteResponse)), remoteCatalogPath).SyncAsync("https://example.test/catalog.json");
+    Require(syncedCatalog.UpdatedUtc == remoteStamp, "Catalog sync replaced the publisher timestamp with the local refresh time.");
 
     var archive = Path.Combine(root, "test.zip");
     using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))

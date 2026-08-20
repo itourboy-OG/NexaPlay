@@ -1,4 +1,5 @@
 using NexaPlay.Services;
+using System.IO;
 using System.Net.Http;
 using System.Windows;
 
@@ -18,21 +19,21 @@ public partial class App : Application
             var connected = !string.IsNullOrWhiteSpace(ownerSettings.CommunityUrl) && !string.IsNullOrWhiteSpace(adminKey);
 
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.5.1");
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.7.0");
             var api = new OwnerApiClient(http);
-            var catalogService = new CatalogService(http);
+            var playerCatalogService = new CatalogService(http);
+            var catalogService = new CatalogService(http, AppPaths.OwnerCatalogFile);
             var settingsService = new SettingsService();
             var appSettings = await settingsService.LoadAsync();
             NexaPlay.CatalogDocument catalog;
-            if (connected)
+            if (File.Exists(AppPaths.OwnerCatalogFile))
             {
-                try { catalog = await api.GetCatalogAsync(ownerSettings.CommunityUrl); await catalogService.SaveAsync(catalog); }
-                catch { catalog = await catalogService.LoadAsync(); connected = false; }
+                catalog = await catalogService.LoadAsync();
             }
             else
             {
-                try { catalog = await catalogService.SyncAsync(GitHubCatalogPublisher.CatalogUrl); }
-                catch { catalog = await catalogService.LoadAsync(); }
+                try { catalog = await playerCatalogService.LoadAsync(); await catalogService.SaveAsync(catalog); }
+                catch { try { catalog = await catalogService.SyncAsync(GitHubCatalogPublisher.CatalogUrl); } catch { catalog = await catalogService.LoadAsync(); } }
             }
             var github = new GitHubCatalogPublisher();
             var studio = new CreatorWindow(catalog, catalogService, appSettings, settingsService, http);
@@ -43,33 +44,14 @@ public partial class App : Application
                 var keyWindow = new SteamGridDbKeyWindow(appSettings, settingsService) { Owner = studio };
                 if (keyWindow.ShowDialog() == true) studio.SetArtworkKeyStatus(settingsService.GetSteamGridDbKey(appSettings).Length > 0);
             };
-            studio.ConfigurePublishingAction = () =>
+            studio.PublishAction = async publishedCatalog =>
             {
-                var setup = new OwnerSetupWindow(ownerSettings.CommunityUrl) { Owner = studio };
-                if (setup.ShowDialog() != true) return;
-                ownerSettings.CommunityUrl = setup.CommunityUrl;
-                ownerSettingsService.SetAdminKey(ownerSettings, setup.AdminKey);
-                ownerSettingsService.SaveAsync(ownerSettings).GetAwaiter().GetResult();
-                adminKey = setup.AdminKey;
-                connected = true;
-                studio.SetOwnerMode(true, ownerSettings.CommunityUrl);
+                await github.EnsureReadyAsync();
+                await github.PublishAsync(publishedCatalog);
+                if (connected) await api.PublishAsync(ownerSettings.CommunityUrl, adminKey, publishedCatalog);
             };
             MainWindow = studio;
-            var changed = studio.ShowDialog() == true;
-            if (changed)
-            {
-                try
-                {
-                    await github.EnsureReadyAsync();
-                    await github.PublishAsync(studio.Catalog);
-                    if (connected) await api.PublishAsync(ownerSettings.CommunityUrl, adminKey, studio.Catalog);
-                    MessageBox.Show("The SauceBoyz catalog was published to GitHub. Friends will receive the changes automatically on their next NexaPlay sync.", "Catalog published", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Your catalog is safely saved on this PC, but GitHub publishing did not finish.\n\n{ex.Message}", "Saved locally — GitHub needs attention", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-            }
+            studio.ShowDialog();
         }
         catch (Exception ex) { MessageBox.Show(ex.Message, "NexaPlay Owner Studio", MessageBoxButton.OK, MessageBoxImage.Error); }
         finally { Shutdown(); }

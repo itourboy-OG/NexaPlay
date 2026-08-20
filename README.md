@@ -28,19 +28,19 @@ Only distribute content you own or are authorized to redistribute. NexaPlay does
 
 ## Player app and private Owner Studio
 
-Friends receive only `NexaPlay-Setup-v1.6.1.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
+Friends receive only `NexaPlay-Setup-v1.7.0.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
 
-Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and export work immediately; clicking **Done** saves locally and updates `catalog/nexaplay-catalog.json` on GitHub. **Optional community-server publishing** remains available later for shared ratings.
+Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and metadata refresh save to the separate Owner draft automatically. **Save** confirms a local save, **Publish** updates `catalog/nexaplay-catalog.json` on GitHub, and **Done** safely saves before closing.
 
 ## Your first catalog
 
-1. Open the private **NexaPlay Owner Studio** and choose **Add game automatically**.
+1. Open the private **NexaPlay Owner Studio** and choose **+ Add Games**.
 2. Enter the game title and choose **Auto-Fill Game**. NexaPlay finds the Steam App ID and builds the metadata portion of the page.
 3. Paste the direct game archive URL. The URL can be long and does not need to contain the game name.
 4. Optionally paste separate update and Online Fix archive links. Empty package types stay hidden from the public game page.
 5. In Owner Studio, choose **SteamGridDB key…**, open the official API key page, and save your key. It is encrypted for your Windows account and is never shipped to players. Friends receive the resulting artwork URLs automatically and do not need a key.
 6. Put `Run Me!.bat` in the game archive. NexaPlay launches it automatically; the executable field is only a fallback.
-7. Add SHA-256 checksums whenever possible, then click **Done**. Owner Studio saves locally and publishes the catalog to GitHub; players sync it automatically at startup or when they click **Sync library**.
+7. Add SHA-256 checksums whenever possible, then save the game. Owner Studio saves it automatically. Click **Publish** when it is ready for friends; their Player apps check the catalog automatically about every 30 seconds. Click **Done** whenever you want to save and close Studio.
 
 The included `server` folder supplies the real shared catalog and ratings API. It stores one current vote per player ID and requires the private owner key for catalog writes. Host it behind HTTPS, put its `/api/catalog` URL in the player catalog settings, and keep `NEXAPLAY_ADMIN_KEY` only on the server and owner machine.
 
@@ -58,7 +58,7 @@ NexaPlay needs a direct file-download response. A normal share page often return
 
 ## Local data and privacy
 
-- Settings and the working catalog: `%LOCALAPPDATA%\NexaPlay`
+- Settings, the Player cache, and the separate Owner draft catalog: `%LOCALAPPDATA%\NexaPlay`
 - Default game library: `%USERPROFILE%\Documents\NexaPlay Library`
 - SteamGridDB key and private owner key: encrypted separately with Windows Data Protection for the current user
 - Player installer payload: player app, bundled catalog, and runtime only
@@ -75,4 +75,4 @@ Push-Location .\server; npm test; Pop-Location
 .\build-installer.ps1
 ```
 
-Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.6.1.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.
+Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.7.0.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.

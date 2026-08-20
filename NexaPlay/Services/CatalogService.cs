@@ -3,18 +3,20 @@ using System.Net.Http.Headers;
 
 namespace NexaPlay.Services;
 
-public sealed class CatalogService(HttpClient httpClient)
+public sealed class CatalogService(HttpClient httpClient, string? catalogFile = null)
 {
+    private readonly string _catalogFile = catalogFile ?? AppPaths.CatalogFile;
+
     public async Task<CatalogDocument> LoadAsync()
     {
         AppPaths.EnsureCreated();
-        if (!File.Exists(AppPaths.CatalogFile))
+        if (!File.Exists(_catalogFile))
         {
             var bundled = Path.Combine(AppContext.BaseDirectory, "default-catalog.json");
             var initial = await JsonFile.ReadAsync<CatalogDocument>(bundled) ?? new CatalogDocument();
             await SaveAsync(initial);
         }
-        var document = await JsonFile.ReadAsync<CatalogDocument>(AppPaths.CatalogFile) ?? new CatalogDocument();
+        var document = await JsonFile.ReadAsync<CatalogDocument>(_catalogFile) ?? new CatalogDocument();
         Normalize(document);
         return document;
     }
@@ -22,7 +24,7 @@ public sealed class CatalogService(HttpClient httpClient)
     public Task SaveAsync(CatalogDocument catalog)
     {
         catalog.UpdatedUtc = DateTime.UtcNow;
-        return JsonFile.WriteAtomicAsync(AppPaths.CatalogFile, catalog);
+        return JsonFile.WriteAtomicAsync(_catalogFile, catalog);
     }
 
     public async Task<CatalogDocument> ImportAsync(string path)
@@ -55,7 +57,8 @@ public sealed class CatalogService(HttpClient httpClient)
             ?? throw new InvalidDataException("The remote file is not a NexaPlay catalog.");
         Validate(document);
         Normalize(document);
-        await SaveAsync(document);
+        AppPaths.EnsureCreated();
+        await JsonFile.WriteAtomicAsync(_catalogFile, document);
         return document;
     }
 
