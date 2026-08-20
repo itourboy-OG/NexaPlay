@@ -258,6 +258,7 @@ public sealed class DownloadTaskItem : INotifyPropertyChanged
     private string _phase = "Preparing";
     private bool _isActive = true;
     private bool _isFailed;
+    private bool _isQueued;
 
     public required string Key { get; init; }
     public required string GameId { get; init; }
@@ -275,6 +276,7 @@ public sealed class DownloadTaskItem : INotifyPropertyChanged
     public string Phase { get => _phase; set => Set(ref _phase, value); }
     public bool IsActive { get => _isActive; set => Set(ref _isActive, value); }
     public bool IsFailed { get => _isFailed; set => Set(ref _isFailed, value); }
+    public bool IsQueued { get => _isQueued; set => Set(ref _isQueued, value); }
     public string SpeedLabel => BytesPerSecond > 0 ? $"{FormatBytes((long)BytesPerSecond)}/s" : "—";
     public string EtaLabel => Eta is { } eta && eta.TotalSeconds >= 0 ? FormatDuration(eta) : "—";
     public string FinishLabel => EstimatedFinishLocal is { } finish ? finish.ToString("h:mm tt") : "—";
@@ -299,6 +301,33 @@ public sealed class DownloadTaskItem : INotifyPropertyChanged
         if (value.TotalHours >= 1) return $"{(int)value.TotalHours}h {value.Minutes}m";
         if (value.TotalMinutes >= 1) return $"{Math.Max(1, (int)value.TotalMinutes)}m {value.Seconds}s";
         return $"{Math.Max(1, value.Seconds)}s";
+    }
+}
+
+public sealed class DownloadHistoryItem
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string GameTitle { get; set; } = "NexaPlay download";
+    public string CoverUrl { get; set; } = "";
+    public DownloadPackageKind Kind { get; set; }
+    public string Outcome { get; set; } = "Complete";
+    public string Status { get; set; } = "Downloaded";
+    public long BytesTransferred { get; set; }
+    public DateTime CompletedUtc { get; set; } = DateTime.UtcNow;
+
+    [JsonIgnore]
+    public string PackageLabel => Kind switch { DownloadPackageKind.Game => "FULL GAME", DownloadPackageKind.Update => "GAME UPDATE", DownloadPackageKind.OnlineFix => "ONLINE FIX", _ => "NEXAPLAY UPDATE" };
+    [JsonIgnore]
+    public string CompletedLabel => CompletedUtc.ToLocalTime().ToString("MMM d, yyyy · h:mm tt");
+    [JsonIgnore]
+    public string SizeLabel => BytesTransferred > 0 ? FormatBytes(BytesTransferred) : "Size unavailable";
+
+    private static string FormatBytes(long value)
+    {
+        string[] units = ["B", "KB", "MB", "GB", "TB"];
+        double size = Math.Max(0, value); var unit = 0;
+        while (size >= 1024 && unit < units.Length - 1) { size /= 1024; unit++; }
+        return $"{size:0.0} {units[unit]}";
     }
 }
 
