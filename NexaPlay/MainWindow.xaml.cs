@@ -41,7 +41,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.0 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.1 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -95,7 +95,7 @@ public partial class MainWindow : Window
             if (_settings.AutoSyncCatalog && !string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl))
             {
                 StatusText.Text = "Syncing catalog…";
-                try { _lastCatalogSyncAttemptUtc = DateTime.UtcNow; _catalog = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl); }
+                try { _lastCatalogSyncAttemptUtc = DateTime.UtcNow; _catalog = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl, preferGitHubApi: true); }
                 catch (Exception ex) { StatusText.Text = $"Catalog sync skipped: {ex.Message}"; }
             }
             RefreshInstallStates();
@@ -447,7 +447,7 @@ public partial class MainWindow : Window
         {
             if (userInitiated) StatusText.Text = "Syncing the latest catalog…";
             var previousUpdatedUtc = _catalog.UpdatedUtc;
-            var refreshed = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl);
+            var refreshed = await _catalogService.SyncAsync(_settings.RemoteCatalogUrl, preferGitHubApi: userInitiated);
             if (!userInitiated && refreshed.UpdatedUtc <= previousUpdatedUtc) return;
             _catalog = refreshed;
             RefreshInstallStates();

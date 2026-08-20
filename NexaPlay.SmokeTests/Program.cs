@@ -42,6 +42,12 @@ try
     var remoteCatalogPath = Path.Combine(root, "remote-catalog.json");
     var syncedCatalog = await new CatalogService(new HttpClient(new FakeHandler(remoteResponse)), remoteCatalogPath).SyncAsync("https://example.test/catalog.json");
     Require(syncedCatalog.UpdatedUtc == remoteStamp, "Catalog sync replaced the publisher timestamp with the local refresh time.");
+    var githubResponse = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(remoteCatalog, JsonFile.Options)) };
+    githubResponse.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+    var githubHandler = new CapturingHandler(githubResponse);
+    var githubCatalogPath = Path.Combine(root, "github-catalog.json");
+    var githubSyncedCatalog = await new CatalogService(new HttpClient(githubHandler), githubCatalogPath).SyncAsync("https://raw.githubusercontent.com/example-owner/example-repo/main/catalog/nexaplay-catalog.json", preferGitHubApi: true);
+    Require(githubSyncedCatalog.Games.Single().Title == "Remote Game" && githubHandler.RequestUri?.Host == "api.github.com" && githubHandler.RequestUri.AbsolutePath == "/repos/example-owner/example-repo/contents/catalog/nexaplay-catalog.json", "Fresh GitHub catalog sync did not use the Contents API endpoint.");
 
     var archive = Path.Combine(root, "test.zip");
     using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
@@ -156,6 +162,9 @@ try
     {
         using var http = new HttpClient();
         http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-SmokeTests/1.0");
+        var liveCatalogPath = Path.Combine(root, "live-github-catalog.json");
+        var liveCatalog = await new CatalogService(http, liveCatalogPath).SyncAsync("https://raw.githubusercontent.com/itourboy-OG/NexaPlay/main/catalog/nexaplay-catalog.json", preferGitHubApi: true);
+        Require(liveCatalog.Games.Any(game => game.Title == "Big Walk"), "Fresh GitHub catalog sync did not return the newly published game.");
         var metadata = await new SteamMetadataService(http).FetchAsync(620);
         Require(metadata.Title == "Portal 2" && metadata.Developer.Length > 0 && metadata.CoverUrl.StartsWith("https://") && !metadata.Description.Contains("&quot;"), "Live Steam metadata compatibility failed.");
         Require(metadata.IsMultiplayer && metadata.Tags.Any(tag => tag.Contains("Co-op", StringComparison.OrdinalIgnoreCase)), "Steam multiplayer/category automation failed.");
@@ -182,6 +191,16 @@ sealed class ThrowingHandler : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
         throw new InvalidOperationException("The network should not be used when a completed archive already exists.");
+}
+
+sealed class CapturingHandler(HttpResponseMessage response) : HttpMessageHandler
+{
+    public Uri? RequestUri { get; private set; }
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        RequestUri = request.RequestUri;
+        return Task.FromResult(response);
+    }
 }
 
 sealed class ProgressRecorder : IProgress<DownloadProgress>

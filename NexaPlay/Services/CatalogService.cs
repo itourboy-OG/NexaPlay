@@ -39,14 +39,17 @@ public sealed class CatalogService(HttpClient httpClient, string? catalogFile = 
 
     public async Task ExportAsync(CatalogDocument catalog, string path) => await JsonFile.WriteAtomicAsync(path, catalog);
 
-    public async Task<CatalogDocument> SyncAsync(string url, CancellationToken cancellationToken = default)
+    public async Task<CatalogDocument> SyncAsync(string url, CancellationToken cancellationToken = default, bool preferGitHubApi = false)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
             throw new InvalidOperationException("Remote catalogs must use a trusted HTTPS URL.");
-        var freshUri = AddCacheBuster(uri);
+        Uri? githubUri = null;
+        var useGitHubApi = preferGitHubApi && TryBuildGitHubContentsUri(uri, out githubUri);
+        var freshUri = useGitHubApi ? githubUri! : AddCacheBuster(uri);
         using var request = new HttpRequestMessage(HttpMethod.Get, freshUri);
         request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true, NoStore = true };
         request.Headers.Pragma.ParseAdd("no-cache");
+        if (useGitHubApi) request.Headers.Accept.ParseAdd("application/vnd.github.raw+json");
         using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
         var mediaType = response.Content.Headers.ContentType?.MediaType ?? "";
@@ -68,6 +71,21 @@ public sealed class CatalogService(HttpClient httpClient, string? catalogFile = 
         var separator = string.IsNullOrWhiteSpace(builder.Query) ? "" : builder.Query.TrimStart('?') + "&";
         builder.Query = $"{separator}nexaplay_refresh={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
         return builder.Uri;
+    }
+
+    private static bool TryBuildGitHubContentsUri(Uri rawUri, out Uri? apiUri)
+    {
+        apiUri = null;
+        if (!rawUri.Host.Equals("raw.githubusercontent.com", StringComparison.OrdinalIgnoreCase)) return false;
+        var parts = rawUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 4) return false;
+        var owner = Uri.EscapeDataString(Uri.UnescapeDataString(parts[0]));
+        var repository = Uri.EscapeDataString(Uri.UnescapeDataString(parts[1]));
+        var branch = Uri.EscapeDataString(Uri.UnescapeDataString(parts[2]));
+        var path = string.Join('/', parts.Skip(3).Select(part => Uri.EscapeDataString(Uri.UnescapeDataString(part))));
+        var refresh = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        apiUri = new Uri($"https://api.github.com/repos/{owner}/{repository}/contents/{path}?ref={branch}&nexaplay_refresh={refresh}");
+        return true;
     }
 
     public static void Validate(CatalogDocument document)
