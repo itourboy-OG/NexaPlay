@@ -8,6 +8,7 @@ namespace NexaPlay;
 public partial class SettingsWindow : Window
 {
     public AppSettings Settings { get; private set; }
+    public SettingsAction RequestedAction { get; private set; }
     private readonly SettingsService _settingsService;
 
     public SettingsWindow(AppSettings settings, SettingsService settingsService, CatalogService catalogService)
@@ -38,5 +39,17 @@ public partial class SettingsWindow : Window
     }
 
     private void OpenData_Click(object sender, RoutedEventArgs e) { AppPaths.EnsureCreated(); Process.Start(new ProcessStartInfo(AppPaths.DataRoot) { UseShellExecute = true }); }
+    private void SyncCatalog_Click(object sender, RoutedEventArgs e) => CloseForAction(SettingsAction.SyncCatalog);
+    private void CheckForUpdates_Click(object sender, RoutedEventArgs e) => CloseForAction(SettingsAction.CheckForUpdates);
+    private void GettingStarted_Click(object sender, RoutedEventArgs e) => CloseForAction(SettingsAction.GettingStarted);
+    private void CloseForAction(SettingsAction action) { RequestedAction = action; DialogResult = false; Close(); }
     private void Cancel_Click(object sender, RoutedEventArgs e) { DialogResult = false; Close(); }
+}
+
+public enum SettingsAction
+{
+    None,
+    SyncCatalog,
+    CheckForUpdates,
+    GettingStarted
 }
