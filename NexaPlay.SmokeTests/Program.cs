@@ -141,6 +141,22 @@ try
     Require(bundledCatalog?.Games.Any(item => item.Title == "PEAK") == true && bundledCatalog.Games.Any(item => item.Title == "Forza Horizon 6"), "The friend installer catalog is missing the current games.");
     var transfer = new DownloadTaskItem { Key = "test", GameId = "test", GameTitle = "Test Game", CoverUrl = "", Kind = DownloadPackageKind.Game, BytesReceived = 1024 * 1024, TotalBytes = 2 * 1024 * 1024, BytesPerSecond = 1024 * 1024, Eta = TimeSpan.FromSeconds(1), EstimatedFinishLocal = DateTime.Now.AddSeconds(1) };
     Require(transfer.SpeedLabel == "1.0 MB/s" && transfer.EtaLabel == "1s" && transfer.TransferredLabel == "1.0 MB / 2.0 MB", "Download speed/ETA labels failed.");
+    Exception? updateIconError = null;
+    var updateIconLoaded = false;
+    var iconThread = new Thread(() =>
+    {
+        try
+        {
+            _ = System.Windows.Application.Current ?? new System.Windows.Application();
+            var updateIcon = new System.Windows.Media.Imaging.BitmapImage(new Uri(DownloadTaskItem.NexaPlayIconUri, UriKind.Absolute));
+            updateIconLoaded = updateIcon.PixelWidth > 0 && updateIcon.PixelHeight > 0;
+        }
+        catch (Exception ex) { updateIconError = ex; }
+    });
+    iconThread.SetApartmentState(ApartmentState.STA);
+    iconThread.Start();
+    iconThread.Join();
+    Require(updateIconLoaded, $"App update download icon could not be loaded: {updateIconError?.Message}");
 
     var updateChannelPath = Path.Combine(AppContext.BaseDirectory, "update-channel.json");
     var originalChannel = await File.ReadAllTextAsync(updateChannelPath);

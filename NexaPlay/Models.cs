@@ -247,6 +247,7 @@ public sealed record DownloadProgress(
 
 public sealed class DownloadTaskItem : INotifyPropertyChanged
 {
+    public const string NexaPlayIconUri = "pack://application:,,,/NexaPlay;component/Assets/NexaPlay-512.png";
     private double _percent;
     private long _bytesReceived;
     private long? _totalBytes;
