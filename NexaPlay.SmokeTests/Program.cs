@@ -109,6 +109,20 @@ try
     Require(File.Exists(Path.Combine(externalGameFolder, "TestGame", "updated.txt")), "A standalone update could not be applied to a user-selected game folder.");
     Require(!File.Exists(Path.Combine(externalGameFolder, ".nexaplay.json")), "NexaPlay incorrectly claimed ownership of an external game folder.");
 
+    await InstallService.DeleteInstallAsync(game, library, moveToRecycleBin: false);
+    Require(!Directory.Exists(installed), "The managed game folder was not deleted during uninstall.");
+    InstallService.RefreshInstallState(game, library);
+    Require(!game.IsInstalled && game.ActionLabel != "Play", "The game still showed Play after uninstalling.");
+
+    var protectedFolder = Path.Combine(library, "Protected");
+    Directory.CreateDirectory(protectedFolder);
+    await JsonFile.WriteAtomicAsync(Path.Combine(protectedFolder, ".nexaplay.json"), new InstallManifest("another-game", "Another Game", "1.0", "game.exe", DateTime.UtcNow));
+    game.InstallPath = protectedFolder;
+    var mismatchedDeleteBlocked = false;
+    try { await InstallService.DeleteInstallAsync(game, library, moveToRecycleBin: false); }
+    catch (InvalidDataException) { mismatchedDeleteBlocked = true; }
+    Require(mismatchedDeleteBlocked && Directory.Exists(protectedFolder), "Uninstall did not protect a folder owned by a different game manifest.");
+
     var htmlHandler = new FakeHandler(new HttpResponseMessage(HttpStatusCode.OK)
     {
         Content = new StringContent("<html>landing page</html>") { Headers = { ContentType = new MediaTypeHeaderValue("text/html") } }
@@ -198,7 +212,7 @@ try
     }
 
     Console.WriteLine($"Detected physical GPU: {detectedGpu}");
-    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, independent external-folder update, download speed/ETA labels, persistent download history and clearing, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, CPU/GPU/RAM/Windows detection, and Technical City game links{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
+    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, protected game uninstall and immediate Play-state clearing, independent external-folder update, download speed/ETA labels, persistent download history and clearing, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, CPU/GPU/RAM/Windows detection, and Technical City game links{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
 }
 finally
 {

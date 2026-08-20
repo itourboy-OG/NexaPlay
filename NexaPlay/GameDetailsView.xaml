@@ -20,6 +20,7 @@
                     <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,4">
                         <Button x:Name="PlayButton" Style="{StaticResource PrimaryButton}" Content="▶  PLAY" Padding="18,13" Click="Play_Click"/>
                         <Button x:Name="DownloadJumpButton" Style="{StaticResource GhostButton}" Content="↓  DOWNLOAD OPTIONS" Padding="18,12" Margin="0,8,0,0" Click="DownloadJump_Click"/>
+                        <Button x:Name="UninstallButton" Style="{StaticResource DangerButton}" Content="✕  UNINSTALL GAME" Padding="18,11" Margin="0,8,0,0" Click="Uninstall_Click"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="◫  FULL FPS CHECK  •  TECHNICAL CITY ↗" Padding="18,11" Margin="0,8,0,0" Click="TechnicalCity_Click"/>
                         <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Button x:Name="FavoriteButton" Style="{StaticResource GhostButton}" Content="♡  FAVORITE" Padding="10,9" Click="Favorite_Click"/><Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="⚑  REPORT" Padding="10,9" Margin="7,0,0,0" Click="Report_Click"/></Grid>
                     </StackPanel>

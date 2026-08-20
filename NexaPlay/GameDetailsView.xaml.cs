@@ -14,6 +14,7 @@ public partial class GameDetailsView : UserControl
     private bool _communityConnected;
     public Func<GameEntry, DownloadPackageKind, Task>? PackageAction { get; set; }
     public Func<GameEntry, Task>? PlayAction { get; set; }
+    public Func<GameEntry, Task>? UninstallAction { get; set; }
     public Func<GameEntry, bool, Task>? FavoriteAction { get; set; }
     public Func<GameEntry, int, Task>? RateAction { get; set; }
     public Action<GameEntry>? CancelAction { get; set; }
@@ -39,6 +40,8 @@ public partial class GameDetailsView : UserControl
         if (_game is null) return;
         PlayButton.Visibility = _game.IsInstalled ? Visibility.Visible : Visibility.Collapsed;
         PlayButton.Content = "▶  PLAY";
+        UninstallButton.Visibility = _game.IsInstalled ? Visibility.Visible : Visibility.Collapsed;
+        UninstallButton.IsEnabled = !_game.IsBusy;
         FavoriteButton.Content = _game.IsFavorite ? "♥  FAVORITED" : "♡  FAVORITE";
         GameDownloadButton.Content = _game.HasIncompleteInstall ? "Resume install" : _game.IsInstalled ? "Reinstall" : "Download";
         GameDownloadButton.IsEnabled = !_game.IsBusy;
@@ -80,6 +83,7 @@ public partial class GameDetailsView : UserControl
 
     private void Back_Click(object sender, RoutedEventArgs e) => BackAction?.Invoke();
     private async void Play_Click(object sender, RoutedEventArgs e) { if (_game is not null && PlayAction is not null) await PlayAction(_game); }
+    private async void Uninstall_Click(object sender, RoutedEventArgs e) { if (_game is not null && UninstallAction is not null) await UninstallAction(_game); RefreshUi(); }
     private async void DownloadGame_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Game);
     private async void DownloadUpdate_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Update);
     private async void DownloadFix_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.OnlineFix);

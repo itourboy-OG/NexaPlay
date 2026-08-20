@@ -46,7 +46,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.4 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.5 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -57,6 +57,7 @@ public partial class MainWindow : Window
         DownloadHistoryList.ItemsSource = _downloadHistoryItems;
         DetailsPage.PackageAction = ActOnGameAsync;
         DetailsPage.PlayAction = PlayGameAsync;
+        DetailsPage.UninstallAction = UninstallGameAsync;
         DetailsPage.FavoriteAction = SetFavoriteAsync;
         DetailsPage.RateAction = RateGameAsync;
         DetailsPage.CancelAction = CancelGameDownload;
@@ -231,6 +232,34 @@ public partial class MainWindow : Window
     {
         try { await InstallService.LaunchAsync(game); StatusText.Text = $"Launched {game.Title}."; }
         catch (Exception ex) { ShowError("Could not launch game", ex); }
+    }
+
+    private async Task UninstallGameAsync(GameEntry game)
+    {
+        if (!game.IsInstalled || game.IsBusy) return;
+        var answer = MessageBox.Show(
+            $"Uninstall {game.Title}?\n\nThe installed game folder will be moved to the Recycle Bin:\n{game.InstallPath}\n\nThe game stays in your NexaPlay catalog so you can download it again later.",
+            $"Uninstall {game.Title}",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (answer != MessageBoxResult.Yes) return;
+
+        game.IsBusy = true; game.Activity = "Uninstalling…"; game.NotifyRuntimeChanged();
+        try
+        {
+            await InstallService.DeleteInstallAsync(game, _settings.LibraryFolder);
+            InstallService.RefreshInstallState(game, _settings.LibraryFolder);
+            ApplyFilter();
+            StatusText.Text = $"Uninstalled {game.Title}. You can download it again anytime.";
+        }
+        catch (Exception ex) { ShowError($"Could not uninstall {game.Title}", ex); }
+        finally
+        {
+            game.IsBusy = false; game.Activity = "";
+            InstallService.RefreshInstallState(game, _settings.LibraryFolder);
+            game.NotifyRuntimeChanged();
+            ApplyFilter();
+        }
     }
 
     private async Task SetFavoriteAsync(GameEntry game, bool favorite)
@@ -591,6 +620,7 @@ public partial class MainWindow : Window
             });
             var installer = await _updateService.DownloadInstallerAsync(release, progress, cancellation.Token);
             item.Percent = 100; item.IsActive = false; item.Phase = "Verified and ready"; item.Status = "SHA-256 verified";
+            UpdateDownloadsUi();
             if (MessageBox.Show("The update is downloaded and verified. Install it now? NexaPlay will close after the installer starts.", "Update ready", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
             {
                 UpdateService.LaunchInstaller(installer);

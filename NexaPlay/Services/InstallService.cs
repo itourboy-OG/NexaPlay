@@ -1,6 +1,7 @@
 using SharpCompress.Common;
 using SharpCompress.Readers;
 using System.Diagnostics;
+using RecycleFileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace NexaPlay.Services;
 
@@ -97,6 +98,34 @@ public sealed class InstallService
         var launcher = manifest is null ? ResolveLauncher(game, game.InstallPath) : Path.Combine(game.InstallPath, manifest.ExecutablePath);
         if (!File.Exists(launcher)) launcher = ResolveLauncher(game, game.InstallPath);
         Process.Start(new ProcessStartInfo(launcher) { WorkingDirectory = Path.GetDirectoryName(launcher)!, UseShellExecute = true });
+    }
+
+    public static async Task DeleteInstallAsync(GameEntry game, string libraryFolder, bool moveToRecycleBin = true, CancellationToken cancellationToken = default)
+    {
+        var libraryRoot = Path.GetFullPath(libraryFolder).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var installPath = Path.GetFullPath(game.InstallPath);
+        if (installPath.Length <= libraryRoot.TrimEnd(Path.DirectorySeparatorChar).Length ||
+            !installPath.StartsWith(libraryRoot, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("NexaPlay will only uninstall a managed game folder inside its library.");
+        if (!Directory.Exists(installPath)) return;
+
+        var manifestPath = Path.Combine(installPath, ManifestFileName);
+        var manifest = await JsonFile.ReadAsync<InstallManifest>(manifestPath, cancellationToken);
+        if (manifest is null || !string.Equals(manifest.GameId, game.Id, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("The install manifest does not match this game, so the folder was not deleted.");
+
+        await Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (moveToRecycleBin)
+                RecycleFileSystem.DeleteDirectory(
+                    installPath,
+                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                    Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin,
+                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
+            else
+                Directory.Delete(installPath, recursive: true);
+        }, cancellationToken);
     }
 
     private static async Task ExtractArchiveAsync(string archivePath, string installPath, string password, IProgress<DownloadProgress> progress, CancellationToken cancellationToken)
