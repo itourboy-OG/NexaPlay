@@ -8,6 +8,7 @@ public static class AppPaths
     public static string CatalogFile => Path.Combine(DataRoot, "catalog.json");
     public static string OwnerCatalogFile => Path.Combine(DataRoot, "owner-catalog.json");
     public static string UserStateFile => Path.Combine(DataRoot, "library-state.json");
+    public static string DownloadHistoryFile => Path.Combine(DataRoot, "download-history.json");
     public static string CacheRoot => Path.Combine(DataRoot, "cache");
     public static string UpdatesRoot => Path.Combine(DataRoot, "updates");
     public static string ProfileRoot => Path.Combine(DataRoot, "profile");

@@ -157,6 +157,13 @@ try
     iconThread.Start();
     iconThread.Join();
     Require(updateIconLoaded, $"App update download icon could not be loaded: {updateIconError?.Message}");
+    var historyPath = Path.Combine(root, "download-history.json");
+    var historyService = new DownloadHistoryService(historyPath);
+    await historyService.SaveAsync([new DownloadHistoryItem { GameTitle = "Queue Test", Kind = DownloadPackageKind.Update, Outcome = "Complete", Status = "Updated", BytesTransferred = 4096, CompletedUtc = DateTime.UtcNow }]);
+    var savedHistory = await historyService.LoadAsync();
+    Require(savedHistory.Count == 1 && savedHistory[0].GameTitle == "Queue Test" && savedHistory[0].PackageLabel == "GAME UPDATE", "Persistent download history failed.");
+    await historyService.ClearAsync();
+    Require((await historyService.LoadAsync()).Count == 0, "Clearing download history failed.");
 
     var updateChannelPath = Path.Combine(AppContext.BaseDirectory, "update-channel.json");
     var originalChannel = await File.ReadAllTextAsync(updateChannelPath);
@@ -191,7 +198,7 @@ try
     }
 
     Console.WriteLine($"Detected physical GPU: {detectedGpu}");
-    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, independent external-folder update, download speed/ETA labels, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, CPU/GPU/RAM/Windows detection, and Technical City game links{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
+    Console.WriteLine($"NexaPlay smoke tests passed: safe paths, bundled friend catalog, installed Play action, independent external-folder update, download speed/ETA labels, persistent download history and clearing, HTTPS app-update manifest detection, expanded catalog validation, atomic catalog, byte-level ZIP extraction, Run Me launcher selection, synchronous installed-state refresh, interrupted-install detection, saved-archive reuse, in-place update manifest, landing-page rejection, CPU/GPU/RAM/Windows detection, and Technical City game links{(args.Contains("--live") ? ", live Steam ratings, multiplayer tags, requirements, screenshots, trailer metadata, and title search" : "")}.");
 }
 finally
 {

@@ -20,11 +20,16 @@ public partial class MainWindow : Window
     private readonly UpdateService _updateService;
     private readonly SettingsService _settingsService = new();
     private readonly UserStateService _userStateService = new();
+    private readonly DownloadHistoryService _downloadHistoryService = new();
     private readonly DownloadService _downloadService;
     private readonly InstallService _installService = new();
     private readonly Dictionary<string, CancellationTokenSource> _downloads = [];
     private readonly ObservableCollection<GameEntry> _visibleGames = [];
     private readonly ObservableCollection<DownloadTaskItem> _downloadItems = [];
+    private readonly ObservableCollection<DownloadTaskItem> _queuedDownloadItems = [];
+    private readonly ObservableCollection<DownloadHistoryItem> _downloadHistoryItems = [];
+    private readonly SemaphoreSlim _downloadGate = new(1, 1);
+    private double _peakDownloadSpeed;
     private CatalogDocument _catalog = new();
     private AppSettings _settings = new();
     private bool _installedOnly;
@@ -41,13 +46,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.3 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.4 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
         _downloadService = new DownloadService(_http);
         GamesList.ItemsSource = _visibleGames;
         DownloadsList.ItemsSource = _downloadItems;
+        QueuedDownloadsList.ItemsSource = _queuedDownloadItems;
+        DownloadHistoryList.ItemsSource = _downloadHistoryItems;
         DetailsPage.PackageAction = ActOnGameAsync;
         DetailsPage.PlayAction = PlayGameAsync;
         DetailsPage.FavoriteAction = SetFavoriteAsync;
@@ -89,6 +96,8 @@ public partial class MainWindow : Window
                 await _settingsService.SaveAsync(_settings);
             }
             await _userStateService.LoadAsync();
+            foreach (var item in await _downloadHistoryService.LoadAsync()) _downloadHistoryItems.Add(item);
+            UpdateDownloadsUi();
             Directory.CreateDirectory(_settings.LibraryFolder);
             StatusText.Text = "Loading game catalog…";
             _catalog = await _catalogService.LoadAsync();
@@ -274,12 +283,20 @@ public partial class MainWindow : Window
         if (_downloads.ContainsKey(game.Id)) return;
         var cancellation = new CancellationTokenSource();
         _downloads[game.Id] = cancellation;
-        var taskItem = new DownloadTaskItem { Key = game.Id, GameId = game.Id, GameTitle = game.Title, CoverUrl = game.CoverUrl, Kind = kind, Status = "Starting…", Phase = "Preparing", IsActive = true };
-        _downloadItems.Insert(0, taskItem);
+        var taskItem = new DownloadTaskItem { Key = game.Id, GameId = game.Id, GameTitle = game.Title, CoverUrl = game.CoverUrl, Kind = kind, Status = "Waiting for the current download", Phase = "Queued", IsActive = true, IsQueued = true };
+        _queuedDownloadItems.Add(taskItem);
         UpdateDownloadsUi();
-        game.IsBusy = true; game.Progress = 0; game.Activity = "Starting…"; game.NotifyRuntimeChanged();
+        game.IsBusy = true; game.Progress = 0; game.Activity = "Queued"; game.NotifyRuntimeChanged();
+        var ownsDownloadGate = false;
         try
         {
+            await _downloadGate.WaitAsync(cancellation.Token);
+            ownsDownloadGate = true;
+            _queuedDownloadItems.Remove(taskItem);
+            _downloadItems.Insert(0, taskItem);
+            taskItem.IsQueued = false; taskItem.Phase = "Preparing"; taskItem.Status = "Starting…";
+            game.Activity = "Starting…"; game.NotifyRuntimeChanged();
+            UpdateDownloadsUi();
             var progress = new Progress<DownloadProgress>(p =>
             {
                 game.Progress = p.Percent; game.Activity = p.Message; game.NotifyRuntimeChanged();
@@ -287,6 +304,7 @@ public partial class MainWindow : Window
                 taskItem.BytesPerSecond = p.BytesPerSecond; taskItem.Eta = p.Eta; taskItem.EstimatedFinishLocal = p.EstimatedFinishLocal;
                 taskItem.Status = p.Message; taskItem.Phase = p.Message.StartsWith("Extracting", StringComparison.OrdinalIgnoreCase) ? "Installing files" : p.Message.StartsWith("Verifying", StringComparison.OrdinalIgnoreCase) ? "Verifying archive" : "Downloading";
                 StatusText.Text = $"{game.Title}  •  {p.Message}";
+                UpdateDownloadsUi();
             });
             var archive = await _downloadService.DownloadAsync(game, kind, _settings.LibraryFolder, progress, cancellation.Token);
             taskItem.Phase = "Installing files"; taskItem.Status = "Preparing archive…"; taskItem.BytesPerSecond = 0; taskItem.Eta = null; taskItem.EstimatedFinishLocal = null;
@@ -324,24 +342,73 @@ public partial class MainWindow : Window
         finally
         {
             game.IsBusy = false; game.Activity = ""; game.NotifyRuntimeChanged();
-            _downloads.Remove(game.Id); cancellation.Dispose(); UpdateDownloadsUi();
+            _queuedDownloadItems.Remove(taskItem); _downloadItems.Remove(taskItem);
+            _downloads.Remove(game.Id); cancellation.Dispose();
+            if (ownsDownloadGate) _downloadGate.Release();
+            await AddDownloadHistoryAsync(taskItem);
+            UpdateDownloadsUi();
         }
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) { if ((sender as Button)?.Tag is GameEntry game) CancelGameDownload(game); }
     private void CancelDownloadItem_Click(object sender, RoutedEventArgs e) { if ((sender as Button)?.Tag is string key && _downloads.TryGetValue(key, out var cancellation)) cancellation.Cancel(); }
-    private void ClearFinished_Click(object sender, RoutedEventArgs e)
+    private async void ClearHistory_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var item in _downloadItems.Where(item => !item.IsActive).ToList()) _downloadItems.Remove(item);
-        UpdateDownloadsUi();
+        try
+        {
+            await _downloadHistoryService.ClearAsync();
+            _downloadHistoryItems.Clear();
+            StatusText.Text = "Download history cleared.";
+            UpdateDownloadsUi();
+        }
+        catch (Exception ex) { ShowError("Could not clear download history", ex); }
     }
 
     private void UpdateDownloadsUi()
     {
         var active = _downloadItems.Count(item => item.IsActive);
-        DownloadCountText.Text = active.ToString();
-        DownloadCountBadge.Visibility = active > 0 ? Visibility.Visible : Visibility.Collapsed;
-        DownloadsEmpty.Visibility = _downloadItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        var queued = _queuedDownloadItems.Count;
+        var pending = active + queued;
+        DownloadCountText.Text = pending.ToString();
+        DownloadCountBadge.Visibility = pending > 0 ? Visibility.Visible : Visibility.Collapsed;
+        DownloadsEmpty.Visibility = active == 0 ? Visibility.Visible : Visibility.Collapsed;
+        QueueEmpty.Visibility = queued == 0 ? Visibility.Visible : Visibility.Collapsed;
+        HistoryEmpty.Visibility = _downloadHistoryItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        QueueCountText.Text = $"UP NEXT ({queued})";
+        HistoryCountText.Text = $"DOWNLOAD HISTORY ({_downloadHistoryItems.Count})";
+        var networkSpeed = _downloadItems.Where(item => item.IsActive).Sum(item => item.BytesPerSecond);
+        _peakDownloadSpeed = Math.Max(_peakDownloadSpeed, networkSpeed);
+        NetworkSpeedText.Text = FormatTransferRate(networkSpeed);
+        PeakSpeedText.Text = FormatTransferRate(_peakDownloadSpeed);
+        var diskBusy = _downloadItems.Any(item => item.Phase.Contains("Installing", StringComparison.OrdinalIgnoreCase) || item.Phase.Contains("Verifying", StringComparison.OrdinalIgnoreCase));
+        DiskActivityText.Text = diskBusy ? "INSTALLING" : active > 0 ? "DOWNLOADING" : "IDLE";
+    }
+
+    private async Task AddDownloadHistoryAsync(DownloadTaskItem item)
+    {
+        var historyItem = new DownloadHistoryItem
+        {
+            GameTitle = item.GameTitle,
+            CoverUrl = item.CoverUrl,
+            Kind = item.Kind,
+            Outcome = item.Phase,
+            Status = item.Status,
+            BytesTransferred = item.BytesReceived,
+            CompletedUtc = DateTime.UtcNow
+        };
+        _downloadHistoryItems.Insert(0, historyItem);
+        while (_downloadHistoryItems.Count > 250) _downloadHistoryItems.RemoveAt(_downloadHistoryItems.Count - 1);
+        try { await _downloadHistoryService.SaveAsync(_downloadHistoryItems); }
+        catch (Exception ex) { StatusText.Text = $"Download finished, but history could not be saved: {ex.Message}"; }
+    }
+
+    private static string FormatTransferRate(double bytesPerSecond)
+    {
+        if (bytesPerSecond <= 0) return "0 B/s";
+        string[] units = ["B/s", "KB/s", "MB/s", "GB/s"];
+        var value = bytesPerSecond; var unit = 0;
+        while (value >= 1024 && unit < units.Length - 1) { value /= 1024; unit++; }
+        return $"{value:0.0} {units[unit]}";
     }
 
     private void Library_Click(object sender, RoutedEventArgs e) { _installedOnly = false; _favoritesOnly = false; SetQuickFilter("ALL", false); PageTitle.Text = "DISCOVER"; PageSubtitle.Text = "Your next game starts here"; ApplyFilter(); ShowLibraryPage(); }
@@ -507,13 +574,20 @@ public partial class MainWindow : Window
         if (MessageBox.Show($"Download NexaPlay v{release.Version}?{notes}\n\nThe installer will be verified before it can run.", "NexaPlay update", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         var cancellation = new CancellationTokenSource();
         _downloads[key] = cancellation;
-        var item = new DownloadTaskItem { Key = key, GameId = key, GameTitle = $"NexaPlay v{release.Version}", CoverUrl = DownloadTaskItem.NexaPlayIconUri, Kind = DownloadPackageKind.AppUpdate, Status = "Starting…", Phase = "Downloading app update", IsActive = true };
-        _downloadItems.Insert(0, item); UpdateDownloadsUi(); ShowDownloadsPage();
+        var item = new DownloadTaskItem { Key = key, GameId = key, GameTitle = $"NexaPlay v{release.Version}", CoverUrl = DownloadTaskItem.NexaPlayIconUri, Kind = DownloadPackageKind.AppUpdate, Status = "Waiting for the current download", Phase = "Queued", IsActive = true, IsQueued = true };
+        _queuedDownloadItems.Add(item); UpdateDownloadsUi(); ShowDownloadsPage();
+        var ownsDownloadGate = false;
         try
         {
+            await _downloadGate.WaitAsync(cancellation.Token);
+            ownsDownloadGate = true;
+            _queuedDownloadItems.Remove(item); _downloadItems.Insert(0, item);
+            item.IsQueued = false; item.Phase = "Downloading app update"; item.Status = "Starting…";
+            UpdateDownloadsUi();
             var progress = new Progress<DownloadProgress>(p =>
             {
                 item.Percent = p.Percent; item.BytesReceived = p.BytesReceived; item.TotalBytes = p.TotalBytes; item.BytesPerSecond = p.BytesPerSecond; item.Eta = p.Eta; item.EstimatedFinishLocal = p.EstimatedFinishLocal; item.Status = p.Message;
+                UpdateDownloadsUi();
             });
             var installer = await _updateService.DownloadInstallerAsync(release, progress, cancellation.Token);
             item.Percent = 100; item.IsActive = false; item.Phase = "Verified and ready"; item.Status = "SHA-256 verified";
@@ -525,7 +599,14 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException) { item.IsActive = false; item.Phase = "Canceled"; item.Status = "Update download canceled"; }
         catch (Exception ex) { item.IsActive = false; item.IsFailed = true; item.Phase = "Failed"; item.Status = ex.Message; ShowError("Could not download update", ex); }
-        finally { _downloads.Remove(key); cancellation.Dispose(); UpdateDownloadsUi(); }
+        finally
+        {
+            _queuedDownloadItems.Remove(item); _downloadItems.Remove(item);
+            _downloads.Remove(key); cancellation.Dispose();
+            if (ownsDownloadGate) _downloadGate.Release();
+            await AddDownloadHistoryAsync(item);
+            UpdateDownloadsUi();
+        }
     }
 
     private async void Settings_Click(object sender, RoutedEventArgs e) => await OpenSettingsAsync();
