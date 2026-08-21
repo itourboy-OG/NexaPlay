@@ -40,8 +40,8 @@ public partial class GameDetailsView : UserControl
         if (_game is null) return;
         PlayButton.Visibility = _game.IsInstalled ? Visibility.Visible : Visibility.Collapsed;
         PlayButton.Content = "▶  PLAY";
-        UninstallButton.Visibility = _game.IsInstalled ? Visibility.Visible : Visibility.Collapsed;
-        UninstallButton.IsEnabled = !_game.IsBusy;
+        UninstallMenuItem.Visibility = _game.IsInstalled ? Visibility.Visible : Visibility.Collapsed;
+        UninstallMenuItem.IsEnabled = !_game.IsBusy;
         FavoriteButton.Content = _game.IsFavorite ? "♥  FAVORITED" : "♡  FAVORITE";
         GameDownloadButton.Content = _game.HasIncompleteInstall ? "Resume install" : _game.IsInstalled ? "Reinstall" : "Download";
         GameDownloadButton.IsEnabled = !_game.IsBusy;
@@ -88,7 +88,12 @@ public partial class GameDetailsView : UserControl
     private async void DownloadUpdate_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Update);
     private async void DownloadFix_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.OnlineFix);
     private async Task RunPackageAsync(DownloadPackageKind kind) { if (_game is not null && PackageAction is not null) await PackageAction(_game, kind); RefreshUi(); }
-    private void DownloadJump_Click(object sender, RoutedEventArgs e) => DownloadSection.BringIntoView();
+    private void More_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { ContextMenu: { } menu } button) return;
+        menu.PlacementTarget = button;
+        menu.IsOpen = true;
+    }
     private void OpenDownloads_Click(object sender, RoutedEventArgs e) => OpenDownloadsAction?.Invoke();
     private async void Favorite_Click(object sender, RoutedEventArgs e) { if (_game is not null && FavoriteAction is not null) await FavoriteAction(_game, !_game.IsFavorite); }
     private async void Rate_Click(object sender, RoutedEventArgs e)

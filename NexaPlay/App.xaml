@@ -58,11 +58,6 @@
             <Setter Property="BorderBrush" Value="#9C86FF" />
         </Style>
         <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}" />
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
-            <Setter Property="Background" Value="#2A171D" />
-            <Setter Property="BorderBrush" Value="#7E3548" />
-            <Setter Property="Foreground" Value="#FF9BAE" />
-        </Style>
         <Style x:Key="RatingButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
             <Setter Property="Background" Value="#171C2B" />
             <Setter Property="BorderBrush" Value="#30384F" />

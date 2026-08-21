@@ -46,7 +46,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.6 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.9.7 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -238,8 +238,8 @@ public partial class MainWindow : Window
     {
         if (!game.IsInstalled || game.IsBusy) return;
         var answer = MessageBox.Show(
-            $"Uninstall {game.Title}?\n\nThe installed game folder will be moved to the Recycle Bin:\n{game.InstallPath}\n\nThe game stays in your NexaPlay catalog so you can download it again later.",
-            $"Uninstall {game.Title}",
+            $"Permanently delete {game.Title}?\n\nThe installed game folder and every file inside it will be deleted:\n{game.InstallPath}\n\nThis cannot be undone. The game stays in your NexaPlay catalog so you can download it again later.",
+            $"Permanently delete {game.Title}",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
         if (answer != MessageBoxResult.Yes) return;
@@ -250,7 +250,7 @@ public partial class MainWindow : Window
             await InstallService.DeleteInstallAsync(game, _settings.LibraryFolder);
             InstallService.RefreshInstallState(game, _settings.LibraryFolder);
             ApplyFilter();
-            StatusText.Text = $"Uninstalled {game.Title}. You can download it again anytime.";
+            StatusText.Text = $"Deleted {game.Title} from this PC. You can download it again anytime.";
         }
         catch (Exception ex) { ShowError($"Could not uninstall {game.Title}", ex); }
         finally
