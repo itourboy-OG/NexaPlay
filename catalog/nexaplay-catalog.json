@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-21T03:03:49.7191415Z",
+  "UpdatedUtc": "2026-08-21T03:15:10.9450113Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -681,6 +681,65 @@
       "ReportUrl": "",
       "SupportEmail": "",
       "Featured": false
+    },
+    {
+      "Id": "cf7d5d2e39b64c1e9f620975bb75b222",
+      "Title": "Marvel\u0027s Spider-Man 2",
+      "Description": "Be Greater. Together. The incredible power of the symbiote forces Peter Parker and Miles Morales into a desperate fight as they balance their lives, friendships, and their duty to protect in an exciting chapter of the critically acclaimed Spider-Man franchise on PC.",
+      "DownloadUrl": "https://tunnel5.dlproxy.uk/download/nGw5A-kxTG7-bukYw_8crHdLLUejKRT-5aMMA_QxLvzb9me1ruaZFYjrKiHA-WqTrkPrnzYYsstOLdTYdIRHP4wKo-JhrrLR4EPsjT-JOMwSmoNzmKuS7HbQBQ9Szj4QCT8g_p85JeTZTRkR7hRtnXxoHG3bhXYssiVtHnfGC_AXxn-hbhlLkzvSf9waych0P53zCO0ahALF4pHFFtzZB70vyynYxiCzPSkc37cjMgYjwJYSODzZFvLDmG7VcS1oaS404yF9u5olQ6h1m6t2kiTXayYveTRxf-iO71mglduIiayv9JaNExlV5PGlK7MIBCZ1XD7LwMYRtllQpqnaJ6wRPfXr8NmDDIu61vwuZiq9D8k4Yel03dpwX-Qsn0QoaJNC7zodeMa1-kKPWXzPjNBzq8ZbsLadfw2wen-Rdoc?sig=XpLYfC97zgUZf6JxPY1ZukP5edYHj9SUDi1eQym1ztI",
+      "UpdateDownloadUrl": "https://tunnel5.dlproxy.uk/download/nGw5A-kxTG7-bukYw_8crJggKME71aYvd7uT4LBofWMdAFq32X156vRZgRWqi7x92W3i8NoDruPTfbeHc64_30AVh-3EdjPIU8224c_qzivvnijyVXC32GU8g6--VlLm4VGfsxCqcQ4Bdqhj7cx84qvN0_rMDSRxmmJK4KSXQq9sDTGUE51D4ESCAWd4Pcx5WeEKGNX-FhDdD83-KdUTX0EJALLpfGjye6kP4t7uNUfL4B8sbef7QkL_8hm4w9gYjuU1wok71zVqf216c2N7YqCKxtoLrAA3zED-1eeLL5Xs3TN2iei-ZXQryiHtnGwqsdwnpESucu5vOkdAiF75i92FA_z-Fenz49Z6iHYX8DMaLGh_wzF-lhX3FHWCGBCWqQZ11Tb8MhNJUKZZhqMddqcfN7VCsa8raYxrj2kka6k?sig=gOr-nkbozzm6-9Dke_l8oPlBcErxI3w_uasyKhUo49k",
+      "OnlineFixDownloadUrl": "",
+      "Version": "2.810.0.0",
+      "Developer": "Insomniac Games",
+      "Publisher": "PlayStation Publishing LLC",
+      "ReleaseDate": "Jan 30, 2025",
+      "Genres": [
+        "Action",
+        "Adventure"
+      ],
+      "Tags": [
+        "Single-player"
+      ],
+      "IsMultiplayer": false,
+      "CommunityRating": 4.2,
+      "RatingCount": 45030,
+      "UpdatedUtc": "2026-08-21T03:12:00Z",
+      "SteamAppId": 2651280,
+      "SteamGridDbId": 5295908,
+      "CoverUrl": "https://cdn2.steamgriddb.com/grid/2572510b22e85f491270becf2fc166f7.png",
+      "HeroUrl": "https://cdn2.steamgriddb.com/hero/74c12bbaa74d13c2b891cd7673d61370.png",
+      "ArchivePassword": "",
+      "UpdateArchivePassword": "",
+      "OnlineFixArchivePassword": "",
+      "ExecutablePath": "",
+      "InstallFolderName": "",
+      "Sha256": "",
+      "UpdateSha256": "",
+      "OnlineFixSha256": "",
+      "DownloadSizeBytes": null,
+      "UpdateSizeBytes": null,
+      "OnlineFixSizeBytes": null,
+      "InstallationGuide": "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.",
+      "ImportantNotes": "Only install games from sources you trust and are authorized to use.\n\nKeep enough free storage for both the downloaded archive and the extracted game.\n\nIf the game does not start, check the game folder for included redistributables or support instructions.",
+      "MinimumRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10/11 (version 1909 or higher)\r\n\u2022 Processor: Intel Core i3-8100 or AMD Ryzen 3 3100\r\n\u2022 Memory: 16 GB RAM\r\n\u2022 Graphics: NVIDIA GeForce GTX 1650 or AMD Radeon RX 5500 XT\r\n\u2022 Storage: 140 GB available space\r\n\u2022 Additional Notes: SSD Required",
+      "RecommendedRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10/11 (version 1909 or higher)\r\n\u2022 Processor: Intel Core i5-8400 or AMD Ryzen 5 3600\r\n\u2022 Memory: 16 GB RAM\r\n\u2022 Graphics: NVIDIA GeForce RTX 3060 or AMD Radeon RX 5700\r\n\u2022 Storage: 140 GB available space\r\n\u2022 Additional Notes: SSD Required",
+      "MinimumRamGb": 16,
+      "RequiredStorageGb": 140,
+      "TrailerUrl": "",
+      "GameplayUrl": "",
+      "ScreenshotUrls": [
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_e4b67059ddedaeebd91fce113745f3eb99736f56.1920x1080.jpg?t=1763569811",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_b4be948946130b7e140be82f24f1f9ccefae9117.1920x1080.jpg?t=1763569811",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_f4140ba12158b812d9c1adc86c484d8e84b92e92.1920x1080.jpg?t=1763569811",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_7ef8bc176702470fdc73f62f8e537c3912e70444.1920x1080.jpg?t=1763569811",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_474a7ffe98998719c22025cc99da1f45dfca025e.1920x1080.jpg?t=1763569811",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_aa8346cf207a1e114c5f9e7f6c3086c5dc9c3050.1920x1080.jpg?t=1763569811",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_b34716a6d4505bfe32f83530e46aac5a5728f441.1920x1080.jpg?t=1763569811",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2651280/ss_0fda7c96ee3f16038559fffa8c2cd7b3ac433c2b.1920x1080.jpg?t=1763569811"
+      ],
+      "ReportUrl": "",
+      "SupportEmail": "",
+      "Featured": true
     }
   ]
 }
