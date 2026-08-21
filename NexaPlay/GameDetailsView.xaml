@@ -2,6 +2,44 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{StaticResource BgBrush}">
+    <UserControl.Resources>
+        <Style x:Key="GameActionMenu" TargetType="ContextMenu">
+            <Setter Property="Background" Value="#151B29"/>
+            <Setter Property="BorderBrush" Value="#3A4561"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="MinWidth" Value="245"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ItemsPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="GameActionMenuItem" TargetType="MenuItem">
+            <Setter Property="Foreground" Value="#E7ECF7"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="13,9"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="MenuItemShell" Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="MenuItemShell" Property="Background" Value="#29334A"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <ScrollViewer x:Name="DetailsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel>
             <Grid Height="330" ClipToBounds="True" CacheMode="BitmapCache">
@@ -18,11 +56,21 @@
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><TextBlock Text="{Binding Stars}" Foreground="#FFD66B" FontSize="16"/><TextBlock Text="{Binding RatingLabel}" Foreground="#DDE2ED" Margin="9,2,0,0"/><TextBlock Text="{Binding LastUpdatedLabel}" Foreground="#A5AEC2" Margin="18,2,0,0"/></StackPanel>
                     </StackPanel>
                     <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,4">
-                        <Button x:Name="PlayButton" Style="{StaticResource PrimaryButton}" Content="▶  PLAY" Padding="18,13" Click="Play_Click"/>
-                        <Button x:Name="DownloadJumpButton" Style="{StaticResource GhostButton}" Content="↓  DOWNLOAD OPTIONS" Padding="18,12" Margin="0,8,0,0" Click="DownloadJump_Click"/>
-                        <Button x:Name="UninstallButton" Style="{StaticResource DangerButton}" Content="✕  UNINSTALL GAME" Padding="18,11" Margin="0,8,0,0" Click="Uninstall_Click"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="◫  FULL FPS CHECK  •  TECHNICAL CITY ↗" Padding="18,11" Margin="0,8,0,0" Click="TechnicalCity_Click"/>
-                        <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Button x:Name="FavoriteButton" Style="{StaticResource GhostButton}" Content="♡  FAVORITE" Padding="10,9" Click="Favorite_Click"/><Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="⚑  REPORT" Padding="10,9" Margin="7,0,0,0" Click="Report_Click"/></Grid>
+                        <Button x:Name="PlayButton" Style="{StaticResource PrimaryButton}" Content="▶  PLAY" Padding="14,9" Click="Play_Click"/>
+                        <Grid Margin="0,7,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <Button x:Name="FavoriteButton" Style="{StaticResource GhostButton}" Content="♡  FAVORITE" Padding="12,8" Click="Favorite_Click"/>
+                            <Button x:Name="MoreButton" Grid.Column="1" Style="{StaticResource GhostButton}" Content="•••  MORE" Padding="13,8" Margin="7,0,0,0" Click="More_Click">
+                                <Button.ContextMenu>
+                                    <ContextMenu Style="{StaticResource GameActionMenu}" Placement="Bottom" HorizontalOffset="-160">
+                                        <MenuItem Style="{StaticResource GameActionMenuItem}" Header="◫  TECHNICAL CITY FPS CHECK  ↗" Click="TechnicalCity_Click"/>
+                                        <MenuItem Style="{StaticResource GameActionMenuItem}" Header="⚑  REPORT A PROBLEM" Click="Report_Click"/>
+                                        <Separator Margin="7,4" Background="#3A4561"/>
+                                        <MenuItem x:Name="UninstallMenuItem" Style="{StaticResource GameActionMenuItem}" Header="✕  PERMANENTLY DELETE GAME" Foreground="#FF8E99" Click="Uninstall_Click"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </Grid>
             </Grid>

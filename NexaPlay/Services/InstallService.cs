@@ -1,7 +1,6 @@
 using SharpCompress.Common;
 using SharpCompress.Readers;
 using System.Diagnostics;
-using RecycleFileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace NexaPlay.Services;
 
@@ -100,7 +99,7 @@ public sealed class InstallService
         Process.Start(new ProcessStartInfo(launcher) { WorkingDirectory = Path.GetDirectoryName(launcher)!, UseShellExecute = true });
     }
 
-    public static async Task DeleteInstallAsync(GameEntry game, string libraryFolder, bool moveToRecycleBin = true, CancellationToken cancellationToken = default)
+    public static async Task DeleteInstallAsync(GameEntry game, string libraryFolder, CancellationToken cancellationToken = default)
     {
         var libraryRoot = Path.GetFullPath(libraryFolder).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         var installPath = Path.GetFullPath(game.InstallPath);
@@ -117,14 +116,7 @@ public sealed class InstallService
         await Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (moveToRecycleBin)
-                RecycleFileSystem.DeleteDirectory(
-                    installPath,
-                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                    Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin,
-                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
-            else
-                Directory.Delete(installPath, recursive: true);
+            Directory.Delete(installPath, recursive: true);
         }, cancellationToken);
     }
 

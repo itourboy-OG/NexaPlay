@@ -109,7 +109,7 @@ try
     Require(File.Exists(Path.Combine(externalGameFolder, "TestGame", "updated.txt")), "A standalone update could not be applied to a user-selected game folder.");
     Require(!File.Exists(Path.Combine(externalGameFolder, ".nexaplay.json")), "NexaPlay incorrectly claimed ownership of an external game folder.");
 
-    await InstallService.DeleteInstallAsync(game, library, moveToRecycleBin: false);
+    await InstallService.DeleteInstallAsync(game, library);
     Require(!Directory.Exists(installed), "The managed game folder was not deleted during uninstall.");
     InstallService.RefreshInstallState(game, library);
     Require(!game.IsInstalled && game.ActionLabel != "Play", "The game still showed Play after uninstalling.");
@@ -119,7 +119,7 @@ try
     await JsonFile.WriteAtomicAsync(Path.Combine(protectedFolder, ".nexaplay.json"), new InstallManifest("another-game", "Another Game", "1.0", "game.exe", DateTime.UtcNow));
     game.InstallPath = protectedFolder;
     var mismatchedDeleteBlocked = false;
-    try { await InstallService.DeleteInstallAsync(game, library, moveToRecycleBin: false); }
+    try { await InstallService.DeleteInstallAsync(game, library); }
     catch (InvalidDataException) { mismatchedDeleteBlocked = true; }
     Require(mismatchedDeleteBlocked && Directory.Exists(protectedFolder), "Uninstall did not protect a folder owned by a different game manifest.");
 
