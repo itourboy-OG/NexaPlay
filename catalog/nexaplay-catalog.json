@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-21T04:29:55.6661377Z",
+  "UpdatedUtc": "2026-08-21T04:30:33.6848578Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -2637,64 +2637,6 @@
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2531310/d0138412577f8f37d885d9cfa6753951111040dc/ss_d0138412577f8f37d885d9cfa6753951111040dc.1920x1080.jpg?t=1750959180",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2531310/11bc1522e4f82f15972012c8a59cde785c260c89/ss_11bc1522e4f82f15972012c8a59cde785c260c89.1920x1080.jpg?t=1750959180",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2531310/383de718c5ed47d396bc5e3896e1401aca24b29b/ss_383de718c5ed47d396bc5e3896e1401aca24b29b.1920x1080.jpg?t=1750959180"
-      ],
-      "ReportUrl": "",
-      "SupportEmail": "",
-      "Featured": false
-    },
-    {
-      "Id": "5b690563f48e4d0b911bf47c5ec41e62",
-      "Title": "Hytale",
-      "Description": "A short incremental game where you play as a Healer in a party. Your main job is to keep your party alive. Upgrade 200\u002B skills in a skill tree, from healing to party damage. Designed to be completed in around 4 hours.",
-      "DownloadUrl": "https://tunnel5.dlproxy.uk/download/VdnvkpNXbRzVEXg-6ZJfuCAkOH2ELRcXpk2dFzvNuGboSKWlr4pjpCWNft8_yDQNjGQFwDe1LzYRoscnlWytrG9Ha8VGZLinfPfwd-aD-h4uAF7_ZOB1lXNfCcnQfqzZ199eeeicnyWjOejtVmN85L9oiV7zLn6s_yfyIIsefOFBjk3CstxuVIduwo-yU_tPTZU1o-xT_t8UzDceEutkV_Na6wCtQozlMYD1ikm0p3qjB1XanXQllR4S-4C2UKiQWDGtu2c-A_GoRvSLlV1Rlz1aVEz4vkIEHBpNCQpfOtilMg99KM_zJWYtinePZNdb3ZoLy80o1sG86BSN8oCNwYZLZvKAmk1B9vBHShh5qtO3LRjqTp8KTTSzVWdIxfbyh7vcpMpi9ok2jdL0-XhuLQ?sig=gOr-nkbozzm6-9Dke_l8oPlBcErxI3w_uasyKhUo49k",
-      "UpdateDownloadUrl": "",
-      "OnlineFixDownloadUrl": "",
-      "Version": "0.5.2",
-      "Developer": "Evrac Studio",
-      "Publisher": "Evrac Studio",
-      "ReleaseDate": "Jul 2, 2026",
-      "Genres": [
-        "Indie",
-        "RPG",
-        "Strategy"
-      ],
-      "Tags": [
-        "Single-player"
-      ],
-      "IsMultiplayer": false,
-      "CommunityRating": 4.8,
-      "RatingCount": 1724,
-      "UpdatedUtc": "2026-08-21T04:29:00Z",
-      "SteamAppId": null,
-      "SteamGridDbId": null,
-      "CoverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4634490/library_600x900.jpg",
-      "HeroUrl": "https://store.akamai.steamstatic.com/images/storepagebackground/app/4634490?t=1784261458",
-      "ArchivePassword": "",
-      "UpdateArchivePassword": "",
-      "OnlineFixArchivePassword": "",
-      "ExecutablePath": "",
-      "InstallFolderName": "",
-      "Sha256": "",
-      "UpdateSha256": "",
-      "OnlineFixSha256": "",
-      "DownloadSizeBytes": 1943022117,
-      "UpdateSizeBytes": null,
-      "OnlineFixSizeBytes": null,
-      "InstallationGuide": "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.\r\n\r\nImportant\r\n\r\nJava Development Kit (JDK 25) is required to run the game\r\nDownload the Temurin (Adoptium) build from the official Adoptium website ( https://adoptium.net/temurin/releases )\r\nHow to play with friends:\r\nDownload a LAN simulation tool (such as Hamachi, Radmin VPN, or similar) and launch it before starting the game.\r\nServer creation:\r\nNavigate to install\\release\\package\\game\\latest\\Server and run start-server.bat.\r\nLaunch the game using HytaleLauncher.exe.\r\nIn-game connection steps:\r\nGo to Servers \u2192 Direct Connect \u2192 Enter the server IP address.\r\nThe host should enter localhost.\r\nFriends should enter the host\u2019s Hamachi or Radmin IP address.\r\nExtra Info:\r\nYou can modify your username in\r\nC:\\Users\\Public\\Documents\\OnlineFix\\Hytale\\OnlineFix.ini\r\nServer world data is stored at\r\nHytale\\install\\release\\package\\game\\latest\\Server\\universe\r\nThe default game server port is 5520.\r\n\r\nUsername Change\r\n\r\nTo change your username, simply follow\r\nEdit the OnlineFix.ini file in your C:\\Users\\Public\\Documents\\OnlineFix\\Hytale\\\r\nEdit and change the username\r\nSave the file",
-      "ImportantNotes": "Only install games from sources you trust and are authorized to use.\n\nKeep enough free storage for both the downloaded archive and the extracted game.\n\nIf the game does not start, check the game folder for included redistributables or support instructions.",
-      "MinimumRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10\r\n\u2022 Processor: 2.0 GHz Dual Core\r\n\u2022 Memory: 4 GB RAM\r\n\u2022 Graphics: Intel HD Graphics 4000 or equivalent\r\n\u2022 DirectX: Version 11\r\n\u2022 Storage: 1 GB available space",
-      "RecommendedRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10 or 11\r\n\u2022 Processor: 2.5 GHz Dual Core or better\r\n\u2022 Memory: 8 GB RAM\r\n\u2022 Graphics: Intel HD 5000 / NVIDIA GT 710 or equivalent\r\n\u2022 DirectX: Version 11\r\n\u2022 Storage: 1 GB available space",
-      "MinimumRamGb": 4,
-      "RequiredStorageGb": 1,
-      "TrailerUrl": "",
-      "GameplayUrl": "",
-      "ScreenshotUrls": [
-        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4634490/65e640eb83efba72f1e31908931f285f35a0edb4/ss_65e640eb83efba72f1e31908931f285f35a0edb4.1920x1080.jpg?t=1784261458",
-        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4634490/59276824182552d12926342f790be0c55c6c0429/ss_59276824182552d12926342f790be0c55c6c0429.1920x1080.jpg?t=1784261458",
-        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4634490/9159d09ea1e4e3893454fcbfaebd9516aa6cba77/ss_9159d09ea1e4e3893454fcbfaebd9516aa6cba77.1920x1080.jpg?t=1784261458",
-        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4634490/c22be6466b9b035acd19116116e06fd0af61c5e3/ss_c22be6466b9b035acd19116116e06fd0af61c5e3.1920x1080.jpg?t=1784261458",
-        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4634490/b259c4b840e4f3d0ed1dc2ca8bf1eae40535b179/ss_b259c4b840e4f3d0ed1dc2ca8bf1eae40535b179.1920x1080.jpg?t=1784261458",
-        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4634490/b40dc9d006a04fad8c17d1065932f292a2905811/ss_b40dc9d006a04fad8c17d1065932f292a2905811.1920x1080.jpg?t=1784261458"
       ],
       "ReportUrl": "",
       "SupportEmail": "",
