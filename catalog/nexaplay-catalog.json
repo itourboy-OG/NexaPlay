@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-21T04:00:49.9582079Z",
+  "UpdatedUtc": "2026-08-21T04:01:30.6106547Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -1506,7 +1506,7 @@
         "Co-op",
         "Online Co-op"
       ],
-      "IsMultiplayer": true,
+      "IsMultiplayer": false,
       "CommunityRating": 4.7,
       "RatingCount": 1149338,
       "UpdatedUtc": "2026-08-21T03:57:00Z",
