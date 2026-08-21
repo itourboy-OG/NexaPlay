@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-21T03:34:53.713726Z",
+  "UpdatedUtc": "2026-08-21T03:39:47.9926534Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -1114,6 +1114,64 @@
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1551360/ss_0bc32360d32b21abdf889422385cd753862dd73e.1920x1080.jpg?t=1746471508",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1551360/ss_1da0673f82eccc3c9d222237dec40e36bf10eef3.1920x1080.jpg?t=1746471508",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1551360/ss_78e4f63e05d50e59b9966ba8da9a53dbf84fd8f4.1920x1080.jpg?t=1746471508"
+      ],
+      "ReportUrl": "",
+      "SupportEmail": "",
+      "Featured": false
+    },
+    {
+      "Id": "4fdc15ebc9844fd4be3f07dde24e5bec",
+      "Title": "Red Dead Redemption",
+      "Description": "Experience the story of former outlaw John Marston as he tracks down the last remaining members of the notorious Van der Linde Gang in the PC debut of the critically acclaimed predecessor to Red Dead Redemption 2.",
+      "DownloadUrl": "https://tunnel5.dlproxy.uk/download/nGw5A-kxTG7-bukYw_8crLph_J9O1OacZAZXO49bY34xDmnmjWixFH9G0SFyYEcy2Uh_xS07dsCTFAfDOgO1m5ieSwfgNtNlHg6mzyk-lrEkehj_judURqifqHs8LXhhvww2qtf5gmmEn4wnCj5t0RASpo3VwH71ImnDW6tMdQMDV65z1MnzZY8tKtZ33JgbTsWbeGntf-oZQoiYQ6GMHX_qFRj6h7rAG-QAHgIfW0amFKEebXVyCoWX6_o0FA2xzhzXU-2K6f3doD2VlAhOHiKZpdT_Lz6MaeK_ieJyaqpKvpwLBfL46Oxf-ctj2NgkDb8gO59-_TpSRSfoKboaQCYJJyCZF3Jrht032zaisBenaU-NITaFIQRpolEy36ok4Q4ZGOTGH4CHkIgfI7W2x4BN34N_oMUkSCk5ylm-TZs?sig=_qPe6gliBVxHuQHkMUC1U5J97RmyJ_y68Gy_CkYmEiA",
+      "UpdateDownloadUrl": "",
+      "OnlineFixDownloadUrl": "",
+      "Version": "1.0.42.46611",
+      "Developer": "Rockstar Games",
+      "Publisher": "Rockstar Games",
+      "ReleaseDate": "Oct 29, 2024",
+      "Genres": [
+        "Action"
+      ],
+      "Tags": [
+        "Single-player"
+      ],
+      "IsMultiplayer": false,
+      "CommunityRating": 4.6,
+      "RatingCount": 21182,
+      "UpdatedUtc": "2026-08-21T03:36:00Z",
+      "SteamAppId": 2668510,
+      "SteamGridDbId": 5249025,
+      "CoverUrl": "https://cdn2.steamgriddb.com/grid/94f88ceb11d0e2e52a7344dc94648c75.png",
+      "HeroUrl": "https://cdn2.steamgriddb.com/hero/234a44317716c5c8d0ee1b2ea49a8960.png",
+      "ArchivePassword": "",
+      "UpdateArchivePassword": "",
+      "OnlineFixArchivePassword": "",
+      "ExecutablePath": "",
+      "InstallFolderName": "",
+      "Sha256": "",
+      "UpdateSha256": "",
+      "OnlineFixSha256": "",
+      "DownloadSizeBytes": null,
+      "UpdateSizeBytes": null,
+      "OnlineFixSizeBytes": null,
+      "InstallationGuide": "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.\r\n\r\nGame is pre-installed / portable, therefore you do not need to install the game.\r\nJust extract the rar / zip file.\r\nSimply launch the game from PlayRDR.exe inside the game folder.",
+      "ImportantNotes": "Only install games from sources you trust and are authorized to use.\n\nKeep enough free storage for both the downloaded archive and the extracted game.\n\nIf the game does not start, check the game folder for included redistributables or support instructions.\r\n\r\nImportant Note:\r\n\r\nInstall necessary apps from Redist or _CommonRedist to ensure game launches without any problems.\r\n\r\nAlways extract game in Antivirus / Defender excluded folder - Please check our FAQs on explaination.\r\n\r\nAlways run the game as administrator\r\n\r\nFor detailed guide, make sure to read Installation Guide.txt inside the game files.",
+      "MinimumRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10 64-Bit\r\n\u2022 Processor: Intel\u00AE Core\u2122 i5-4670 / AMD FX-9590\r\n\u2022 Memory: 8 GB RAM\r\n\u2022 Graphics: NVIDIA GeForce GTX 960 / AMD Radeon R7 360\r\n\u2022 DirectX: Version 12\r\n\u2022 Storage: 12 GB available space\r\n\u2022 Sound Card: Direct X Compatible",
+      "RecommendedRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10 64-Bit\r\n\u2022 Processor: Intel\u00AE Core\u2122 i5-8500 / AMD Ryzen 5 3500X\r\n\u2022 Memory: 8 GB RAM\r\n\u2022 Graphics: NVIDIA RTX 2070 / AMD RX 5700 XT\r\n\u2022 DirectX: Version 12\r\n\u2022 Storage: 12 GB available space\r\n\u2022 Sound Card: Direct X Compatible\r\n\u2022 Additional Notes: SSD recommended",
+      "MinimumRamGb": 8,
+      "RequiredStorageGb": 12,
+      "TrailerUrl": "",
+      "GameplayUrl": "",
+      "ScreenshotUrls": [
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_ba2c07c5db3da423ea658a49dd7a1aef30cdd43f.1920x1080.jpg?t=1781132266",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_b44b734bf7ffdb7f6c4b5b3d1001f31f8eee01fc.1920x1080.jpg?t=1781132266",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_05772b62ff72903c917ed271ee31fb540a334325.1920x1080.jpg?t=1781132266",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_6577ffb3592613a13366aa3680d23578dd9099a2.1920x1080.jpg?t=1781132266",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_8d45239f5f6ed57bcf7a3b6bf7f5b23fa7d76a57.1920x1080.jpg?t=1781132266",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_c9731b7e8e20d342786d47955bb55cecb0d163d7.1920x1080.jpg?t=1781132266",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_5dfb3b435eb75fb5546a1f0aeb64b34e7feb4dea.1920x1080.jpg?t=1781132266",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2668510/ss_5504aba34531a564f15b3345ae96464bcdf36298.1920x1080.jpg?t=1781132266"
       ],
       "ReportUrl": "",
       "SupportEmail": "",
