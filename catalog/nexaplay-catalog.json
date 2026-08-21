@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-21T03:42:36.5098813Z",
+  "UpdatedUtc": "2026-08-21T03:44:21.0267863Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -1237,6 +1237,65 @@
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3164500/c792894199193adc8b04cf16b2fec45c5701b0f2/ss_c792894199193adc8b04cf16b2fec45c5701b0f2.1920x1080.jpg?t=1785744977",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3164500/550e3601d7d6515670e82e474bb2a8375a54b361/ss_550e3601d7d6515670e82e474bb2a8375a54b361.1920x1080.jpg?t=1785744977",
         "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3164500/ss_0ad331417cf9010ae304f9a349806f04b8ce6a41.1920x1080.jpg?t=1785744977"
+      ],
+      "ReportUrl": "",
+      "SupportEmail": "",
+      "Featured": false
+    },
+    {
+      "Id": "bd0cf59268bb41398695f3a976e0c55b",
+      "Title": "Resident Evil 4",
+      "Description": "Survival is just the beginning. Six years have passed since the biological disaster in Raccoon City. Leon S. Kennedy, one of the survivors, tracks the president\u0027s kidnapped daughter to a secluded European village, where there is something terribly wrong with the locals.",
+      "DownloadUrl": "https://tunnel5.dlproxy.uk/download/CyQUAY30fqzj8MUP7lV4qR_92ZUQVdgbeFtfhI1yFBjwB4wiv2eoaCkIafO8CF7xxtnQ0IRKWU4er0ordPk3tAtHz0ctdn_0fziCWNEJX-Dz9jeAcifIbzGCX95F-_B6zSk6XTr9f_F3U6cPgdqTT7lW7nA_TFiTQ2N-s2enkdUeHknd1rEYnmvSgdjyutYLEkdAm_nKwtuvNcJwjk_e1RhyTlFb7Ky7HVm6uzsMpwz0rbBPD8wM_vays1WyMQNO4SZJrt985BW4kgGUxhLQBzwdd59-ZZNTFi9cgzAeNma90VnHrtJQgbq0qPmdEeUcmTTJ15QloSoMl085-X5eEnfIXqqcqB9bweWDsBiL6X6DKsohaTylLhQgdgdwwgPpucwDPpmCcm9mT62lMsONsi3H9QRZd3pdJDkxE0pWHTw?sig=WHneKEJgizi-3hnq3ADW4lM5-iO5qIck2ibd45wR0dA",
+      "UpdateDownloadUrl": "",
+      "OnlineFixDownloadUrl": "",
+      "Version": "1.5.9.0",
+      "Developer": "CAPCOM Co., Ltd.",
+      "Publisher": "CAPCOM Co., Ltd.",
+      "ReleaseDate": "Mar 23, 2023",
+      "Genres": [
+        "Action",
+        "Adventure"
+      ],
+      "Tags": [
+        "Single-player"
+      ],
+      "IsMultiplayer": false,
+      "CommunityRating": 4.9,
+      "RatingCount": 273447,
+      "UpdatedUtc": "2026-08-21T03:43:00Z",
+      "SteamAppId": 2050650,
+      "SteamGridDbId": 5332120,
+      "CoverUrl": "https://cdn2.steamgriddb.com/grid/fa8469112345cdf93cd402092eb73d5d.png",
+      "HeroUrl": "https://cdn2.steamgriddb.com/hero/5ccb9d0e9173e00230298318ed6ae164.png",
+      "ArchivePassword": "",
+      "UpdateArchivePassword": "",
+      "OnlineFixArchivePassword": "",
+      "ExecutablePath": "",
+      "InstallFolderName": "",
+      "Sha256": "",
+      "UpdateSha256": "",
+      "OnlineFixSha256": "",
+      "DownloadSizeBytes": null,
+      "UpdateSizeBytes": null,
+      "OnlineFixSizeBytes": null,
+      "InstallationGuide": "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.",
+      "ImportantNotes": "Only install games from sources you trust and are authorized to use.\n\nKeep enough free storage for both the downloaded archive and the extracted game.\n\nIf the game does not start, check the game folder for included redistributables or support instructions.",
+      "MinimumRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10 (64 bit)\r\n\u2022 Processor: AMD Ryzen 3 1200 / Intel Core i5-7500\r\n\u2022 Memory: 8 GB RAM\r\n\u2022 Graphics: AMD Radeon RX 560 with 4GB VRAM / NVIDIA GeForce GTX 1050 Ti with 4GB VRAM\r\n\u2022 DirectX: Version 12\r\n\u2022 Network: Broadband Internet connection\r\n\u2022 Additional Notes: Estimated performance (when set to Prioritize Performance): 1080p/45fps. \u30FBFramerate might drop in graphics-intensive scenes. \u30FBAMD Radeon RX 6700 XT or NVIDIA GeForce RTX 2060 required to support ray tracing.",
+      "RecommendedRequirements": "\u2022 Requires a 64-bit processor and operating system\r\n\u2022 OS: Windows 10 (64 bit)/Windows 11 (64 bit)\r\n\u2022 Processor: AMD Ryzen 5 3600 / Intel Core i7 8700\r\n\u2022 Memory: 16 GB RAM\r\n\u2022 Graphics: AMD Radeon RX 5700 / NVIDIA GeForce GTX 1070\r\n\u2022 DirectX: Version 12\r\n\u2022 Network: Broadband Internet connection\r\n\u2022 Additional Notes: Estimated performance: 1080p/60fps \u30FBFramerate might drop in graphics-intensive scenes. \u30FBAMD Radeon RX 6700 XT or NVIDIA GeForce RTX 2070 required to support ray tracing.",
+      "MinimumRamGb": 8,
+      "RequiredStorageGb": null,
+      "TrailerUrl": "",
+      "GameplayUrl": "",
+      "ScreenshotUrls": [
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_59d1b19964cc532213df92c8287b75a0bffeb33c.1920x1080.jpg?t=1772502922",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_ab807f8ad9e968a620777caf483cb6020367b9ee.1920x1080.jpg?t=1772502922",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_0442f7fb4327d79802c2db8ea8d23d228a28d896.1920x1080.jpg?t=1772502922",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_69810f4cd155912fdfdd21da70181df7d454c874.1920x1080.jpg?t=1772502922",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_0596bac955340495562f3ff2538756ebd9a7f073.1920x1080.jpg?t=1772502922",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_0554b945aafc847d55f780f7968de00aafa968a3.1920x1080.jpg?t=1772502922",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_29ffb23060c862bcbe1d1434e83d41ab10484d8e.1920x1080.jpg?t=1772502922",
+        "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2050650/ss_22d21ef8c4e54cc5f8418f9b233178bf7869ee01.1920x1080.jpg?t=1772502922"
       ],
       "ReportUrl": "",
       "SupportEmail": "",
