@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-21T04:42:34.8864552Z",
+  "UpdatedUtc": "2026-08-21T04:44:53.2490395Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -64,7 +64,7 @@
       ],
       "ReportUrl": "",
       "SupportEmail": "",
-      "Featured": true
+      "Featured": false
     },
     {
       "Id": "5d2dcf5658834c0bbde4bfd9ae71674f",
