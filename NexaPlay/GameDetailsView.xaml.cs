@@ -1,6 +1,9 @@
 using NexaPlay.Services;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -12,6 +15,8 @@ public partial class GameDetailsView : UserControl
     private GameEntry? _game;
     private AppSettings _settings = new();
     private bool _communityConnected;
+    private bool _webViewConfigured;
+    private string _activeMediaUrl = "";
     public Func<GameEntry, DownloadPackageKind, Task>? PackageAction { get; set; }
     public Func<GameEntry, Task>? PlayAction { get; set; }
     public Func<GameEntry, Task>? UninstallAction { get; set; }
@@ -23,11 +28,19 @@ public partial class GameDetailsView : UserControl
     public Action? BackAction { get; set; }
     public Action? OpenDownloadsAction { get; set; }
 
-    public GameDetailsView() => InitializeComponent();
+    public GameDetailsView()
+    {
+        InitializeComponent();
+        YouTubeWebView.CreationProperties = new CoreWebView2CreationProperties
+        {
+            UserDataFolder = Path.Combine(AppPaths.DataRoot, "WebView2")
+        };
+    }
 
     public void ShowGame(GameEntry game, AppSettings settings, bool communityConnected)
     {
         if (_game is not null) _game.PropertyChanged -= Game_PropertyChanged;
+        CloseVideo();
         _game = game; _settings = settings; _communityConnected = communityConnected; DataContext = game; ScreenshotsList.ItemsSource = game.ScreenshotUrls;
         RatingHelperText.Text = communityConnected ? "Your vote updates the community score for everyone." : "Your vote stays on this PC until SauceBoyz connects the Community service.";
         game.PropertyChanged += Game_PropertyChanged;
@@ -65,14 +78,19 @@ public partial class GameDetailsView : UserControl
         GuideSection.Visibility = _game.InstallationGuide.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         NotesSection.Visibility = _game.ImportantNotes.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         RequirementsGrid.Visibility = _game.MinimumRequirements.Length > 0 || _game.RecommendedRequirements.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-        GameDownloadInfo.Text = $"v{_game.Version}  •  {_game.SizeLabel}";
+        GameDownloadInfo.Text = $"v{_game.Version}  •  Download {_game.SizeLabel}";
         UpdateDownloadInfo.Text = $"v{_game.Version}  •  {_game.UpdateSizeLabel}";
         FixDownloadInfo.Text = _game.OnlineFixSizeLabel;
         CustomPackageDownloadInfo.Text = _game.CustomPackageSizeLabel;
-        var info = new List<string> { $"Full game: {_game.SizeLabel}" };
-        if (_game.UpdateDownloadUrl.Length > 0) info.Add($"Update: {_game.UpdateSizeLabel}");
-        if (_game.OnlineFixDownloadUrl.Length > 0) info.Add($"Online Fix: {_game.OnlineFixSizeLabel}");
-        if (_game.CustomPackageDownloadUrl.Length > 0) info.Add($"{_game.CustomPackageLabel}: {_game.CustomPackageSizeLabel}");
+        var info = new List<string> { $"Compressed game download: {_game.SizeLabel}" };
+        if (_game.RequiredStorageGb is > 0)
+            info.Add($"Storage required after extraction: about {_game.RequiredStorageGb:0.#} GB (listed requirement)");
+        else
+            info.Add("Installed size: determined after extraction");
+        info.Add("ZIP/RAR archives can expand to a larger installed size.");
+        if (_game.UpdateDownloadUrl.Length > 0) info.Add($"Update download: {_game.UpdateSizeLabel}");
+        if (_game.OnlineFixDownloadUrl.Length > 0) info.Add($"Online Fix download: {_game.OnlineFixSizeLabel}");
+        if (_game.CustomPackageDownloadUrl.Length > 0) info.Add($"{_game.CustomPackageLabel} download: {_game.CustomPackageSizeLabel}");
         if (_game.ArchivePassword.Length > 0) info.Add($"Archive password: {_game.ArchivePassword}");
         if (_game.HasIncompleteInstall) info.Add("Recovery: saved archive will be reused.");
         info.Add(""); info.Add($"Available version: {_game.Version}");
@@ -117,8 +135,99 @@ public partial class GameDetailsView : UserControl
         if (_game is null || RateAction is null || sender is not Button { Tag: string value } || !int.TryParse(value, out var score)) return;
         await RateAction(_game, score); RefreshUi();
     }
-    private void Trailer_Click(object sender, RoutedEventArgs e) { if (_game is not null) OpenUrl(_game.TrailerUrl); }
-    private void Gameplay_Click(object sender, RoutedEventArgs e) { if (_game is not null) OpenUrl(_game.GameplayUrl); }
+    private async void Trailer_Click(object sender, RoutedEventArgs e) { if (_game is not null) await PlayMediaAsync(_game.TrailerUrl, $"{_game.Title} — Trailer"); }
+    private async void Gameplay_Click(object sender, RoutedEventArgs e) { if (_game is not null) await PlayMediaAsync(_game.GameplayUrl, $"{_game.Title} — Gameplay"); }
+    private async Task PlayMediaAsync(string url, string title)
+    {
+        if (!TryWebUri(url, out var uri)) return;
+        CloseVideo();
+        _activeMediaUrl = uri.AbsoluteUri;
+        VideoTitle.Text = title;
+        VideoPanel.Visibility = Visibility.Visible;
+        DetailsScroll.ScrollToVerticalOffset(Math.Max(0, MediaSection.TransformToAncestor(DetailsScroll).Transform(new Point(0, 0)).Y - 60));
+
+        if (IsDirectVideo(uri))
+        {
+            VideoStatus.Text = "Playing inside NexaPlay";
+            DirectVideoPlayer.Visibility = Visibility.Visible;
+            DirectVideoPlayer.Source = uri;
+            DirectVideoPlayer.Play();
+            return;
+        }
+
+        if (!IsYouTubeUri(uri))
+        {
+            ShowVideoFallback("This video provider cannot be embedded safely. Use Open in browser instead.");
+            return;
+        }
+
+        try
+        {
+            VideoStatus.Text = uri.AbsolutePath.StartsWith("/results", StringComparison.OrdinalIgnoreCase)
+                ? "Choose a video without leaving NexaPlay"
+                : "Playing YouTube inside NexaPlay";
+            YouTubeWebView.Visibility = Visibility.Visible;
+            await YouTubeWebView.EnsureCoreWebView2Async();
+            ConfigureWebView();
+            YouTubeWebView.CoreWebView2.Navigate(uri.AbsoluteUri);
+        }
+        catch (Exception ex)
+        {
+            ShowVideoFallback($"The in-app player is unavailable ({ex.Message}). Use Open in browser instead.");
+        }
+    }
+
+    private void ConfigureWebView()
+    {
+        if (_webViewConfigured || YouTubeWebView.CoreWebView2 is null) return;
+        _webViewConfigured = true;
+        var settings = YouTubeWebView.CoreWebView2.Settings;
+        settings.AreDevToolsEnabled = false;
+        settings.AreDefaultContextMenusEnabled = false;
+        settings.IsStatusBarEnabled = false;
+        YouTubeWebView.CoreWebView2.NavigationStarting += (_, args) =>
+        {
+            if (args.Uri.Equals("about:blank", StringComparison.OrdinalIgnoreCase)) return;
+            if (!TryWebUri(args.Uri, out var target) || !IsYouTubeUri(target)) args.Cancel = true;
+        };
+        YouTubeWebView.CoreWebView2.NewWindowRequested += (_, args) =>
+        {
+            args.Handled = true;
+            if (TryWebUri(args.Uri, out var target) && IsYouTubeUri(target))
+                YouTubeWebView.CoreWebView2.Navigate(target.AbsoluteUri);
+        };
+    }
+
+    private void OpenVideoInBrowser_Click(object sender, RoutedEventArgs e) => OpenUrl(_activeMediaUrl);
+    private void CloseVideo_Click(object sender, RoutedEventArgs e) => CloseVideo();
+    private void CloseVideo()
+    {
+        DirectVideoPlayer.Stop();
+        DirectVideoPlayer.Source = null;
+        if (YouTubeWebView.CoreWebView2 is not null) YouTubeWebView.CoreWebView2.Navigate("about:blank");
+        DirectVideoPlayer.Visibility = Visibility.Collapsed;
+        YouTubeWebView.Visibility = Visibility.Collapsed;
+        VideoFallbackText.Visibility = Visibility.Collapsed;
+        VideoPanel.Visibility = Visibility.Collapsed;
+        _activeMediaUrl = "";
+    }
+
+    private void ShowVideoFallback(string message)
+    {
+        YouTubeWebView.Visibility = Visibility.Collapsed;
+        DirectVideoPlayer.Visibility = Visibility.Collapsed;
+        VideoStatus.Text = "Open externally if needed";
+        VideoFallbackText.Text = message;
+        VideoFallbackText.Visibility = Visibility.Visible;
+    }
+
+    private void DirectVideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e) =>
+        ShowVideoFallback($"The video could not be decoded ({e.ErrorException?.Message ?? "unknown media error"}). Use Open in browser instead.");
+    private void DirectVideoPlayer_MediaEnded(object sender, RoutedEventArgs e) => DirectVideoPlayer.Position = TimeSpan.Zero;
+    private static bool TryWebUri(string url, out Uri uri) =>
+        Uri.TryCreate(url, UriKind.Absolute, out uri!) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+    private static bool IsDirectVideo(Uri uri) => new[] { ".mp4", ".webm", ".m4v", ".mov" }.Contains(Path.GetExtension(uri.AbsolutePath), StringComparer.OrdinalIgnoreCase);
+    private static bool IsYouTubeUri(Uri uri) => uri.Host.Equals("youtu.be", StringComparison.OrdinalIgnoreCase) || uri.Host.Equals("youtube.com", StringComparison.OrdinalIgnoreCase) || uri.Host.EndsWith(".youtube.com", StringComparison.OrdinalIgnoreCase);
     private static void OpenUrl(string url) { if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); }
     private async void Report_Click(object sender, RoutedEventArgs e) { if (_game is not null && ReportAction is not null) await ReportAction(_game); }
     private async void CanIRun_Click(object sender, RoutedEventArgs e) { if (_game is not null && CompatibilityAction is not null) await CompatibilityAction(_game); }

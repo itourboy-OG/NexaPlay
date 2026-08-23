@@ -74,6 +74,16 @@ public sealed class GameEntry : INotifyPropertyChanged
     [JsonIgnore] public string OnlineFixSizeLabel => OnlineFixSizeBytes is > 0 ? FormatBytes(OnlineFixSizeBytes.Value) : "Size not listed";
     [JsonIgnore] public string CustomPackageSizeLabel => CustomPackageSizeBytes is > 0 ? FormatBytes(CustomPackageSizeBytes.Value) : "Size not listed";
     [JsonIgnore] public string CustomPackageLabel => string.IsNullOrWhiteSpace(CustomPackageName) ? "EXTRA PACKAGE" : CustomPackageName.Trim();
+    [JsonIgnore] public string DetailHeroUrl
+    {
+        get
+        {
+            var heroIsDimSteamBackdrop = HeroUrl.Contains("/storepagebackground/", StringComparison.OrdinalIgnoreCase);
+            if ((string.IsNullOrWhiteSpace(HeroUrl) || heroIsDimSteamBackdrop) && ScreenshotUrls.Count > 0)
+                return ScreenshotUrls[0];
+            return string.IsNullOrWhiteSpace(HeroUrl) ? CoverUrl : HeroUrl;
+        }
+    }
     [JsonIgnore] public bool HasUpdate => IsInstalled && UpdateDownloadUrl.Length > 0 && CompareVersions(Version, InstalledVersion) > 0;
     [JsonIgnore] public string MultiplayerLabel => IsMultiplayer ? "MULTIPLAYER" : "SINGLE-PLAYER";
     [JsonIgnore] public string RatingLabel => CommunityRating > 0 ? $"STEAM {Math.Clamp(CommunityRating, 0, 5):0.0} / 5  ({RatingCount:N0} REVIEWS)" : "NO STEAM SCORE";

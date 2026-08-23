@@ -28,6 +28,15 @@ try
     ratingGame.SetCommunityRating(5, 2, 5);
     Require(ratingGame.RatingLabel.Contains("STEAM") && ratingGame.RatingLabel.Contains("120") && ratingGame.CommunityRatingLabel.Contains("2 VOTES"), "Steam reviews and NexaPlay community votes were not kept separate.");
     Require(ratingGame.CustomPackageLabel == "English Language Pack" && ratingGame.CustomPackageSizeLabel == "1 MB", "Custom package label or size formatting failed.");
+    var dimArtworkGame = new GameEntry
+    {
+        CoverUrl = "https://example.test/header.jpg",
+        HeroUrl = "https://store.example.test/storepagebackground/app/1",
+        ScreenshotUrls = ["https://example.test/brighter-screenshot.jpg"]
+    };
+    Require(dimArtworkGame.DetailHeroUrl == dimArtworkGame.ScreenshotUrls[0], "A dim Steam store-page backdrop did not fall back to the brighter screenshot.");
+    dimArtworkGame.HeroUrl = "https://example.test/real-hero.jpg";
+    Require(dimArtworkGame.DetailHeroUrl == dimArtworkGame.HeroUrl, "A valid hero was incorrectly replaced by a screenshot.");
     var duplicateRejected = false;
     try { CatalogService.Validate(new CatalogDocument { Games = [new GameEntry { Id = "same", Title = "One" }, new GameEntry { Id = "same", Title = "Two" }] }); }
     catch (InvalidDataException) { duplicateRejected = true; }

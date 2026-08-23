@@ -233,7 +233,7 @@ public partial class MainWindow : Window
         FeaturedDescription.Text = string.IsNullOrWhiteSpace(game.Description) ? "Ready when you are." : game.Description;
         FeaturedAction.Content = game.IsInstalled ? "PLAY" : "VIEW GAME";
         FeaturedAction.Tag = game;
-        FeaturedHero.Source = TryImage(game.HeroUrl.Length > 0 ? game.HeroUrl : game.CoverUrl);
+        FeaturedHero.Source = TryImage(game.DetailHeroUrl);
     }
 
     private static BitmapImage? TryImage(string url)

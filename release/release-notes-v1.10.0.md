@@ -8,6 +8,10 @@
 - Owner Studio now validates artwork links automatically, shows the broken-art count, and provides a visible one-click official Steam artwork repair with previews inside the game editor.
 - Steam artwork now falls back to the official header when a portrait URL is unavailable, and weak title matches are rejected to prevent unrelated artwork.
 - Corrected unreachable Machine Party and GRAIN ROT cover URLs.
+- Landscape artwork now fills portrait cards with a layered presentation instead of leaving large empty bands, while preserving the complete original image.
+- Dim Steam store-page backgrounds now fall back to a brighter game screenshot for Machine Party, GRAIN ROT, and similar catalog entries.
+- Trailers and gameplay can open in an in-app video panel: direct media plays natively and YouTube links stay inside NexaPlay, with an external-browser fallback.
+- Download information now distinguishes the compressed ZIP/RAR download from the listed post-extraction storage requirement.
 - Filter by all games, single-player, multiplayer, co-op, recently updated, or updates available.
 - Downloads now show real network and peak speeds without the misleading disk-status label.
 - Owner Studio can add one optional, owner-named package such as an English Language Pack. Empty packages stay hidden.
