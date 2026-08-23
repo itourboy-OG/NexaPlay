@@ -60,7 +60,13 @@ public sealed class InstallService
             await JsonFile.WriteAtomicAsync(manifestPath, current with { Version = version, UpdatedUtc = DateTime.UtcNow }, cancellationToken);
 
         var receiptFolder = Path.GetDirectoryName(archivePath)!;
-        var receiptName = kind == DownloadPackageKind.Update ? "last-update.json" : "last-online-fix.json";
+        var receiptName = kind switch
+        {
+            DownloadPackageKind.Update => "last-update.json",
+            DownloadPackageKind.OnlineFix => "last-online-fix.json",
+            DownloadPackageKind.Custom => $"last-{DownloadService.SafeName(game.CustomPackageLabel).ToLowerInvariant()}.json",
+            _ => "last-package.json"
+        };
         await JsonFile.WriteAtomicAsync(Path.Combine(receiptFolder, receiptName), new
         {
             game.Id,

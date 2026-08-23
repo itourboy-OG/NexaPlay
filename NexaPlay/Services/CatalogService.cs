@@ -101,6 +101,7 @@ public sealed class CatalogService(HttpClient httpClient, string? catalogFile = 
             ValidateWebUrl(game.DownloadUrl, game.Title, "game download");
             ValidateWebUrl(game.UpdateDownloadUrl, game.Title, "update download");
             ValidateWebUrl(game.OnlineFixDownloadUrl, game.Title, "online-fix download");
+            ValidateWebUrl(game.CustomPackageDownloadUrl, game.Title, "custom-package download");
             ValidateWebUrl(game.ReportUrl, game.Title, "report");
             ValidateWebUrl(game.TrailerUrl, game.Title, "trailer");
             ValidateWebUrl(game.GameplayUrl, game.Title, "gameplay");

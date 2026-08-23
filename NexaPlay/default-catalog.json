@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-20T22:23:29.6354059Z",
+  "UpdatedUtc": "2026-08-23T19:30:00Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -219,7 +219,7 @@
       "UpdatedUtc": "2026-08-19T21:25:00Z",
       "SteamAppId": 4108000,
       "SteamGridDbId": null,
-      "CoverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4108000/library_600x900.jpg",
+      "CoverUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4108000/00ae7d0e0fd0ad72635bddb1dd80ee68cc94eed5/header.jpg?t=1786561627",
       "HeroUrl": "https://store.akamai.steamstatic.com/images/storepagebackground/app/4108000?t=1786561627",
       "ArchivePassword": "",
       "UpdateArchivePassword": "",
@@ -461,7 +461,7 @@
       "UpdatedUtc": "2026-08-19T22:51:00Z",
       "SteamAppId": 4450620,
       "SteamGridDbId": null,
-      "CoverUrl": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/4450620/library_600x900.jpg",
+      "CoverUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4450620/697974067797577ee1803c37a44b4217d886502a/header.jpg?t=1786114521",
       "HeroUrl": "https://store.akamai.steamstatic.com/images/storepagebackground/app/4450620?t=1786114521",
       "ArchivePassword": "",
       "UpdateArchivePassword": "",

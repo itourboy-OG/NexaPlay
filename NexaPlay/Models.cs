@@ -12,6 +12,8 @@ public sealed class GameEntry : INotifyPropertyChanged
     public string DownloadUrl { get; set; } = "";
     public string UpdateDownloadUrl { get; set; } = "";
     public string OnlineFixDownloadUrl { get; set; } = "";
+    public string CustomPackageName { get; set; } = "";
+    public string CustomPackageDownloadUrl { get; set; } = "";
     public string Version { get; set; } = "1.0";
     public string Developer { get; set; } = "";
     public string Publisher { get; set; } = "";
@@ -29,14 +31,17 @@ public sealed class GameEntry : INotifyPropertyChanged
     public string ArchivePassword { get; set; } = "";
     public string UpdateArchivePassword { get; set; } = "";
     public string OnlineFixArchivePassword { get; set; } = "";
+    public string CustomPackageArchivePassword { get; set; } = "";
     public string ExecutablePath { get; set; } = "";
     public string InstallFolderName { get; set; } = "";
     public string Sha256 { get; set; } = "";
     public string UpdateSha256 { get; set; } = "";
     public string OnlineFixSha256 { get; set; } = "";
+    public string CustomPackageSha256 { get; set; } = "";
     public long? DownloadSizeBytes { get; set; }
     public long? UpdateSizeBytes { get; set; }
     public long? OnlineFixSizeBytes { get; set; }
+    public long? CustomPackageSizeBytes { get; set; }
     public string InstallationGuide { get; set; } = "";
     public string ImportantNotes { get; set; } = "";
     public string MinimumRequirements { get; set; } = "";
@@ -59,15 +64,30 @@ public sealed class GameEntry : INotifyPropertyChanged
     [JsonIgnore] public double Progress { get; set; }
     [JsonIgnore] public string Activity { get; set; } = "";
     [JsonIgnore] public int? UserRating { get; set; }
+    [JsonIgnore] public double LiveCommunityRating { get; set; }
+    [JsonIgnore] public int LiveCommunityRatingCount { get; set; }
     [JsonIgnore] public string ActionLabel => IsBusy ? "Working…" : IsInstalled ? "Play" : "View game";
     [JsonIgnore] public string GenreLine => Genres.Count == 0 ? "PC GAME" : string.Join("  •  ", Genres.Take(3)).ToUpperInvariant();
     [JsonIgnore] public string TagLine => Tags.Count == 0 ? GenreLine : string.Join("  •  ", Tags.Take(4)).ToUpperInvariant();
     [JsonIgnore] public string SizeLabel => DownloadSizeBytes is > 0 ? FormatBytes(DownloadSizeBytes.Value) : "Size not listed";
     [JsonIgnore] public string UpdateSizeLabel => UpdateSizeBytes is > 0 ? FormatBytes(UpdateSizeBytes.Value) : "Size not listed";
     [JsonIgnore] public string OnlineFixSizeLabel => OnlineFixSizeBytes is > 0 ? FormatBytes(OnlineFixSizeBytes.Value) : "Size not listed";
+    [JsonIgnore] public string CustomPackageSizeLabel => CustomPackageSizeBytes is > 0 ? FormatBytes(CustomPackageSizeBytes.Value) : "Size not listed";
+    [JsonIgnore] public string CustomPackageLabel => string.IsNullOrWhiteSpace(CustomPackageName) ? "EXTRA PACKAGE" : CustomPackageName.Trim();
+    [JsonIgnore] public string DetailHeroUrl
+    {
+        get
+        {
+            var heroIsDimSteamBackdrop = HeroUrl.Contains("/storepagebackground/", StringComparison.OrdinalIgnoreCase);
+            if ((string.IsNullOrWhiteSpace(HeroUrl) || heroIsDimSteamBackdrop) && ScreenshotUrls.Count > 0)
+                return ScreenshotUrls[0];
+            return string.IsNullOrWhiteSpace(HeroUrl) ? CoverUrl : HeroUrl;
+        }
+    }
     [JsonIgnore] public bool HasUpdate => IsInstalled && UpdateDownloadUrl.Length > 0 && CompareVersions(Version, InstalledVersion) > 0;
     [JsonIgnore] public string MultiplayerLabel => IsMultiplayer ? "MULTIPLAYER" : "SINGLE-PLAYER";
-    [JsonIgnore] public string RatingLabel => CommunityRating > 0 ? $"{Math.Clamp(CommunityRating, 0, 5):0.0} / 5  ({RatingCount:N0})" : "NOT RATED YET";
+    [JsonIgnore] public string RatingLabel => CommunityRating > 0 ? $"STEAM {Math.Clamp(CommunityRating, 0, 5):0.0} / 5  ({RatingCount:N0} REVIEWS)" : "NO STEAM SCORE";
+    [JsonIgnore] public string CommunityRatingLabel => LiveCommunityRatingCount > 0 ? $"NEXAPLAY {LiveCommunityRating:0.0} / 5  ({LiveCommunityRatingCount:N0} VOTES)" : "NO NEXAPLAY VOTES YET";
     [JsonIgnore] public string Stars => CommunityRating > 0 ? new string('★', Math.Clamp((int)Math.Round(CommunityRating), 1, 5)) + new string('☆', 5 - Math.Clamp((int)Math.Round(CommunityRating), 1, 5)) : "☆☆☆☆☆";
     [JsonIgnore] public string LastUpdatedLabel => UpdatedUtc == default ? "Last updated — not provided" : $"Last updated {HumanizeAge(UpdatedUtc)}";
     [JsonIgnore] public string InstallationGuideDisplay => CleanSectionText(InstallationGuide, "Installation Guide", "Step-by-step setup process");
@@ -93,13 +113,12 @@ public sealed class GameEntry : INotifyPropertyChanged
 
     public void SetCommunityRating(double average, int count, int? userScore = null)
     {
-        CommunityRating = Math.Clamp(average, 0, 5);
-        RatingCount = Math.Max(0, count);
+        LiveCommunityRating = Math.Clamp(average, 0, 5);
+        LiveCommunityRatingCount = Math.Max(0, count);
         UserRating = userScore;
-        OnPropertyChanged(nameof(CommunityRating));
-        OnPropertyChanged(nameof(RatingCount));
-        OnPropertyChanged(nameof(RatingLabel));
-        OnPropertyChanged(nameof(Stars));
+        OnPropertyChanged(nameof(LiveCommunityRating));
+        OnPropertyChanged(nameof(LiveCommunityRatingCount));
+        OnPropertyChanged(nameof(CommunityRatingLabel));
         OnPropertyChanged(nameof(UserRating));
     }
 
@@ -110,15 +129,16 @@ public sealed class GameEntry : INotifyPropertyChanged
     {
         Id = Id, Title = Title, Description = Description, DownloadUrl = DownloadUrl,
         UpdateDownloadUrl = UpdateDownloadUrl, OnlineFixDownloadUrl = OnlineFixDownloadUrl,
+        CustomPackageName = CustomPackageName, CustomPackageDownloadUrl = CustomPackageDownloadUrl,
         Version = Version, Developer = Developer, Publisher = Publisher, ReleaseDate = ReleaseDate,
         Genres = [.. Genres], Tags = [.. Tags], IsMultiplayer = IsMultiplayer,
         CommunityRating = CommunityRating, RatingCount = RatingCount, UpdatedUtc = UpdatedUtc,
         SteamAppId = SteamAppId, SteamGridDbId = SteamGridDbId,
         CoverUrl = CoverUrl, HeroUrl = HeroUrl, ArchivePassword = ArchivePassword,
-        UpdateArchivePassword = UpdateArchivePassword, OnlineFixArchivePassword = OnlineFixArchivePassword,
+        UpdateArchivePassword = UpdateArchivePassword, OnlineFixArchivePassword = OnlineFixArchivePassword, CustomPackageArchivePassword = CustomPackageArchivePassword,
         ExecutablePath = ExecutablePath, InstallFolderName = InstallFolderName, Sha256 = Sha256,
-        UpdateSha256 = UpdateSha256, OnlineFixSha256 = OnlineFixSha256,
-        DownloadSizeBytes = DownloadSizeBytes, UpdateSizeBytes = UpdateSizeBytes, OnlineFixSizeBytes = OnlineFixSizeBytes,
+        UpdateSha256 = UpdateSha256, OnlineFixSha256 = OnlineFixSha256, CustomPackageSha256 = CustomPackageSha256,
+        DownloadSizeBytes = DownloadSizeBytes, UpdateSizeBytes = UpdateSizeBytes, OnlineFixSizeBytes = OnlineFixSizeBytes, CustomPackageSizeBytes = CustomPackageSizeBytes,
         InstallationGuide = InstallationGuide, ImportantNotes = ImportantNotes,
         MinimumRequirements = MinimumRequirements, RecommendedRequirements = RecommendedRequirements,
         MinimumRamGb = MinimumRamGb, RequiredStorageGb = RequiredStorageGb,
@@ -174,7 +194,7 @@ public sealed class AppSettings
     public string LibraryFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NexaPlay Library");
     public string RemoteCatalogUrl { get; set; } = "";
     public string ProtectedSteamGridDbKey { get; set; } = "";
-    public bool AutoSyncCatalog { get; set; }
+    public bool AutoSyncCatalog { get; set; } = true;
     public bool KeepArchives { get; set; }
     public string ProfileCpu { get; set; } = "";
     public string ProfileGpu { get; set; } = "";
@@ -230,7 +250,8 @@ public sealed record SteamMetadata(
     string CoverUrl,
     string HeroUrl,
     List<string> ScreenshotUrls,
-    string TrailerUrl);
+    string TrailerUrl,
+    string GameplayUrl);
 
 public sealed record SteamMatch(int AppId, SteamMetadata Metadata);
 
@@ -265,7 +286,8 @@ public sealed class DownloadTaskItem : INotifyPropertyChanged
     public required string GameTitle { get; init; }
     public required string CoverUrl { get; init; }
     public required DownloadPackageKind Kind { get; init; }
-    public string PackageLabel => Kind switch { DownloadPackageKind.Game => "FULL GAME", DownloadPackageKind.Update => "GAME UPDATE", DownloadPackageKind.OnlineFix => "ONLINE FIX", _ => "NEXAPLAY UPDATE" };
+    public string CustomPackageLabel { get; init; } = "";
+    public string PackageLabel => Kind switch { DownloadPackageKind.Game => "FULL GAME", DownloadPackageKind.Update => "GAME UPDATE", DownloadPackageKind.OnlineFix => "ONLINE FIX", DownloadPackageKind.Custom => string.IsNullOrWhiteSpace(CustomPackageLabel) ? "EXTRA PACKAGE" : CustomPackageLabel.ToUpperInvariant(), _ => "NEXAPLAY UPDATE" };
     public double Percent { get => _percent; set => Set(ref _percent, value); }
     public long BytesReceived { get => _bytesReceived; set { if (Set(ref _bytesReceived, value)) OnPropertyChanged(nameof(TransferredLabel)); } }
     public long? TotalBytes { get => _totalBytes; set { if (Set(ref _totalBytes, value)) OnPropertyChanged(nameof(TransferredLabel)); } }
@@ -310,13 +332,14 @@ public sealed class DownloadHistoryItem
     public string GameTitle { get; set; } = "NexaPlay download";
     public string CoverUrl { get; set; } = "";
     public DownloadPackageKind Kind { get; set; }
+    public string CustomPackageLabel { get; set; } = "";
     public string Outcome { get; set; } = "Complete";
     public string Status { get; set; } = "Downloaded";
     public long BytesTransferred { get; set; }
     public DateTime CompletedUtc { get; set; } = DateTime.UtcNow;
 
     [JsonIgnore]
-    public string PackageLabel => Kind switch { DownloadPackageKind.Game => "FULL GAME", DownloadPackageKind.Update => "GAME UPDATE", DownloadPackageKind.OnlineFix => "ONLINE FIX", _ => "NEXAPLAY UPDATE" };
+    public string PackageLabel => Kind switch { DownloadPackageKind.Game => "FULL GAME", DownloadPackageKind.Update => "GAME UPDATE", DownloadPackageKind.OnlineFix => "ONLINE FIX", DownloadPackageKind.Custom => string.IsNullOrWhiteSpace(CustomPackageLabel) ? "EXTRA PACKAGE" : CustomPackageLabel.ToUpperInvariant(), _ => "NEXAPLAY UPDATE" };
     [JsonIgnore]
     public string CompletedLabel => CompletedUtc.ToLocalTime().ToString("MMM d, yyyy · h:mm tt");
     [JsonIgnore]
@@ -340,6 +363,7 @@ public enum DownloadPackageKind
     Game,
     Update,
     OnlineFix,
+    Custom,
     AppUpdate
 }
 

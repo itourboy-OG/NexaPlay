@@ -3,24 +3,55 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="NexaPlay Creator Studio" Width="1040" Height="680" MinWidth="860" MinHeight="560"
         WindowStartupLocation="CenterOwner" Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}">
+    <Window.Resources>
+        <Style x:Key="StudioToolsMenu" TargetType="ContextMenu">
+            <Setter Property="Background" Value="#151B29"/><Setter Property="BorderBrush" Value="#3A4561"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="5"/><Setter Property="MinWidth" Value="235"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu"><Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}"><ItemsPresenter/></Border></ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="StudioToolsMenuItem" TargetType="MenuItem">
+            <Setter Property="Foreground" Value="#E7ECF7"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="13,9"/><Setter Property="FontSize" Value="11"/><Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem"><Border x:Name="MenuItemShell" Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}"><ContentPresenter ContentSource="Header"/></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="MenuItemShell" Property="Background" Value="#29334A"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
+    </Window.Resources>
     <Grid Margin="24">
-        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid>
             <StackPanel><StackPanel Orientation="Horizontal"><TextBlock Text="CREATOR STUDIO" FontSize="26" FontWeight="Black" /><Border x:Name="ModeBadge" Background="#173B34" BorderBrush="#2E8A70" BorderThickness="1" CornerRadius="3" Padding="9,4" Margin="14,1,0,0" VerticalAlignment="Center"><TextBlock x:Name="ModeBadgeText" Text="LOCAL OWNER MODE" Foreground="#75E8BF" FontSize="9" FontWeight="Bold" /></Border></StackPanel><TextBlock x:Name="ModeHelpText" Text="Changes save on this PC. No server URL or owner key is required." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" /></StackPanel>
             <Image Source="Assets/NexaPlay-512.png" Width="58" Height="58" HorizontalAlignment="Right" />
         </Grid>
-        <WrapPanel Grid.Row="1" Margin="0,22,0,16">
+        <Grid Grid.Row="1" Margin="0,20,0,12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="400"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <Border Height="42" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="4">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌕" Foreground="#6EDFF0" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/><TextBox x:Name="GameSearchBox" Grid.Column="1" BorderThickness="0" Background="Transparent" Padding="0" VerticalContentAlignment="Center" TextChanged="GameSearchBox_TextChanged" KeyDown="GameSearchBox_KeyDown" ToolTip="Search title, developer, publisher, Steam App ID, genres, or tags"/></Grid>
+            </Border>
+            <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Search" Margin="8,0,0,0" Click="Search_Click"/>
+            <Button Grid.Column="2" Style="{StaticResource GhostButton}" Content="Clear" Margin="8,0,0,0" Click="ClearSearch_Click"/>
+            <CheckBox x:Name="MissingArtworkOnlyBox" Grid.Column="4" Content="Missing artwork only" Foreground="White" VerticalAlignment="Center" Margin="18,0,2,0" Checked="MissingArtworkFilter_Changed" Unchecked="MissingArtworkFilter_Changed"/>
+        </Grid>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,16">
             <Button Style="{StaticResource PrimaryButton}" Content="＋ Add Games" Click="Add_Click" />
             <Button x:Name="RefreshAllButton" Style="{StaticResource GhostButton}" Content="↻ Refresh all metadata" Margin="8,0,0,0" Click="RefreshAll_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Edit" Margin="8,0,0,0" Click="Edit_Click" />
-            <Button Style="{StaticResource GhostButton}" Content="Duplicate" Margin="8,0,0,0" Click="Duplicate_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Remove" Margin="8,0,0,0" Click="Remove_Click" />
-            <Button Style="{StaticResource GhostButton}" Content="Import catalog" Margin="22,0,0,0" Click="Import_Click" />
-            <Button Style="{StaticResource GhostButton}" Content="Export catalog" Margin="8,0,0,0" Click="Export_Click" />
-            <Button x:Name="ArtworkKeyButton" Style="{StaticResource GhostButton}" Content="SteamGridDB key…" Margin="8,0,0,0" Click="ArtworkKey_Click" />
-        </WrapPanel>
-        <Border Grid.Row="2" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="6">
+            <Button x:Name="MoreToolsButton" Style="{StaticResource GhostButton}" Content="More tools  ▾" Margin="8,0,0,0" Click="MoreTools_Click">
+                <Button.ContextMenu>
+                    <ContextMenu Style="{StaticResource StudioToolsMenu}" Placement="Bottom">
+                        <MenuItem x:Name="RepairSelectedArtworkButton" Style="{StaticResource StudioToolsMenuItem}" Header="Repair selected artwork" Click="RepairSelectedArtwork_Click"/>
+                        <MenuItem x:Name="RepairMissingArtworkButton" Style="{StaticResource StudioToolsMenuItem}" Header="Repair missing artwork" Click="RepairMissingArtwork_Click"/>
+                        <Separator Margin="7,4" Background="#3A4561"/>
+                        <MenuItem Style="{StaticResource StudioToolsMenuItem}" Header="Duplicate selected game" Click="Duplicate_Click"/>
+                        <MenuItem Style="{StaticResource StudioToolsMenuItem}" Header="Import catalog" Click="Import_Click"/>
+                        <MenuItem Style="{StaticResource StudioToolsMenuItem}" Header="Export catalog" Click="Export_Click"/>
+                        <Separator Margin="7,4" Background="#3A4561"/>
+                        <MenuItem x:Name="ArtworkKeyButton" Style="{StaticResource StudioToolsMenuItem}" Header="SteamGridDB key…" Click="ArtworkKey_Click"/>
+                        <MenuItem x:Name="ReportsButton" Style="{StaticResource StudioToolsMenuItem}" Header="Problem reports" Visibility="Collapsed" Click="Reports_Click"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </StackPanel>
+        <Border Grid.Row="3" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="6">
             <ListView x:Name="GamesList" Background="Transparent" BorderThickness="0" Foreground="White" MouseDoubleClick="GamesList_MouseDoubleClick">
+                <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="4,2"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#342A64"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#222B40"/></Trigger></Style.Triggers></Style></ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Game" Width="250" DisplayMemberBinding="{Binding Title}" />
@@ -32,7 +63,7 @@
                 </ListView.View>
             </ListView>
         </Border>
-        <Grid Grid.Row="3" Margin="0,16,0,0">
+        <Grid Grid.Row="4" Margin="0,16,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center">
                 <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" />

@@ -7,7 +7,7 @@
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid>
             <StackPanel><TextBlock Text="ADD A GAME" FontSize="28" FontWeight="Black"/><TextBlock Text="Give NexaPlay a title and your download links. It will build the rest of the page for you." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/></StackPanel>
-            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#1C1832" CornerRadius="4" Padding="13,8"><TextBlock Text="NEXAPLAY OWNER 1.4  •  AUTO METADATA" Foreground="#C9BAFF" FontSize="10" FontWeight="Bold"/></Border>
+            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#1C1832" CornerRadius="4" Padding="13,8"><TextBlock Text="NEXAPLAY OWNER 1.10  •  AUTO METADATA" Foreground="#C9BAFF" FontSize="10" FontWeight="Bold"/></Border>
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,22,0,18">
@@ -24,12 +24,16 @@
                 <Border Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="15" Padding="22" Margin="0,14,0,0">
                     <StackPanel>
                         <TextBlock Text="2  DOWNLOAD LINKS" Foreground="{StaticResource CyanBrush}" FontWeight="Bold" FontSize="11"/>
-                        <TextBlock Text="Only the full game link is required. Empty Update and Online Fix links disappear from the public game page." Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,6,0,14"/>
-                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                        <TextBlock Text="Only the full game link is required. Empty Update, Online Fix, and custom-package links disappear from the public game page." Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,6,0,14"/>
+                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
                             <TextBlock Text="Full game *" VerticalAlignment="Center"/><TextBox x:Name="DownloadBox" Grid.Column="1" Margin="0,4"/>
                             <TextBlock Grid.Row="1" Text="Update" VerticalAlignment="Center"/><TextBox x:Name="UpdateUrlBox" Grid.Row="1" Grid.Column="1" Margin="0,4"/>
                             <TextBlock Grid.Row="2" Text="Online Fix" VerticalAlignment="Center"/><TextBox x:Name="OnlineFixUrlBox" Grid.Row="2" Grid.Column="1" Margin="0,4"/>
+                            <TextBlock Grid.Row="3" Text="Custom name" VerticalAlignment="Center"/><TextBox x:Name="CustomPackageNameBox" Grid.Row="3" Grid.Column="1" Margin="0,4" ToolTip="Example: English Language Pack"/>
+                            <TextBlock Grid.Row="4" Text="Custom URL" VerticalAlignment="Center"/><TextBox x:Name="CustomPackageUrlBox" Grid.Row="4" Grid.Column="1" Margin="0,4"/>
                         </Grid>
+                        <Grid Margin="0,13,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="FILE SIZES" Foreground="#8994AC" FontWeight="Bold" FontSize="10"/><TextBlock Text="Use GB, MB, or bytes. NexaPlay will try to detect each size from the link." Foreground="{StaticResource MutedBrush}" FontSize="10" Margin="0,3,0,0"/></StackPanel><Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="Detect sizes" Padding="13,8" Click="DetectSizes_Click"/></Grid>
+                        <Grid Margin="0,9,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><StackPanel Margin="0,0,8,0"><TextBlock Text="Full game" Foreground="#7F8AA4" FontSize="9"/><TextBox x:Name="SizeBox" Margin="0,5,0,0" ToolTip="Example: 167 GB"/></StackPanel><StackPanel Grid.Column="1" Margin="0,0,8,0"><TextBlock Text="Update" Foreground="#7F8AA4" FontSize="9"/><TextBox x:Name="UpdateSizeBox" Margin="0,5,0,0" ToolTip="Example: 4.2 GB"/></StackPanel><StackPanel Grid.Column="2" Margin="0,0,8,0"><TextBlock Text="Online Fix" Foreground="#7F8AA4" FontSize="9"/><TextBox x:Name="OnlineFixSizeBox" Margin="0,5,0,0" ToolTip="Example: 850 MB"/></StackPanel><StackPanel Grid.Column="3"><TextBlock Text="Custom" Foreground="#7F8AA4" FontSize="9"/><TextBox x:Name="CustomPackageSizeBox" Margin="0,5,0,0" ToolTip="Example: 2 GB"/></StackPanel></Grid>
                     </StackPanel>
                 </Border>
 
@@ -49,6 +53,17 @@
                             <StackPanel Grid.Column="2"><TextBlock Text="Catalog version" Foreground="#8994AC" FontSize="11"/><TextBox x:Name="VersionBox" Margin="0,6,0,0"/></StackPanel>
                         </Grid>
                         <WrapPanel Margin="0,14,0,0"><CheckBox x:Name="MultiplayerBox" Content="Multiplayer / online play" Foreground="White"/><CheckBox x:Name="FeaturedBox" Content="Feature in library banner" Foreground="White" Margin="24,0,0,0"/></WrapPanel>
+                        <Border Background="#0D121E" BorderBrush="#313A52" BorderThickness="1" CornerRadius="5" Padding="16" Margin="0,18,0,0">
+                            <StackPanel>
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="GAME ARTWORK" Foreground="{StaticResource CyanBrush}" FontWeight="Bold" FontSize="11"/><TextBlock Text="Use official Steam images automatically, or paste your own public image URLs below." Foreground="{StaticResource MutedBrush}" FontSize="10" Margin="0,4,0,0"/></StackPanel><Button x:Name="OfficialArtworkButton" Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Get official Steam artwork" Padding="13,8" Click="FetchOfficialArtwork_Click"/><Button Grid.Column="2" Style="{StaticResource GhostButton}" Content="Try SteamGridDB" Padding="13,8" Margin="8,0,0,0" Click="FetchArtwork_Click"/></Grid>
+                                <Grid Height="175" Margin="0,14,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Background="#171D2B" BorderBrush="#364057" BorderThickness="1" CornerRadius="3" ClipToBounds="True"><Image Source="{Binding Text, ElementName=CoverBox}" Stretch="Uniform"/></Border><Border Grid.Column="1" Background="#171D2B" BorderBrush="#364057" BorderThickness="1" CornerRadius="3" ClipToBounds="True" Margin="10,0,0,0"><Image Source="{Binding Text, ElementName=HeroBox}" Stretch="Uniform"/></Border></Grid>
+                                <TextBlock Text="Cover image URL" Foreground="#8994AC" FontSize="10"/><TextBox x:Name="CoverBox" Margin="0,5,0,9"/>
+                                <TextBlock Text="Background / hero image URL" Foreground="#8994AC" FontSize="10"/><TextBox x:Name="HeroBox" Margin="0,5,0,9"/>
+                                <TextBlock Text="Screenshot URLs — one per line" Foreground="#8994AC" FontSize="10"/><TextBox x:Name="ScreenshotsBox" Height="82" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,5,0,9"/>
+                                <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><StackPanel Margin="0,0,6,0"><TextBlock Text="Trailer URL" Foreground="#8994AC" FontSize="10"/><TextBox x:Name="TrailerBox" Margin="0,5,0,0"/></StackPanel><StackPanel Grid.Column="1" Margin="6,0,0,0"><TextBlock Text="Gameplay URL" Foreground="#8994AC" FontSize="10"/><TextBox x:Name="GameplayBox" Margin="0,5,0,0"/></StackPanel></Grid>
+                                <TextBox x:Name="SgdbIdBox" Visibility="Collapsed" IsReadOnly="True"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 
@@ -63,21 +78,18 @@
                     <StackPanel Margin="0,14,0,0"><TextBlock Text="Installation guide" Foreground="#8994AC"/><TextBox x:Name="GuideBox" Height="88" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,6,0,10"/><TextBlock Text="Important notes" Foreground="#8994AC"/><TextBox x:Name="NotesBox" Height="88" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,6,0,10"/><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="240"/></Grid.ColumnDefinitions><TextBox x:Name="ReportUrlBox" ToolTip="Optional report form URL"/><TextBox x:Name="SupportEmailBox" Grid.Column="1" Margin="10,0,0,0" ToolTip="Optional support email"/></Grid></StackPanel>
                 </Expander>
 
-                <Expander Header="ADVANCED OPTIONS  •  passwords, checksums, manual artwork" Foreground="White" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" Padding="18" Margin="0,10,0,0">
+                <Expander Header="ADVANCED OPTIONS  •  passwords, checksums, local launch details" Foreground="White" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" Padding="18" Margin="0,10,0,0">
                     <StackPanel Margin="0,14,0,0">
                         <TextBlock Text="Archive integrity &amp; passwords (optional)" Foreground="{StaticResource CyanBrush}" FontWeight="Bold"/>
-                        <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition/><ColumnDefinition Width="210"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                        <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition/><ColumnDefinition Width="210"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
                             <TextBlock Text="Full game" VerticalAlignment="Center"/><TextBox x:Name="ShaBox" Grid.Column="1" Margin="0,4" ToolTip="SHA-256 checksum"/><TextBox x:Name="PasswordBox" Grid.Column="2" Margin="10,4,0,4" ToolTip="Archive password"/>
                             <TextBlock Grid.Row="1" Text="Update" VerticalAlignment="Center"/><TextBox x:Name="UpdateShaBox" Grid.Row="1" Grid.Column="1" Margin="0,4"/><TextBox x:Name="UpdatePasswordBox" Grid.Row="1" Grid.Column="2" Margin="10,4,0,4"/>
                             <TextBlock Grid.Row="2" Text="Online Fix" VerticalAlignment="Center"/><TextBox x:Name="OnlineFixShaBox" Grid.Row="2" Grid.Column="1" Margin="0,4"/><TextBox x:Name="OnlineFixPasswordBox" Grid.Row="2" Grid.Column="2" Margin="10,4,0,4"/>
+                            <TextBlock Grid.Row="3" Text="Custom" VerticalAlignment="Center"/><TextBox x:Name="CustomPackageShaBox" Grid.Row="3" Grid.Column="1" Margin="0,4"/><TextBox x:Name="CustomPackagePasswordBox" Grid.Row="3" Grid.Column="2" Margin="10,4,0,4"/>
                         </Grid>
-                        <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBox x:Name="SizeBox" ToolTip="Full game size in bytes"/><TextBox x:Name="UpdateSizeBox" Grid.Column="1" Margin="10,0,0,0" ToolTip="Update size in bytes"/><TextBox x:Name="OnlineFixSizeBox" Grid.Column="2" Margin="10,0,0,0" ToolTip="Online Fix size in bytes"/></Grid>
                         <Separator Margin="0,16" Background="#30374B"/>
                         <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBox x:Name="ExecutableBox" ToolTip="Fallback executable"/><TextBox x:Name="FolderBox" Grid.Column="1" Margin="10,0,0,0" ToolTip="Install folder name"/><TextBox x:Name="UpdatedBox" Grid.Column="2" Margin="10,0,0,0" ToolTip="Last updated date"/></Grid>
                         <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBox x:Name="RatingBox" ToolTip="Rating from 0 to 5"/><TextBox x:Name="RatingCountBox" Grid.Column="1" Margin="10,0,0,0" ToolTip="Rating count"/></Grid>
-                        <Separator Margin="0,16" Background="#30374B"/>
-                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition/><ColumnDefinition Width="180"/></Grid.ColumnDefinitions><TextBlock Text="SteamGridDB" VerticalAlignment="Center"/><TextBox x:Name="SgdbIdBox" Grid.Column="1" IsReadOnly="True"/><Button Grid.Column="2" Style="{StaticResource GhostButton}" Content="Refresh artwork" Margin="10,0,0,0" Click="FetchArtwork_Click"/></Grid>
-                        <TextBox x:Name="CoverBox" Margin="0,10,0,0" ToolTip="Cover URL"/><TextBox x:Name="HeroBox" Margin="0,8,0,0" ToolTip="Hero URL"/><TextBox x:Name="ScreenshotsBox" Height="82" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0" ToolTip="Screenshot URLs, one per line"/><TextBox x:Name="TrailerBox" Margin="0,8,0,0" ToolTip="Trailer URL"/><TextBox x:Name="GameplayBox" Margin="0,8,0,0" ToolTip="Gameplay URL"/>
                     </StackPanel>
                 </Expander>
             </StackPanel>

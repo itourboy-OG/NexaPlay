@@ -1,6 +1,7 @@
 using NexaPlay.Services;
 using System.Globalization;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Windows;
 
 namespace NexaPlay;
@@ -34,9 +35,11 @@ public partial class GameEditorWindow : Window
         RatingBox.Text = Game.CommunityRating > 0 ? Game.CommunityRating.ToString("0.0", CultureInfo.InvariantCulture) : "";
         RatingCountBox.Text = Game.RatingCount > 0 ? Game.RatingCount.ToString(CultureInfo.InvariantCulture) : "";
         MultiplayerBox.IsChecked = Game.IsMultiplayer; UpdatedBox.Text = (Game.UpdatedUtc == default ? DateTime.Now : Game.UpdatedUtc.ToLocalTime()).ToString("yyyy-MM-dd HH:mm");
-        DownloadBox.Text = Game.DownloadUrl; ShaBox.Text = Game.Sha256; PasswordBox.Text = Game.ArchivePassword; SizeBox.Text = Game.DownloadSizeBytes?.ToString() ?? "";
-        UpdateUrlBox.Text = Game.UpdateDownloadUrl; UpdateShaBox.Text = Game.UpdateSha256; UpdatePasswordBox.Text = Game.UpdateArchivePassword; UpdateSizeBox.Text = Game.UpdateSizeBytes?.ToString() ?? "";
-        OnlineFixUrlBox.Text = Game.OnlineFixDownloadUrl; OnlineFixShaBox.Text = Game.OnlineFixSha256; OnlineFixPasswordBox.Text = Game.OnlineFixArchivePassword; OnlineFixSizeBox.Text = Game.OnlineFixSizeBytes?.ToString() ?? "";
+        DownloadBox.Text = Game.DownloadUrl; ShaBox.Text = Game.Sha256; PasswordBox.Text = Game.ArchivePassword; SizeBox.Text = FormatEditableSize(Game.DownloadSizeBytes);
+        UpdateUrlBox.Text = Game.UpdateDownloadUrl; UpdateShaBox.Text = Game.UpdateSha256; UpdatePasswordBox.Text = Game.UpdateArchivePassword; UpdateSizeBox.Text = FormatEditableSize(Game.UpdateSizeBytes);
+        OnlineFixUrlBox.Text = Game.OnlineFixDownloadUrl; OnlineFixShaBox.Text = Game.OnlineFixSha256; OnlineFixPasswordBox.Text = Game.OnlineFixArchivePassword; OnlineFixSizeBox.Text = FormatEditableSize(Game.OnlineFixSizeBytes);
+        CustomPackageNameBox.Text = Game.CustomPackageName; CustomPackageUrlBox.Text = Game.CustomPackageDownloadUrl;
+        CustomPackageShaBox.Text = Game.CustomPackageSha256; CustomPackagePasswordBox.Text = Game.CustomPackageArchivePassword; CustomPackageSizeBox.Text = FormatEditableSize(Game.CustomPackageSizeBytes);
         ExecutableBox.Text = Game.ExecutablePath; FolderBox.Text = Game.InstallFolderName;
         GuideBox.Text = string.IsNullOrWhiteSpace(Game.InstallationGuide) ? DefaultGuide : Game.InstallationGuide;
         NotesBox.Text = string.IsNullOrWhiteSpace(Game.ImportantNotes) ? DefaultNotes : Game.ImportantNotes;
@@ -75,13 +78,7 @@ public partial class GameEditorWindow : Window
             UpdatedBox.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
 
             StatusText.Text = "Checking download sizes and artwork…";
-            var fullSizeTask = TryGetRemoteSizeAsync(DownloadBox.Text);
-            var updateSizeTask = TryGetRemoteSizeAsync(UpdateUrlBox.Text);
-            var fixSizeTask = TryGetRemoteSizeAsync(OnlineFixUrlBox.Text);
-            await Task.WhenAll(fullSizeTask, updateSizeTask, fixSizeTask);
-            if (await fullSizeTask is long fullSize) SizeBox.Text = fullSize.ToString(CultureInfo.InvariantCulture);
-            if (await updateSizeTask is long updateSize) UpdateSizeBox.Text = updateSize.ToString(CultureInfo.InvariantCulture);
-            if (await fixSizeTask is long fixSize) OnlineFixSizeBox.Text = fixSize.ToString(CultureInfo.InvariantCulture);
+            await DetectSizesAsync();
 
             var artworkKey = _settingsService.GetSteamGridDbKey(_settings);
             if (!string.IsNullOrWhiteSpace(artworkKey))
@@ -118,7 +115,9 @@ public partial class GameEditorWindow : Window
         MinimumBox.Text = data.MinimumRequirements; RecommendedBox.Text = data.RecommendedRequirements;
         MinRamBox.Text = data.MinimumRamGb?.ToString(CultureInfo.InvariantCulture) ?? ""; StorageBox.Text = data.RequiredStorageGb?.ToString(CultureInfo.InvariantCulture) ?? "";
         CoverBox.Text = data.CoverUrl; HeroBox.Text = data.HeroUrl;
-        ScreenshotsBox.Text = string.Join(Environment.NewLine, data.ScreenshotUrls); if (data.TrailerUrl.Length > 0) TrailerBox.Text = data.TrailerUrl;
+        ScreenshotsBox.Text = string.Join(Environment.NewLine, data.ScreenshotUrls);
+        if (data.TrailerUrl.Length > 0) TrailerBox.Text = data.TrailerUrl;
+        if (data.GameplayUrl.Length > 0) GameplayBox.Text = data.GameplayUrl;
     }
 
     private async Task<long?> TryGetRemoteSizeAsync(string value)
@@ -135,6 +134,25 @@ public partial class GameEditorWindow : Window
         return null;
     }
 
+    private async void DetectSizes_Click(object sender, RoutedEventArgs e)
+    {
+        try { StatusText.Text = "Checking file sizes from the download hosts…"; await DetectSizesAsync(); StatusText.Text = "File sizes updated where the host provided them."; }
+        catch (Exception ex) { MessageBox.Show(ex.Message, "Size detection failed", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
+
+    private async Task DetectSizesAsync()
+    {
+        var fullSizeTask = TryGetRemoteSizeAsync(DownloadBox.Text);
+        var updateSizeTask = TryGetRemoteSizeAsync(UpdateUrlBox.Text);
+        var fixSizeTask = TryGetRemoteSizeAsync(OnlineFixUrlBox.Text);
+        var customSizeTask = TryGetRemoteSizeAsync(CustomPackageUrlBox.Text);
+        await Task.WhenAll(fullSizeTask, updateSizeTask, fixSizeTask, customSizeTask);
+        if (await fullSizeTask is long fullSize) SizeBox.Text = FormatEditableSize(fullSize);
+        if (await updateSizeTask is long updateSize) UpdateSizeBox.Text = FormatEditableSize(updateSize);
+        if (await fixSizeTask is long fixSize) OnlineFixSizeBox.Text = FormatEditableSize(fixSize);
+        if (await customSizeTask is long customSize) CustomPackageSizeBox.Text = FormatEditableSize(customSize);
+    }
+
     private async void FetchArtwork_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(TitleBox.Text)) { MessageBox.Show("Enter a game title first.", "SteamGridDB artwork"); return; }
@@ -149,25 +167,60 @@ public partial class GameEditorWindow : Window
         catch (Exception ex) { MessageBox.Show(ex.Message, "Artwork search failed", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = ""; }
     }
 
+    private async void FetchOfficialArtwork_Click(object sender, RoutedEventArgs e)
+    {
+        var title = TitleBox.Text.Trim();
+        if (title.Length == 0) { MessageBox.Show("Enter the game title first.", "Official Steam artwork"); return; }
+        OfficialArtworkButton.IsEnabled = false;
+        try
+        {
+            StatusText.Text = "Getting official artwork from Steam…";
+            SteamMetadata metadata; int appId;
+            if (int.TryParse(SteamIdBox.Text.Trim(), out appId))
+            {
+                metadata = await _steam.FetchAsync(appId);
+                if (!SteamMetadataService.TitlesLikelyMatch(title, metadata.Title))
+                    throw new InvalidOperationException($"Steam App {appId} belongs to {metadata.Title}, not {title}. Correct the Steam App ID first.");
+            }
+            else
+            {
+                var match = await _steam.SearchAsync(title);
+                appId = match.AppId; metadata = match.Metadata;
+                SteamIdBox.Text = appId.ToString(CultureInfo.InvariantCulture);
+            }
+            CoverBox.Text = metadata.CoverUrl;
+            HeroBox.Text = metadata.HeroUrl;
+            ScreenshotsBox.Text = string.Join(Environment.NewLine, metadata.ScreenshotUrls);
+            if (metadata.TrailerUrl.Length > 0) TrailerBox.Text = metadata.TrailerUrl;
+            if (metadata.GameplayUrl.Length > 0) GameplayBox.Text = metadata.GameplayUrl;
+            SgdbIdBox.Clear();
+            StatusText.Text = $"Official {metadata.Title} artwork added. Review the previews, then Save game.";
+        }
+        catch (Exception ex) { MessageBox.Show(ex.Message, "Official artwork failed", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = ""; }
+        finally { OfficialArtworkButton.IsEnabled = true; }
+    }
+
     private void Save_Click(object sender, RoutedEventArgs e)
     {
         var title = TitleBox.Text.Trim();
         if (title.Length == 0) { MessageBox.Show("Game title is required.", "Missing title"); return; }
-        if (!ValidateUrl(DownloadBox.Text, true, "game download") || !ValidateUrl(UpdateUrlBox.Text, false, "update") || !ValidateUrl(OnlineFixUrlBox.Text, false, "online fix") ||
+        if (CustomPackageUrlBox.Text.Trim().Length > 0 && CustomPackageNameBox.Text.Trim().Length == 0) { MessageBox.Show("Give the custom package a button name, such as English Language Pack.", "Custom package name"); return; }
+        if (!ValidateUrl(DownloadBox.Text, true, "game download") || !ValidateUrl(UpdateUrlBox.Text, false, "update") || !ValidateUrl(OnlineFixUrlBox.Text, false, "online fix") || !ValidateUrl(CustomPackageUrlBox.Text, false, "custom package") ||
             !ValidateUrl(ReportUrlBox.Text, false, "report") || !ValidateUrl(TrailerBox.Text, false, "trailer") || !ValidateUrl(GameplayBox.Text, false, "gameplay")) return;
-        if (!ValidateHash(ShaBox.Text, "game") || !ValidateHash(UpdateShaBox.Text, "update") || !ValidateHash(OnlineFixShaBox.Text, "online fix")) return;
+        if (!ValidateHash(ShaBox.Text, "game") || !ValidateHash(UpdateShaBox.Text, "update") || !ValidateHash(OnlineFixShaBox.Text, "online fix") || !ValidateHash(CustomPackageShaBox.Text, "custom package")) return;
         if (double.TryParse(RatingBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var rating) && rating is < 0 or > 5) { MessageBox.Show("Rating must be between 0 and 5.", "Invalid rating"); return; }
 
         Game.Title = title; Game.DownloadUrl = DownloadBox.Text.Trim(); Game.UpdateDownloadUrl = UpdateUrlBox.Text.Trim(); Game.OnlineFixDownloadUrl = OnlineFixUrlBox.Text.Trim();
+        Game.CustomPackageName = CustomPackageNameBox.Text.Trim(); Game.CustomPackageDownloadUrl = CustomPackageUrlBox.Text.Trim();
         Game.Description = DescriptionBox.Text.Trim(); Game.Developer = DeveloperBox.Text.Trim(); Game.Publisher = PublisherBox.Text.Trim(); Game.ReleaseDate = ReleaseBox.Text.Trim(); Game.Version = VersionBox.Text.Trim();
         Game.Genres = SplitList(GenresBox.Text, ','); Game.Tags = SplitList(TagsBox.Text, ','); Game.IsMultiplayer = MultiplayerBox.IsChecked == true;
         Game.CommunityRating = double.TryParse(RatingBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out rating) ? rating : 0;
         Game.RatingCount = int.TryParse(RatingCountBox.Text, out var count) && count > 0 ? count : 0;
         Game.UpdatedUtc = DateTime.TryParse(UpdatedBox.Text.Trim(), out var updated) ? updated.ToUniversalTime() : DateTime.UtcNow;
         Game.SteamAppId = int.TryParse(SteamIdBox.Text, out var steamId) ? steamId : null; Game.SteamGridDbId = int.TryParse(SgdbIdBox.Text, out var sgdbId) ? sgdbId : null;
-        Game.Sha256 = NormalizeHash(ShaBox.Text); Game.UpdateSha256 = NormalizeHash(UpdateShaBox.Text); Game.OnlineFixSha256 = NormalizeHash(OnlineFixShaBox.Text);
-        Game.ArchivePassword = PasswordBox.Text; Game.UpdateArchivePassword = UpdatePasswordBox.Text; Game.OnlineFixArchivePassword = OnlineFixPasswordBox.Text;
-        Game.DownloadSizeBytes = PositiveLong(SizeBox.Text); Game.UpdateSizeBytes = PositiveLong(UpdateSizeBox.Text); Game.OnlineFixSizeBytes = PositiveLong(OnlineFixSizeBox.Text);
+        Game.Sha256 = NormalizeHash(ShaBox.Text); Game.UpdateSha256 = NormalizeHash(UpdateShaBox.Text); Game.OnlineFixSha256 = NormalizeHash(OnlineFixShaBox.Text); Game.CustomPackageSha256 = NormalizeHash(CustomPackageShaBox.Text);
+        Game.ArchivePassword = PasswordBox.Text; Game.UpdateArchivePassword = UpdatePasswordBox.Text; Game.OnlineFixArchivePassword = OnlineFixPasswordBox.Text; Game.CustomPackageArchivePassword = CustomPackagePasswordBox.Text;
+        Game.DownloadSizeBytes = ParseSize(SizeBox.Text); Game.UpdateSizeBytes = ParseSize(UpdateSizeBox.Text); Game.OnlineFixSizeBytes = ParseSize(OnlineFixSizeBox.Text); Game.CustomPackageSizeBytes = ParseSize(CustomPackageSizeBox.Text);
         Game.ExecutablePath = ExecutableBox.Text.Trim(); Game.InstallFolderName = FolderBox.Text.Trim();
         Game.InstallationGuide = string.IsNullOrWhiteSpace(GuideBox.Text) ? DefaultGuide : GuideBox.Text.Trim();
         Game.ImportantNotes = string.IsNullOrWhiteSpace(NotesBox.Text) ? DefaultNotes : NotesBox.Text.Trim();
@@ -192,6 +245,22 @@ public partial class GameEditorWindow : Window
     private static List<string> SplitList(string value, char separator) => value.Split(separator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     private static List<string> SplitLines(string value) => value.Split(['\r', '\n'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     private static long? PositiveLong(string value) => long.TryParse(value, out var number) && number > 0 ? number : null;
+    private static long? ParseSize(string value)
+    {
+        var match = Regex.Match(value.Trim(), "^(?<number>\\d+(?:[.,]\\d+)?)\\s*(?<unit>B|KB|MB|GB|TB)?$", RegexOptions.IgnoreCase);
+        if (!match.Success || !double.TryParse(match.Groups["number"].Value.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var number) || number <= 0) return null;
+        var multiplier = match.Groups["unit"].Value.ToUpperInvariant() switch { "KB" => 1024d, "MB" => 1024d * 1024, "GB" => 1024d * 1024 * 1024, "TB" => 1024d * 1024 * 1024 * 1024, _ => 1d };
+        var bytes = number * multiplier;
+        return bytes > long.MaxValue ? null : (long)Math.Round(bytes);
+    }
+    private static string FormatEditableSize(long? value)
+    {
+        if (value is not > 0) return "";
+        string[] units = ["B", "KB", "MB", "GB", "TB"];
+        double size = value.Value; var unit = 0;
+        while (size >= 1024 && unit < units.Length - 1) { size /= 1024; unit++; }
+        return $"{size:0.##} {units[unit]}";
+    }
     private static double? PositiveDouble(string value) => double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && number > 0 ? number : null;
     private void Cancel_Click(object sender, RoutedEventArgs e) { DialogResult = false; Close(); }
 }

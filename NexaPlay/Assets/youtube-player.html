@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NexaPlay video</title>
+  <style>
+    html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; background: #000; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div id="player"></div>
+  <script>
+    const videoId = new URLSearchParams(location.search).get("video") || "";
+    if (/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+      const api = document.createElement("script");
+      api.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(api);
+      window.onYouTubeIframeAPIReady = () => new YT.Player("player", {
+        width: "100%",
+        height: "100%",
+        videoId,
+        playerVars: { autoplay: 1, controls: 1, fs: 1, playsinline: 1, rel: 0, origin: location.origin },
+        events: {
+          onReady: event => {
+            event.target.mute();
+            event.target.playVideo();
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

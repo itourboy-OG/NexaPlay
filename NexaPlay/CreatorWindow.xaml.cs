@@ -13,9 +13,12 @@ public partial class CreatorWindow : Window
     private readonly AppSettings _settings;
     private readonly SettingsService _settingsService;
     private readonly HttpClient _http;
+    private readonly HashSet<string> _brokenArtworkIds = new(StringComparer.OrdinalIgnoreCase);
+    private Task<List<GameEntry>>? _artworkScanTask;
     private string _modeStatus = "Local owner mode — changes are saved on this PC.";
     public CatalogDocument Catalog => _catalog;
     public Func<CatalogDocument, Task>? PublishAction { get; set; }
+    public Func<Task>? ReportsAction { get; set; }
     public Action? ConfigureArtworkKeyAction { get; set; }
 
     public CreatorWindow(CatalogDocument catalog, CatalogService catalogService, AppSettings settings, SettingsService settingsService, HttpClient http)
@@ -27,14 +30,52 @@ public partial class CreatorWindow : Window
         _settingsService = settingsService;
         _http = http;
         RefreshList();
+        Loaded += async (_, _) =>
+        {
+            try { await ScanArtworkHealthAsync(); }
+            catch { MissingArtworkOnlyBox.Content = "Missing artwork only (scan unavailable)"; }
+        };
     }
 
     private void RefreshList()
     {
+        var selectedId = (GamesList.SelectedItem as GameEntry)?.Id;
+        var query = GameSearchBox.Text.Trim();
+        var games = _catalog.Games.Where(game =>
+                (query.Length == 0 || MatchesSearch(game, query)) &&
+                (MissingArtworkOnlyBox.IsChecked != true || IsArtworkIncomplete(game)))
+            .OrderBy(game => game.Title)
+            .ToList();
         GamesList.ItemsSource = null;
-        GamesList.ItemsSource = _catalog.Games.OrderBy(g => g.Title).ToList();
-        StatusText.Text = $"{_catalog.Games.Count} game{(_catalog.Games.Count == 1 ? "" : "s")}  •  {_modeStatus}";
+        GamesList.ItemsSource = games;
+        if (selectedId is not null) GamesList.SelectedItem = games.FirstOrDefault(game => game.Id.Equals(selectedId, StringComparison.OrdinalIgnoreCase));
+        if (GamesList.SelectedItem is null && games.Count == 1) GamesList.SelectedIndex = 0;
+        StatusText.Text = $"Showing {games.Count} of {_catalog.Games.Count} games  •  {_modeStatus}";
     }
+
+    private static bool MatchesSearch(GameEntry game, string query) =>
+        game.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        game.Developer.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        game.Publisher.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        (game.SteamAppId?.ToString().Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        game.Genres.Concat(game.Tags).Any(value => value.Contains(query, StringComparison.OrdinalIgnoreCase));
+
+    private bool IsArtworkIncomplete(GameEntry game) =>
+        string.IsNullOrWhiteSpace(game.CoverUrl) || string.IsNullOrWhiteSpace(game.HeroUrl) || game.ScreenshotUrls.Count == 0 || _brokenArtworkIds.Contains(game.Id);
+
+    private void GameSearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => RefreshList();
+    private void Search_Click(object sender, RoutedEventArgs e) { RefreshList(); if (GamesList.Items.Count > 0 && GamesList.SelectedItem is null) GamesList.SelectedIndex = 0; GamesList.Focus(); }
+    private void ClearSearch_Click(object sender, RoutedEventArgs e) { GameSearchBox.Clear(); MissingArtworkOnlyBox.IsChecked = false; GameSearchBox.Focus(); }
+    private async void MissingArtworkFilter_Changed(object sender, RoutedEventArgs e)
+    {
+        if (MissingArtworkOnlyBox.IsChecked == true)
+        {
+            try { await ScanArtworkHealthAsync(); }
+            catch (Exception ex) { ShowNotification($"Artwork scan failed: {ex.Message}", true); }
+        }
+        RefreshList();
+    }
+    private async void GameSearchBox_KeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { RefreshList(); if (GamesList.Items.Count > 0 && GamesList.SelectedItem is null) GamesList.SelectedIndex = 0; await EditSelectedAsync(); } }
 
     public void SetOwnerMode(bool connected, string serverUrl = "")
     {
@@ -60,7 +101,15 @@ public partial class CreatorWindow : Window
 
     private void ArtworkKey_Click(object sender, RoutedEventArgs e) => ConfigureArtworkKeyAction?.Invoke();
 
-    public void SetArtworkKeyStatus(bool configured) => ArtworkKeyButton.Content = configured ? "SteamGridDB key ✓" : "SteamGridDB key…";
+    public void SetArtworkKeyStatus(bool configured) => ArtworkKeyButton.Header = configured ? "SteamGridDB key ✓" : "SteamGridDB key…";
+    public void SetReportsAvailable(bool available) => ReportsButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+
+    private void MoreTools_Click(object sender, RoutedEventArgs e)
+    {
+        MoreToolsButton.ContextMenu.PlacementTarget = MoreToolsButton;
+        MoreToolsButton.ContextMenu.IsOpen = true;
+    }
+    private async void Reports_Click(object sender, RoutedEventArgs e) { if (ReportsAction is not null) await ReportsAction(); }
 
     private async void Add_Click(object sender, RoutedEventArgs e)
     {
@@ -110,6 +159,129 @@ public partial class CreatorWindow : Window
         StatusText.Text = failed.Count == 0 ? $"Refreshed all {updated} games automatically." : $"Refreshed {updated} games. Could not refresh: {string.Join(", ", failed)}";
     }
 
+    private async void RepairSelectedArtwork_Click(object sender, RoutedEventArgs e)
+    {
+        if (GamesList.SelectedItem is not GameEntry game) { ShowNotification("Search for and select a game first.", true); return; }
+        SetArtworkActionsEnabled(false);
+        try
+        {
+            StatusText.Text = $"Repairing official artwork for {game.Title}…";
+            await RepairArtworkAsync(game);
+            _brokenArtworkIds.Remove(game.Id);
+            await SaveAsync($"{game.Title} artwork was repaired and saved. Publish when it looks correct.");
+        }
+        catch (Exception ex) { ShowNotification($"Could not repair {game.Title}: {ex.Message}", true); }
+        finally { SetArtworkActionsEnabled(true); }
+    }
+
+    private async void RepairMissingArtwork_Click(object sender, RoutedEventArgs e)
+    {
+        SetArtworkActionsEnabled(false);
+        try
+        {
+            StatusText.Text = "Scanning the catalog for blank or broken cover artwork…";
+            var missing = await ScanArtworkHealthAsync(true);
+            if (missing.Count == 0) { ShowNotification("All catalog games have reachable cover artwork.", false); return; }
+
+            var repaired = 0; var failed = new List<string>();
+            foreach (var game in missing)
+            {
+                try
+                {
+                    StatusText.Text = $"Repairing {game.Title}…  ({repaired + failed.Count + 1}/{missing.Count})";
+                    await RepairArtworkAsync(game);
+                    _brokenArtworkIds.Remove(game.Id);
+                    repaired++;
+                }
+                catch { failed.Add(game.Title); }
+            }
+            await SaveAsync();
+            MissingArtworkOnlyBox.IsChecked = failed.Count > 0;
+            ShowNotification(failed.Count == 0
+                ? $"Repaired artwork for {repaired} game{(repaired == 1 ? "" : "s")}. Publish to send it to Player."
+                : $"Repaired {repaired}. Still needs attention: {string.Join(", ", failed)}", failed.Count > 0);
+        }
+        catch (Exception ex) { ShowNotification($"Artwork scan failed: {ex.Message}", true); }
+        finally { SetArtworkActionsEnabled(true); }
+    }
+
+    private async Task<List<GameEntry>> FindMissingArtworkAsync()
+    {
+        var steam = new SteamMetadataService(_http);
+        var gate = new SemaphoreSlim(8, 8);
+        var checks = _catalog.Games.Select(async game =>
+        {
+            if (string.IsNullOrWhiteSpace(game.CoverUrl) || string.IsNullOrWhiteSpace(game.HeroUrl) || game.ScreenshotUrls.Count == 0) return game;
+            await gate.WaitAsync();
+            try
+            {
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(12));
+                var coverTask = steam.IsImageUrlAvailableAsync(game.CoverUrl, timeout.Token);
+                var heroTask = steam.IsImageUrlAvailableAsync(game.HeroUrl, timeout.Token);
+                var screenshotTask = steam.IsImageUrlAvailableAsync(game.ScreenshotUrls[0], timeout.Token);
+                await Task.WhenAll(coverTask, heroTask, screenshotTask);
+                return await coverTask && await heroTask && await screenshotTask ? null : game;
+            }
+            catch { return game; }
+            finally { gate.Release(); }
+        });
+        return (await Task.WhenAll(checks)).Where(game => game is not null).Cast<GameEntry>().ToList();
+    }
+
+    private async Task<List<GameEntry>> ScanArtworkHealthAsync(bool force = false)
+    {
+        if (_artworkScanTask is null || force) _artworkScanTask = FindMissingArtworkAsync();
+        MissingArtworkOnlyBox.Content = "Missing artwork only (scanning…)";
+        var missing = await _artworkScanTask;
+        _brokenArtworkIds.Clear();
+        _brokenArtworkIds.UnionWith(missing.Select(game => game.Id));
+        MissingArtworkOnlyBox.Content = $"Missing artwork only ({missing.Count})";
+        RefreshList();
+        return missing;
+    }
+
+    private async Task RepairArtworkAsync(GameEntry game)
+    {
+        var steam = new SteamMetadataService(_http);
+        SteamMetadata metadata; int appId;
+        if (game.SteamAppId is int existingId)
+        {
+            metadata = await steam.FetchAsync(existingId);
+            if (SteamMetadataService.TitlesLikelyMatch(game.Title, metadata.Title)) appId = existingId;
+            else { var match = await steam.SearchAsync(game.Title); appId = match.AppId; metadata = match.Metadata; }
+        }
+        else { var match = await steam.SearchAsync(game.Title); appId = match.AppId; metadata = match.Metadata; }
+
+        game.SteamAppId = appId;
+        game.SteamGridDbId = null;
+        game.CoverUrl = metadata.CoverUrl;
+        game.HeroUrl = metadata.HeroUrl;
+        game.ScreenshotUrls = [.. metadata.ScreenshotUrls];
+        if (metadata.TrailerUrl.Length > 0) game.TrailerUrl = metadata.TrailerUrl;
+        if (metadata.GameplayUrl.Length > 0) game.GameplayUrl = metadata.GameplayUrl;
+
+        var artworkKey = _settingsService.GetSteamGridDbKey(_settings);
+        if (!string.IsNullOrWhiteSpace(artworkKey))
+        {
+            try
+            {
+                var art = await new SteamGridDbService(_http).FindArtworkAsync(game.Title, artworkKey, appId);
+                game.SteamGridDbId = art.SteamGridDbId;
+                if (art.CoverUrl.Length > 0) game.CoverUrl = art.CoverUrl;
+                if (art.HeroUrl.Length > 0) game.HeroUrl = art.HeroUrl;
+            }
+            catch { }
+        }
+        game.UpdatedUtc = DateTime.UtcNow;
+    }
+
+    private void SetArtworkActionsEnabled(bool enabled)
+    {
+        RepairSelectedArtworkButton.IsEnabled = enabled;
+        RepairMissingArtworkButton.IsEnabled = enabled;
+        RefreshAllButton.IsEnabled = enabled;
+    }
+
     private static void ApplyMetadata(GameEntry game, SteamMetadata data)
     {
         game.Title = data.Title; game.Description = data.Description; game.Developer = data.Developer; game.Publisher = data.Publisher;
@@ -117,7 +289,9 @@ public partial class CreatorWindow : Window
         game.CommunityRating = data.CommunityRating; game.RatingCount = data.RatingCount; game.MinimumRequirements = data.MinimumRequirements;
         game.RecommendedRequirements = data.RecommendedRequirements; game.MinimumRamGb = data.MinimumRamGb; game.RequiredStorageGb = data.RequiredStorageGb;
         game.CoverUrl = data.CoverUrl; game.HeroUrl = data.HeroUrl; game.ScreenshotUrls = [.. data.ScreenshotUrls];
-        if (data.TrailerUrl.Length > 0) game.TrailerUrl = data.TrailerUrl; game.UpdatedUtc = DateTime.UtcNow;
+        if (data.TrailerUrl.Length > 0) game.TrailerUrl = data.TrailerUrl;
+        if (data.GameplayUrl.Length > 0) game.GameplayUrl = data.GameplayUrl;
+        game.UpdatedUtc = DateTime.UtcNow;
     }
     private async void GamesList_MouseDoubleClick(object sender, MouseButtonEventArgs e) => await EditSelectedAsync();
     private async Task EditSelectedAsync()

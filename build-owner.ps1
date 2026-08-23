@@ -4,6 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $projectRoot = $PSScriptRoot
 $projectFile = Join-Path $projectRoot 'NexaPlay.Owner\NexaPlay.Owner.csproj'
+$buildDir = Join-Path $projectRoot 'owner-build'
 $publishDir = Join-Path $projectRoot 'owner-publish'
 $outputDir = Join-Path $projectRoot 'NEXAPLAY - USE THESE'
 
@@ -12,11 +13,14 @@ $version = [string]$project.Project.PropertyGroup.Version
 if ([string]::IsNullOrWhiteSpace($version)) { throw 'NexaPlay.Owner.csproj does not contain a Version value.' }
 
 $resolvedRoot = [IO.Path]::GetFullPath($projectRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+$resolvedBuild = [IO.Path]::GetFullPath($buildDir)
 $resolvedPublish = [IO.Path]::GetFullPath($publishDir)
+if (-not $resolvedBuild.StartsWith($resolvedRoot, [StringComparison]::OrdinalIgnoreCase)) { throw "Refusing to clean an owner build directory outside the project: $resolvedBuild" }
 if (-not $resolvedPublish.StartsWith($resolvedRoot, [StringComparison]::OrdinalIgnoreCase)) { throw "Refusing to clean an owner publish directory outside the project: $resolvedPublish" }
+if (Test-Path -LiteralPath $resolvedBuild) { Remove-Item -LiteralPath $resolvedBuild -Recurse -Force }
 if (Test-Path -LiteralPath $resolvedPublish) { Remove-Item -LiteralPath $resolvedPublish -Recurse -Force }
 
-dotnet publish $projectFile -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o $publishDir
+dotnet publish $projectFile -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputPath=$buildDir -o $publishDir
 if ($LASTEXITCODE -ne 0) { throw "Owner Studio publish failed with exit code $LASTEXITCODE." }
 
 New-Item -ItemType Directory -Path $outputDir -Force | Out-Null

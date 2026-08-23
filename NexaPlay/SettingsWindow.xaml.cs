@@ -16,7 +16,7 @@ public partial class SettingsWindow : Window
         InitializeComponent(); _settingsService = settingsService;
         Settings = settings.Clone();
         LibraryBox.Text = Settings.LibraryFolder; CatalogUrlBox.Text = Settings.RemoteCatalogUrl;
-        AutoSyncBox.IsChecked = Settings.AutoSyncCatalog; KeepArchivesBox.IsChecked = Settings.KeepArchives;
+        AutoSyncBox.IsChecked = true; KeepArchivesBox.IsChecked = Settings.KeepArchives;
     }
 
     private void Browse_Click(object sender, RoutedEventArgs e)
@@ -34,7 +34,7 @@ public partial class SettingsWindow : Window
         { MessageBox.Show("Remote catalog URLs must be trusted HTTPS links.", "NexaPlay settings"); return; }
         try { Directory.CreateDirectory(folder); }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Cannot use library folder", MessageBoxButton.OK, MessageBoxImage.Error); return; }
-        Settings.LibraryFolder = folder; Settings.RemoteCatalogUrl = url; Settings.AutoSyncCatalog = AutoSyncBox.IsChecked == true; Settings.KeepArchives = KeepArchivesBox.IsChecked == true;
+        Settings.LibraryFolder = folder; Settings.RemoteCatalogUrl = url; Settings.AutoSyncCatalog = true; Settings.KeepArchives = KeepArchivesBox.IsChecked == true;
         await _settingsService.SaveAsync(Settings); DialogResult = true; Close();
     }
 

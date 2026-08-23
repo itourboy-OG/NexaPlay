@@ -22,9 +22,19 @@ async function main() {
     assert.deepEqual(await response.json(), { average: 4, count: 2, userScore: 3 });
     response = await fetch(`${base}/api/games/peak/ratings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: 'player-one-12345', score: 4 }) });
     assert.deepEqual(await response.json(), { average: 3.5, count: 2, userScore: 4 });
+    response = await fetch(`${base}/api/games/peak/reports`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: 'player-one-12345', playerName: 'Test Player', message: 'Update archive fails verification.', version: '2.0' }) });
+    assert.equal(response.status, 201);
+    assert.equal((await fetch(`${base}/api/admin/reports`)).status, 401);
+    response = await fetch(`${base}/api/admin/reports`, { headers: { Authorization: 'Bearer owner-test-key' } });
+    const reports = (await response.json()).reports;
+    assert.equal(reports.length, 1);
+    assert.equal(reports[0].gameId, 'peak');
+    assert.equal(reports[0].gameTitle, 'PEAK');
+    assert.equal(reports[0].playerName, 'Test Player');
+    assert.equal(reports[0].playerHash.length, 64);
     assert.equal((await fetch(`${base}/api/admin/catalog`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ schemaVersion: 1, games: [] }) })).status, 401);
     assert.equal((await fetch(`${base}/api/admin/catalog`, { method: 'PUT', headers: { Authorization: 'Bearer owner-test-key', 'Content-Type': 'application/json' }, body: JSON.stringify({ schemaVersion: 1, games: [{ id: 'peak', title: 'PEAK' }] }) })).status, 200);
-    console.log('NexaPlay Community server tests passed: health, catalog read, one-vote-per-player ratings, vote replacement, and owner-only catalog writes.');
+    console.log('NexaPlay Community server tests passed: catalog, shared ratings, reports, and owner-only catalog/report access.');
   } finally {
     await new Promise(resolve => server.close(resolve));
     fs.rmSync(root, { recursive: true, force: true });

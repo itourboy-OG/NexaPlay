@@ -24,6 +24,14 @@ public sealed class CommunityService(HttpClient httpClient)
             ?? throw new InvalidDataException("The community service returned an invalid rating response.");
     }
 
+    public async Task SubmitReportAsync(string baseUrl, string gameId, string userId, string playerName, string message, string version, CancellationToken cancellationToken = default)
+    {
+        var endpoint = BuildEndpoint(baseUrl, $"games/{Uri.EscapeDataString(gameId)}/reports")
+            ?? throw new InvalidOperationException("Problem reports are not connected yet. SauceBoyz needs to configure the NexaPlay Community service URL.");
+        using var response = await httpClient.PostAsJsonAsync(endpoint, new { userId, playerName = playerName.Trim(), message = message.Trim(), version }, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
     private static Uri? BuildEndpoint(string baseUrl, string relative)
     {
         if (!Uri.TryCreate(baseUrl.TrimEnd('/') + "/", UriKind.Absolute, out var root) || root.Scheme != Uri.UriSchemeHttps) return null;

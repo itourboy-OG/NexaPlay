@@ -1,0 +1,14 @@
+<Window x:Class="NexaPlay.Owner.ReportsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Problem Reports — NexaPlay Owner Studio" Width="1120" Height="680" MinWidth="850" MinHeight="500"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}">
+    <Grid Margin="24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel><TextBlock Text="PROBLEM REPORTS" FontSize="26" FontWeight="Black"/><TextBlock Text="Reports sent from Player appear here. Newest reports are first." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,18"/></StackPanel>
+        <ListView x:Name="ReportsList" Grid.Row="1" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" Foreground="White" Padding="5">
+            <ListView.ItemTemplate><DataTemplate><Border BorderBrush="#2D374E" BorderThickness="0,0,0,1" Padding="12"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="130"/><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions><TextBlock Text="{Binding GameLabel}" ToolTip="{Binding GameId}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock Grid.Column="1" Text="{Binding PlayerLabel}" Foreground="#65E3F4" TextTrimming="CharacterEllipsis"/><TextBlock Grid.Column="2" Text="{Binding Version}" Foreground="#8F7AFF"/><TextBlock Grid.Column="3" Text="{Binding Message}" TextWrapping="Wrap" Margin="10,0"/><TextBlock Grid.Column="4" Text="{Binding CreatedLabel}" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Right"/></Grid></Border></DataTemplate></ListView.ItemTemplate>
+        </ListView>
+        <Button Grid.Row="2" Style="{StaticResource PrimaryButton}" Content="Done" HorizontalAlignment="Right" Margin="0,16,0,0" Click="Done_Click"/>
+    </Grid>
+</Window>

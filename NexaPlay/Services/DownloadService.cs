@@ -26,13 +26,27 @@ public sealed class DownloadService(HttpClient httpClient)
         if (!Uri.TryCreate(package.Url, UriKind.Absolute, out var uri) || (uri.Scheme != "https" && uri.Scheme != "http"))
             throw new InvalidOperationException($"{package.DisplayName} does not have a valid HTTP or HTTPS download link.");
 
+        var packageFolder = kind switch
+        {
+            DownloadPackageKind.Update => "Updates",
+            DownloadPackageKind.OnlineFix => "Online Fix",
+            DownloadPackageKind.Custom => SafeName(game.CustomPackageLabel),
+            _ => "Packages"
+        };
         var downloadRoot = kind == DownloadPackageKind.Game
             ? Path.Combine(libraryFolder, "_downloads")
-            : Path.Combine(game.InstallPath, "_NexaPlay Packages", kind == DownloadPackageKind.Update ? "Updates" : "Online Fix");
+            : Path.Combine(game.InstallPath, "_NexaPlay Packages", packageFolder);
         Directory.CreateDirectory(downloadRoot);
         var extension = Path.GetExtension(uri.AbsolutePath);
         if (extension.Length is < 2 or > 8) extension = ".archive";
-        var suffix = kind == DownloadPackageKind.Game ? "game" : kind == DownloadPackageKind.Update ? $"update-{SafeName(game.Version)}" : "online-fix";
+        var suffix = kind switch
+        {
+            DownloadPackageKind.Game => "game",
+            DownloadPackageKind.Update => $"update-{SafeName(game.Version)}",
+            DownloadPackageKind.OnlineFix => "online-fix",
+            DownloadPackageKind.Custom => SafeName(game.CustomPackageLabel),
+            _ => "package"
+        };
         var finalPath = Path.Combine(downloadRoot, $"{SafeName(game.Title)}-{suffix}{extension}");
         var partialPath = finalPath + ".part";
 
@@ -101,6 +115,7 @@ public sealed class DownloadService(HttpClient httpClient)
         DownloadPackageKind.Game => new(game.DownloadUrl, game.Sha256, game.ArchivePassword, game.DownloadSizeBytes, "Game download"),
         DownloadPackageKind.Update => new(game.UpdateDownloadUrl, game.UpdateSha256, game.UpdateArchivePassword, game.UpdateSizeBytes, "Game update"),
         DownloadPackageKind.OnlineFix => new(game.OnlineFixDownloadUrl, game.OnlineFixSha256, game.OnlineFixArchivePassword, game.OnlineFixSizeBytes, "Online fix"),
+        DownloadPackageKind.Custom => new(game.CustomPackageDownloadUrl, game.CustomPackageSha256, game.CustomPackageArchivePassword, game.CustomPackageSizeBytes, game.CustomPackageLabel),
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
     };
 
