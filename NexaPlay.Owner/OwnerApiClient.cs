@@ -35,8 +35,10 @@ public sealed class OwnerApiClient(HttpClient httpClient)
     }
 }
 
-public sealed record CommunityReport(string Id, string GameId, string Message, string Version, DateTime CreatedUtc)
+public sealed record CommunityReport(string Id = "", string GameId = "", string GameTitle = "", string PlayerName = "", string Message = "", string Version = "", DateTime CreatedUtc = default)
 {
     public string CreatedLabel => CreatedUtc.ToLocalTime().ToString("MMM d, yyyy  h:mm tt");
+    public string GameLabel => string.IsNullOrWhiteSpace(GameTitle) ? GameId : GameTitle;
+    public string PlayerLabel => string.IsNullOrWhiteSpace(PlayerName) ? "Player" : PlayerName;
 }
 public sealed record ReportResponse(List<CommunityReport> Reports);

@@ -51,7 +51,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.10.0 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.10.1 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -336,7 +336,8 @@ public partial class MainWindow : Window
 
     private async Task ReportGameAsync(GameEntry game)
     {
-        var report = await ShowPromptAsync($"Report a problem with {game.Title}", "Tell SauceBoyz what went wrong. Include the download package and any error text if you can.", "Send report");
+        var playerName = string.IsNullOrWhiteSpace(_settings.PlayerName) ? "Player" : _settings.PlayerName.Trim();
+        var report = await ShowPromptAsync($"Report a problem with {game.Title}", $"Tell SauceBoyz what went wrong. Include the download package and any error text if you can. This report will be labeled with your NexaPlay name: {playerName}.", "Send report");
         if (!report.Accepted || string.IsNullOrWhiteSpace(report.Text)) return;
         if (string.IsNullOrWhiteSpace(_catalog.CommunityApiUrl))
         {
@@ -345,7 +346,7 @@ public partial class MainWindow : Window
         }
         try
         {
-            await _communityService.SubmitReportAsync(_catalog.CommunityApiUrl, game.Id, report.Text, game.Version);
+            await _communityService.SubmitReportAsync(_catalog.CommunityApiUrl, game.Id, _userStateService.CommunityUserId, playerName, report.Text, game.Version);
             ShowToast("Report sent", $"SauceBoyz can now review the report for {game.Title}.");
         }
         catch (Exception ex) { ShowError("Could not send report", ex); }

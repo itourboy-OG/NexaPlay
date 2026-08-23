@@ -17,6 +17,7 @@ public partial class GameDetailsView : UserControl
     private bool _communityConnected;
     private bool _webViewConfigured;
     private string _activeMediaUrl = "";
+    private readonly YouTubeVideoResolver _youtubeResolver = new();
     public Func<GameEntry, DownloadPackageKind, Task>? PackageAction { get; set; }
     public Func<GameEntry, Task>? PlayAction { get; set; }
     public Func<GameEntry, Task>? UninstallAction { get; set; }
@@ -163,13 +164,21 @@ public partial class GameDetailsView : UserControl
 
         try
         {
-            VideoStatus.Text = uri.AbsolutePath.StartsWith("/results", StringComparison.OrdinalIgnoreCase)
-                ? "Choose a video without leaving NexaPlay"
-                : "Playing YouTube inside NexaPlay";
+            VideoStatus.Text = "Finding the actual video…";
+            VideoFallbackText.Text = "Finding the actual video…";
+            VideoFallbackText.Visibility = Visibility.Visible;
+            var playerUri = await _youtubeResolver.ResolvePlayerUriAsync(uri);
+            if (playerUri is null)
+            {
+                ShowVideoFallback("NexaPlay could not find a playable video for this link. Use Open in browser instead.");
+                return;
+            }
+            _activeMediaUrl = playerUri.AbsoluteUri;
+            VideoStatus.Text = "Playing muted  •  Use the player for volume and fullscreen";
             YouTubeWebView.Visibility = Visibility.Visible;
             await YouTubeWebView.EnsureCoreWebView2Async();
             ConfigureWebView();
-            YouTubeWebView.CoreWebView2.Navigate(uri.AbsoluteUri);
+            NavigateYouTubePlayer(playerUri);
         }
         catch (Exception ex)
         {
@@ -185,10 +194,15 @@ public partial class GameDetailsView : UserControl
         settings.AreDevToolsEnabled = false;
         settings.AreDefaultContextMenusEnabled = false;
         settings.IsStatusBarEnabled = false;
+        YouTubeWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+            "nexaplay.local",
+            Path.Combine(AppContext.BaseDirectory, "Assets"),
+            CoreWebView2HostResourceAccessKind.DenyCors);
+        YouTubeWebView.CoreWebView2.NavigationCompleted += (_, _) => VideoFallbackText.Visibility = Visibility.Collapsed;
         YouTubeWebView.CoreWebView2.NavigationStarting += (_, args) =>
         {
             if (args.Uri.Equals("about:blank", StringComparison.OrdinalIgnoreCase)) return;
-            if (!TryWebUri(args.Uri, out var target) || !IsYouTubeUri(target)) args.Cancel = true;
+            if (!TryWebUri(args.Uri, out var target) || (!IsYouTubeUri(target) && !IsPlayerShellUri(target))) args.Cancel = true;
         };
         YouTubeWebView.CoreWebView2.NewWindowRequested += (_, args) =>
         {
@@ -196,6 +210,14 @@ public partial class GameDetailsView : UserControl
             if (TryWebUri(args.Uri, out var target) && IsYouTubeUri(target))
                 YouTubeWebView.CoreWebView2.Navigate(target.AbsoluteUri);
         };
+    }
+
+    private void NavigateYouTubePlayer(Uri playerUri)
+    {
+        if (YouTubeWebView.CoreWebView2 is null) return;
+        var videoId = YouTubeVideoResolver.TryGetVideoId(playerUri);
+        if (videoId.Length == 0) return;
+        YouTubeWebView.CoreWebView2.Navigate($"https://nexaplay.local/youtube-player.html?video={Uri.EscapeDataString(videoId)}");
     }
 
     private void OpenVideoInBrowser_Click(object sender, RoutedEventArgs e) => OpenUrl(_activeMediaUrl);
@@ -228,6 +250,7 @@ public partial class GameDetailsView : UserControl
         Uri.TryCreate(url, UriKind.Absolute, out uri!) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
     private static bool IsDirectVideo(Uri uri) => new[] { ".mp4", ".webm", ".m4v", ".mov" }.Contains(Path.GetExtension(uri.AbsolutePath), StringComparer.OrdinalIgnoreCase);
     private static bool IsYouTubeUri(Uri uri) => uri.Host.Equals("youtu.be", StringComparison.OrdinalIgnoreCase) || uri.Host.Equals("youtube.com", StringComparison.OrdinalIgnoreCase) || uri.Host.EndsWith(".youtube.com", StringComparison.OrdinalIgnoreCase);
+    private static bool IsPlayerShellUri(Uri uri) => uri.Host.Equals("nexaplay.local", StringComparison.OrdinalIgnoreCase);
     private static void OpenUrl(string url) { if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); }
     private async void Report_Click(object sender, RoutedEventArgs e) { if (_game is not null && ReportAction is not null) await ReportAction(_game); }
     private async void CanIRun_Click(object sender, RoutedEventArgs e) { if (_game is not null && CompatibilityAction is not null) await CompatibilityAction(_game); }

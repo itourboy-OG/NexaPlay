@@ -57,11 +57,13 @@ function createNexaPlayServer(options = {}) {
       const reportMatch = url.pathname.match(/^\/api\/games\/([^/]+)\/reports$/);
       if (request.method === 'POST' && reportMatch) {
         const gameId = decodeSegment(reportMatch[1]);
-        ensureGameExists(catalogFile, gameId);
+        const game = ensureGameExists(catalogFile, gameId);
         const body = await readBody(request, 32 * 1024);
         const message = typeof body.message === 'string' ? body.message.trim() : '';
+        const playerName = typeof body.playerName === 'string' ? body.playerName.trim().slice(0, 40) : 'Player';
+        const userId = typeof body.userId === 'string' ? body.userId.trim() : '';
         if (message.length < 3 || message.length > 4000) return sendJson(response, 400, { error: 'Report message must be between 3 and 4000 characters.' });
-        fs.appendFileSync(reportsFile, JSON.stringify({ id: crypto.randomUUID(), gameId, message, version: String(body.version || ''), createdUtc: new Date().toISOString() }) + '\n', 'utf8');
+        fs.appendFileSync(reportsFile, JSON.stringify({ id: crypto.randomUUID(), gameId, gameTitle: game.title, playerName: playerName || 'Player', playerHash: userId ? hashUser(userId) : '', message, version: String(body.version || ''), createdUtc: new Date().toISOString() }) + '\n', 'utf8');
         return sendJson(response, 201, { accepted: true });
       }
 
@@ -113,7 +115,9 @@ function getRatingSummary(ratings, gameId, userId) {
 
 function ensureGameExists(catalogFile, gameId) {
   const catalog = readJson(catalogFile, { games: [] });
-  if (!Array.isArray(catalog.games) || !catalog.games.some(game => game && game.id === gameId)) { const error = new Error('Unknown game.'); error.statusCode = 404; throw error; }
+  const game = Array.isArray(catalog.games) ? catalog.games.find(item => item && item.id === gameId) : null;
+  if (!game) { const error = new Error('Unknown game.'); error.statusCode = 404; throw error; }
+  return game;
 }
 
 function validateCatalog(catalog) {

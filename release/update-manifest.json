@@ -1,7 +1,7 @@
 {
-  "version": "1.10.0",
-  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.10.0/NexaPlay-Setup-v1.10.0.exe",
-  "sha256": "0D11ED3F9AFF4A64D0AF51CD15AE9F8B3BA255AE1AD64F906ECE428CD727E328",
-  "notes": "Numbered library pages, Owner Studio search and artwork repair, 10-second live catalog refresh, custom packages, in-app video, improved landscape artwork, clearer archive sizes, ratings, and reports.",
-  "publishedUtc": "2026-08-23T20:13:41.2137406Z"
+  "version": "1.10.1",
+  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.10.1/NexaPlay-Setup-v1.10.1.exe",
+  "sha256": "EE5DEBA4D67B13AD9C593B0322C78D214FEA8E7D4C74FE933B434703C9DD92B4",
+  "notes": "Direct Steam-style trailer and gameplay playback inside NexaPlay, clean WebView clipping, and improved fullscreen and 34-inch ultrawide layouts. Community reports now include the game title and chosen player name.",
+  "publishedUtc": "2026-08-23T20:35:35Z"
 }

@@ -103,9 +103,13 @@
                                     </Grid>
                                 </Border>
                                 <Grid Grid.Row="1" Background="#05070C">
-                                    <MediaElement x:Name="DirectVideoPlayer" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform" Visibility="Collapsed" MediaFailed="DirectVideoPlayer_MediaFailed" MediaEnded="DirectVideoPlayer_MediaEnded"/>
-                                    <wv2:WebView2 x:Name="YouTubeWebView" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="VideoFallbackText" Text="The video could not be loaded inside NexaPlay." Foreground="#AAB4C8" FontSize="12" TextAlignment="Center" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="480" Visibility="Collapsed"/>
+                                    <Viewbox Stretch="Uniform">
+                                        <Grid Width="1280" Height="720" Background="Black">
+                                            <MediaElement x:Name="DirectVideoPlayer" LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Uniform" Visibility="Collapsed" MediaFailed="DirectVideoPlayer_MediaFailed" MediaEnded="DirectVideoPlayer_MediaEnded"/>
+                                            <wv2:WebView2CompositionControl x:Name="YouTubeWebView" Visibility="Collapsed"/>
+                                            <TextBlock x:Name="VideoFallbackText" Text="Finding the actual video…" Foreground="#AAB4C8" FontSize="16" TextAlignment="Center" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="600" Visibility="Collapsed"/>
+                                        </Grid>
+                                    </Viewbox>
                                 </Grid>
                             </Grid>
                         </Border>

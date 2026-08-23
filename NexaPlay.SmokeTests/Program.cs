@@ -28,6 +28,8 @@ try
     ratingGame.SetCommunityRating(5, 2, 5);
     Require(ratingGame.RatingLabel.Contains("STEAM") && ratingGame.RatingLabel.Contains("120") && ratingGame.CommunityRatingLabel.Contains("2 VOTES"), "Steam reviews and NexaPlay community votes were not kept separate.");
     Require(ratingGame.CustomPackageLabel == "English Language Pack" && ratingGame.CustomPackageSizeLabel == "1 MB", "Custom package label or size formatting failed.");
+    Require(YouTubeVideoResolver.TryGetVideoId(new Uri("https://www.youtube.com/watch?v=OaemT0TlwIo")) == "OaemT0TlwIo" &&
+        YouTubeVideoResolver.TryGetVideoId(new Uri("https://youtu.be/OaemT0TlwIo")) == "OaemT0TlwIo", "YouTube watch/share link parsing failed.");
     var dimArtworkGame = new GameEntry
     {
         CoverUrl = "https://example.test/header.jpg",
@@ -249,6 +251,8 @@ try
         var machineParty = await new SteamMetadataService(http).FetchAsync(4108000);
         Require(machineParty.Title == "Machine Party" && machineParty.CoverUrl.Contains("header.jpg", StringComparison.OrdinalIgnoreCase) &&
             await new SteamMetadataService(http).IsImageUrlAvailableAsync(machineParty.CoverUrl), "Live Machine Party artwork fallback failed.");
+        var resolvedTrailer = await new YouTubeVideoResolver().ResolvePlayerUriAsync(new Uri("https://www.youtube.com/results?search_query=Machine%20Party%20official%20trailer"));
+        Require(resolvedTrailer?.AbsolutePath == "/embed/OaemT0TlwIo" && resolvedTrailer.Query.Contains("autoplay=1", StringComparison.Ordinal), "Live YouTube trailer search did not resolve to the direct autoplay player.");
     }
 
     Console.WriteLine($"Detected physical GPU: {detectedGpu}");
