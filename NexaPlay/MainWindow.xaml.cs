@@ -73,12 +73,12 @@ public partial class MainWindow : Window
         _currentPage = LibraryPage;
         SetSelectedNav(LibraryNav);
         UpdateQuickFilterButtons();
-        _catalogRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(30) };
+        _catalogRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(10) };
         _catalogRefreshTimer.Tick += async (_, _) => await SyncCatalogAsync(false);
         Loaded += async (_, _) => await InitializeAsync();
         Activated += async (_, _) =>
         {
-            if (_initialized && DateTime.UtcNow - _lastCatalogSyncAttemptUtc >= TimeSpan.FromSeconds(10))
+            if (_initialized && DateTime.UtcNow - _lastCatalogSyncAttemptUtc >= TimeSpan.FromSeconds(2))
                 await SyncCatalogAsync(false);
         };
         Closed += (_, _) => _catalogRefreshTimer.Stop();
@@ -98,9 +98,10 @@ public partial class MainWindow : Window
             }
             UpdateProfileUi();
             var distribution = await UpdateService.LoadChannelAsync() ?? new UpdateChannel();
-            if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl) && !string.IsNullOrWhiteSpace(distribution.CatalogUrl))
+            if (!string.IsNullOrWhiteSpace(distribution.CatalogUrl) &&
+                (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl) || !_settings.AutoSyncCatalog))
             {
-                _settings.RemoteCatalogUrl = distribution.CatalogUrl;
+                if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) _settings.RemoteCatalogUrl = distribution.CatalogUrl;
                 _settings.AutoSyncCatalog = true;
                 await _settingsService.SaveAsync(_settings);
             }
@@ -121,7 +122,7 @@ public partial class MainWindow : Window
             _ = RefreshCommunityRatingsAsync();
             StatusText.Text = $"Ready  •  Library: {_settings.LibraryFolder}";
             _initialized = true;
-            if (_settings.AutoSyncCatalog) _catalogRefreshTimer.Start();
+            if (!string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) _catalogRefreshTimer.Start();
             _ = CheckForUpdatesAsync(false);
         }
         catch (Exception ex) { ShowError("NexaPlay could not start", ex); }
@@ -627,7 +628,6 @@ public partial class MainWindow : Window
 
     private async Task SyncCatalogAsync(bool userInitiated)
     {
-        if (!_settings.AutoSyncCatalog && !userInitiated) return;
         if (string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) return;
         if (Interlocked.Exchange(ref _catalogSyncInProgress, 1) != 0) return;
         _lastCatalogSyncAttemptUtc = DateTime.UtcNow;
@@ -747,7 +747,7 @@ public partial class MainWindow : Window
         if (saved)
         {
             _settings = window.Settings; Directory.CreateDirectory(_settings.LibraryFolder); RefreshInstallStates(); ApplyFilter();
-            if (_settings.AutoSyncCatalog) _catalogRefreshTimer.Start(); else _catalogRefreshTimer.Stop();
+            if (!string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) _catalogRefreshTimer.Start(); else _catalogRefreshTimer.Stop();
             StatusText.Text = "Settings saved.";
         }
         switch (window.RequestedAction)

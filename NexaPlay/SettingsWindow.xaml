@@ -22,7 +22,7 @@
                 <TextBlock Text="REMOTE CATALOG URL" FontSize="10" FontWeight="Bold" Foreground="{StaticResource CyanBrush}" Margin="0,23,0,0"/>
                 <TextBox x:Name="CatalogUrlBox" Margin="0,8,0,0"/>
                 <TextBlock Text="Use a trusted direct HTTPS link to nexaplay-catalog.json. Anyone controlling this URL can change download links." Foreground="{StaticResource MutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,7,0,0"/>
-                <CheckBox x:Name="AutoSyncBox" Content="Automatically refresh the catalog while NexaPlay is open" Foreground="White" Margin="0,11,0,0"/>
+                <CheckBox x:Name="AutoSyncBox" Content="Automatically refresh the catalog every 10 seconds while NexaPlay is open" Foreground="White" Margin="0,11,0,0" IsChecked="True" IsEnabled="False"/>
                 <CheckBox x:Name="KeepArchivesBox" Content="Keep ZIP/RAR archives after a successful install" Foreground="White" Margin="0,18,0,0"/>
             </StackPanel>
         </ScrollViewer>

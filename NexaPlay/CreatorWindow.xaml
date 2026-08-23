@@ -4,14 +4,25 @@
         Title="NexaPlay Creator Studio" Width="1040" Height="680" MinWidth="860" MinHeight="560"
         WindowStartupLocation="CenterOwner" Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}">
     <Grid Margin="24">
-        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid>
             <StackPanel><StackPanel Orientation="Horizontal"><TextBlock Text="CREATOR STUDIO" FontSize="26" FontWeight="Black" /><Border x:Name="ModeBadge" Background="#173B34" BorderBrush="#2E8A70" BorderThickness="1" CornerRadius="3" Padding="9,4" Margin="14,1,0,0" VerticalAlignment="Center"><TextBlock x:Name="ModeBadgeText" Text="LOCAL OWNER MODE" Foreground="#75E8BF" FontSize="9" FontWeight="Bold" /></Border></StackPanel><TextBlock x:Name="ModeHelpText" Text="Changes save on this PC. No server URL or owner key is required." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" /></StackPanel>
             <Image Source="Assets/NexaPlay-512.png" Width="58" Height="58" HorizontalAlignment="Right" />
         </Grid>
-        <WrapPanel Grid.Row="1" Margin="0,22,0,16">
+        <Grid Grid.Row="1" Margin="0,20,0,12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <Border Height="42" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="4">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌕" Foreground="#6EDFF0" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/><TextBox x:Name="GameSearchBox" Grid.Column="1" BorderThickness="0" Background="Transparent" Padding="0" VerticalContentAlignment="Center" TextChanged="GameSearchBox_TextChanged" KeyDown="GameSearchBox_KeyDown" ToolTip="Search title, developer, publisher, Steam App ID, genres, or tags"/></Grid>
+            </Border>
+            <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Search" Margin="8,0,0,0" Click="Search_Click"/>
+            <Button Grid.Column="2" Style="{StaticResource GhostButton}" Content="Clear" Margin="8,0,0,0" Click="ClearSearch_Click"/>
+            <CheckBox x:Name="MissingArtworkOnlyBox" Grid.Column="3" Content="Missing artwork only" Foreground="White" VerticalAlignment="Center" Margin="18,0,2,0" Checked="MissingArtworkFilter_Changed" Unchecked="MissingArtworkFilter_Changed"/>
+        </Grid>
+        <WrapPanel Grid.Row="2" Margin="0,0,0,16">
             <Button Style="{StaticResource PrimaryButton}" Content="＋ Add Games" Click="Add_Click" />
             <Button x:Name="RefreshAllButton" Style="{StaticResource GhostButton}" Content="↻ Refresh all metadata" Margin="8,0,0,0" Click="RefreshAll_Click" />
+            <Button x:Name="RepairSelectedArtworkButton" Style="{StaticResource GhostButton}" Content="Repair selected artwork" Margin="8,0,0,0" Click="RepairSelectedArtwork_Click" />
+            <Button x:Name="RepairMissingArtworkButton" Style="{StaticResource GhostButton}" Content="Repair missing artwork" Margin="8,0,0,0" Click="RepairMissingArtwork_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Edit" Margin="8,0,0,0" Click="Edit_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Duplicate" Margin="8,0,0,0" Click="Duplicate_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Remove" Margin="8,0,0,0" Click="Remove_Click" />
@@ -20,8 +31,9 @@
             <Button x:Name="ArtworkKeyButton" Style="{StaticResource GhostButton}" Content="SteamGridDB key…" Margin="8,0,0,0" Click="ArtworkKey_Click" />
             <Button x:Name="ReportsButton" Style="{StaticResource GhostButton}" Content="Problem reports" Margin="8,0,0,0" Visibility="Collapsed" Click="Reports_Click" />
         </WrapPanel>
-        <Border Grid.Row="2" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="6">
+        <Border Grid.Row="3" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="13" Padding="6">
             <ListView x:Name="GamesList" Background="Transparent" BorderThickness="0" Foreground="White" MouseDoubleClick="GamesList_MouseDoubleClick">
+                <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="4,2"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#342A64"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#222B40"/></Trigger></Style.Triggers></Style></ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Game" Width="250" DisplayMemberBinding="{Binding Title}" />
@@ -33,7 +45,7 @@
                 </ListView.View>
             </ListView>
         </Border>
-        <Grid Grid.Row="3" Margin="0,16,0,0">
+        <Grid Grid.Row="4" Margin="0,16,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center">
                 <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" />

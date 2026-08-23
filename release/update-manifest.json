@@ -1,7 +1,7 @@
 {
   "version": "1.10.0",
   "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.10.0/NexaPlay-Setup-v1.10.0.exe",
-  "sha256": "3F4E2449E37634B9C4A432849FFB5DF36DB4DE12A4469C58BE09FF9D4C22836E",
-  "notes": "Numbered library pages, compact filters, custom packages, clearer Steam and NexaPlay ratings, in-app reports, and improved download details.",
+  "sha256": "F58E00BC3885E43A6BF93B4DB948C70D7FA3C735D2EF60362FB64254269E3711",
+  "notes": "Numbered library pages, Owner Studio search and artwork repair, 10-second live catalog refresh, custom packages, clearer ratings, in-app reports, and improved downloads.",
   "publishedUtc": "2026-08-23T19:15:55.6001947Z"
 }

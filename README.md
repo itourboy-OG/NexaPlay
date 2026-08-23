@@ -11,7 +11,7 @@ NexaPlay is a native Windows game catalog, downloader, archive installer, and la
 - Steam-inspired Downloads page with real network/peak speed, transfer progress and ETA, a sequential **Up Next** queue, cancellation, and persistent download history with a clear option.
 - Automatic safe guide/notes defaults, Steam minimum/recommended requirements, and a reusable **Can I run it?** PC profile for CPU, GPU, RAM, Windows, and storage.
 - In-app ratings and problem-report forms. With the Community server connected, friends share one vote per Player installation and Owner Studio receives private reports.
-- Separate private Owner Studio: enter a title and links, then Auto-Fill finds the Steam App ID and fills descriptions, genres, multiplayer tags, ratings, requirements, screenshots, trailer, and artwork. It is never included in the player installer.
+- Separate private Owner Studio with instant title/developer/publisher/App-ID/tag search, missing-artwork filtering, selected artwork repair, and catalog-wide broken-cover repair. It is never included in the player installer.
 - One-click catalog-wide metadata refresh for existing games without changing download links, versions, guides, or package settings.
 - Optional SteamGridDB cover/hero lookup using your own API key.
 - Resumable HTTP/HTTPS downloads with progress and cancellation.
@@ -52,7 +52,7 @@ Until that server has a public HTTPS address, friends still receive every game b
 
 NexaPlay uses public GitHub raw files for the live catalog and `update-manifest.json`, plus a GitHub Release asset for the installer. Friends never need a GitHub account or token. After building, run `prepare-update-release.ps1 -InstallerUrl <HTTPS installer asset URL>` to create the manifest with the real installer SHA-256.
 
-Catalog changes do not require an app update: players sync additions, removals, links, metadata, and artwork automatically. A newer NexaPlay app version changes the sidebar indicator to **Update v… ready**. Nothing is silently installed: the player approves the download and separately approves opening the normal visible installer.
+Catalog changes do not require an app update: players sync additions, removals, links, metadata, and artwork automatically every 10 seconds and immediately when NexaPlay regains focus. Existing settings are migrated back to live sync automatically. A newer NexaPlay app version changes the sidebar indicator to **Update v… ready**. Nothing is silently installed: the player approves the download and separately approves opening the normal visible installer.
 
 ### Gofile and other file hosts
 

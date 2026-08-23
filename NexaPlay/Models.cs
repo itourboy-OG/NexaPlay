@@ -184,7 +184,7 @@ public sealed class AppSettings
     public string LibraryFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NexaPlay Library");
     public string RemoteCatalogUrl { get; set; } = "";
     public string ProtectedSteamGridDbKey { get; set; } = "";
-    public bool AutoSyncCatalog { get; set; }
+    public bool AutoSyncCatalog { get; set; } = true;
     public bool KeepArchives { get; set; }
     public string ProfileCpu { get; set; } = "";
     public string ProfileGpu { get; set; } = "";

@@ -1,6 +1,11 @@
 # NexaPlay v1.10.0
 
 - Browse large catalogs with 12 games per page, numbered page controls, and a compact filter dropdown.
+- Search Owner Studio instantly by title, developer, publisher, Steam App ID, genre, or tag; one result is selected automatically for quick editing.
+- Player now checks the live catalog every 10 seconds and immediately when the window regains focus, including migration of older disabled-auto-sync settings.
+- Scan and repair missing/broken artwork in Owner Studio, or repair one selected game's cover, hero, screenshots, and media.
+- Steam artwork now falls back to the official header when a portrait URL is unavailable, and weak title matches are rejected to prevent unrelated artwork.
+- Corrected unreachable Machine Party and GRAIN ROT cover URLs.
 - Filter by all games, single-player, multiplayer, co-op, recently updated, or updates available.
 - Downloads now show real network and peak speeds without the misleading disk-status label.
 - Owner Studio can add one optional, owner-named package such as an English Language Pack. Empty packages stay hidden.

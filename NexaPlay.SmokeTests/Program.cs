@@ -17,6 +17,7 @@ try
     var clean = DownloadService.SafeName("My: Game? <Test>");
     Require(!clean.Any(Path.GetInvalidFileNameChars().Contains), "Filename sanitization failed.");
     var keySettings = new AppSettings();
+    Require(keySettings.AutoSyncCatalog, "New Player settings did not default to automatic catalog refresh.");
     var keyService = new SettingsService();
     const string testArtworkKey = "steamgriddb-owner-only-test-key-123456";
     keyService.SetSteamGridDbKey(keySettings, testArtworkKey);
@@ -46,6 +47,11 @@ try
     var remoteCatalogPath = Path.Combine(root, "remote-catalog.json");
     var syncedCatalog = await new CatalogService(new HttpClient(new FakeHandler(remoteResponse)), remoteCatalogPath).SyncAsync("https://example.test/catalog.json");
     Require(syncedCatalog.UpdatedUtc == remoteStamp, "Catalog sync replaced the publisher timestamp with the local refresh time.");
+    var rawResponse = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(remoteCatalog, JsonFile.Options)) };
+    rawResponse.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+    var rawHandler = new CapturingHandler(rawResponse);
+    await new CatalogService(new HttpClient(rawHandler), Path.Combine(root, "raw-catalog.json")).SyncAsync("https://example.test/catalog.json");
+    Require(rawHandler.RequestUri?.Query.Contains("nexaplay_refresh=", StringComparison.Ordinal) == true, "Automatic catalog sync did not bypass stale HTTP caches.");
     var githubResponse = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(remoteCatalog, JsonFile.Options)) };
     githubResponse.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
     var githubHandler = new CapturingHandler(githubResponse);
@@ -154,6 +160,20 @@ try
     Require(SystemRequirementsService.DetectRamGb() > 0 && SystemRequirementsService.DetectOs().StartsWith("Windows", StringComparison.Ordinal), "RAM/Windows detection failed.");
     Require(SystemRequirementsService.GetTechnicalCityGameUrl("Forza Horizon 6") == "https://technical.city/en/system-requirements/forza-horizon-6" &&
         SystemRequirementsService.GetTechnicalCityGameUrl("PEAK") == "https://technical.city/en/system-requirements/peak", "Technical City game-link generation failed.");
+    var metadataHandler = new RoutingHandler(request =>
+    {
+        if (request.Method == HttpMethod.Head) return new HttpResponseMessage(HttpStatusCode.NotFound);
+        if (request.RequestUri?.AbsolutePath.Contains("appdetails", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            const string appJson = "{\"999\":{\"success\":true,\"data\":{\"name\":\"Fallback Test\",\"short_description\":\"Test\",\"header_image\":\"https://example.test/official-header.jpg\",\"developers\":[\"Studio\"],\"publishers\":[\"Publisher\"],\"genres\":[],\"categories\":[],\"screenshots\":[]}}}";
+            var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(appJson) };
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            return response;
+        }
+        return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{\"query_summary\":{\"total_reviews\":0,\"total_positive\":0}}") };
+    });
+    var fallbackMetadata = await new SteamMetadataService(new HttpClient(metadataHandler)).FetchAsync(999);
+    Require(fallbackMetadata.CoverUrl == "https://example.test/official-header.jpg" && fallbackMetadata.GameplayUrl.Contains("youtube.com/results", StringComparison.OrdinalIgnoreCase), "Broken Steam portrait artwork did not fall back to the official header image.");
     var bundledCatalogPath = Path.Combine(AppContext.BaseDirectory, "default-catalog.json");
     var bundledCatalog = await JsonFile.ReadAsync<CatalogDocument>(bundledCatalogPath);
     Require(bundledCatalog?.Games.Any(item => item.Title == "PEAK") == true && bundledCatalog.Games.Any(item => item.Title == "Forza Horizon 6"), "The friend installer catalog is missing the current games.");
@@ -217,6 +237,9 @@ try
         Require(metadata.TrailerUrl.StartsWith("https://") && metadata.GameplayUrl.Contains("youtube.com/results", StringComparison.OrdinalIgnoreCase), "Automatic trailer/gameplay links failed.");
         var match = await new SteamMetadataService(http).SearchAsync("Portal 2");
         Require(match.AppId == 620 && match.Metadata.Title == "Portal 2", "Live Steam title matching failed.");
+        var machineParty = await new SteamMetadataService(http).FetchAsync(4108000);
+        Require(machineParty.Title == "Machine Party" && machineParty.CoverUrl.Contains("header.jpg", StringComparison.OrdinalIgnoreCase) &&
+            await new SteamMetadataService(http).IsImageUrlAvailableAsync(machineParty.CoverUrl), "Live Machine Party artwork fallback failed.");
     }
 
     Console.WriteLine($"Detected physical GPU: {detectedGpu}");
@@ -236,6 +259,11 @@ sealed class ThrowingHandler : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
         throw new InvalidOperationException("The network should not be used when a completed archive already exists.");
+}
+
+sealed class RoutingHandler(Func<HttpRequestMessage, HttpResponseMessage> responseFactory) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(responseFactory(request));
 }
 
 sealed class CapturingHandler(HttpResponseMessage response) : HttpMessageHandler

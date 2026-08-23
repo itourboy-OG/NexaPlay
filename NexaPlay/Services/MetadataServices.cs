@@ -36,7 +36,9 @@ public sealed class SteamMetadataService(HttpClient httpClient)
             }
             catch when (!cancellationToken.IsCancellationRequested) { }
         }
-        return best ?? throw new InvalidOperationException($"Steam did not return usable metadata for “{title}”.");
+        if (best is null || bestScore < 50)
+            throw new InvalidOperationException($"Steam did not find a close enough match for “{title}”. Enter its Steam App ID to prevent artwork from another game being used.");
+        return best;
     }
 
     public async Task<SteamMetadata> FetchAsync(int appId, CancellationToken cancellationToken = default)
@@ -85,7 +87,9 @@ public sealed class SteamMetadataService(HttpClient httpClient)
         var requiredStorageGb = ExtractRequirementGb(minimum, "storage", "space", "disk");
         var hero = Text(data, "background_raw");
         if (hero.Length == 0) hero = Text(data, "background");
-        var cover = $"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{appId}/library_600x900.jpg";
+        var portraitCover = $"https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/{appId}/library_600x900.jpg";
+        var cover = await IsImageUrlAvailableAsync(portraitCover, cancellationToken) ? portraitCover : Text(data, "header_image");
+        if (cover.Length == 0) cover = Text(data, "capsule_image");
         var screenshots = new List<string>();
         if (data.TryGetProperty("screenshots", out var screenshotList) && screenshotList.ValueKind == JsonValueKind.Array)
             screenshots.AddRange(screenshotList.EnumerateArray().Select(x => Text(x, "path_full")).Where(x => x.Length > 0).Take(8));
@@ -121,6 +125,20 @@ public sealed class SteamMetadataService(HttpClient httpClient)
         }
         catch when (!cancellationToken.IsCancellationRequested) { return (0, 0); }
     }
+
+    public async Task<bool> IsImageUrlAvailableAsync(string value, CancellationToken cancellationToken = default)
+    {
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)) return false;
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Head, uri);
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            return response.IsSuccessStatusCode && (response.Content.Headers.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ?? false);
+        }
+        catch when (!cancellationToken.IsCancellationRequested) { return false; }
+    }
+
+    public static bool TitlesLikelyMatch(string requested, string candidate) => TitleScore(requested, candidate) >= 50;
 
     private static bool IsUsefulTag(string value) =>
         value.Contains("multi", StringComparison.OrdinalIgnoreCase) || value.Contains("co-op", StringComparison.OrdinalIgnoreCase) ||
@@ -177,10 +195,11 @@ public sealed class SteamGridDbService(HttpClient httpClient)
     public async Task<ArtworkResult> FindArtworkAsync(string title, string apiKey, int? steamAppId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Add your SteamGridDB API key from the Owner Studio toolbar first.");
-        var id = steamAppId is int appId
-            ? await TryFindBySteamIdAsync(appId, apiKey, cancellationToken)
-            : null;
-        id ??= await FindBestTitleMatchAsync(title, apiKey, cancellationToken);
+        int id;
+        if (steamAppId is int appId)
+            id = await TryFindBySteamIdAsync(appId, apiKey, cancellationToken)
+                ?? throw new InvalidOperationException("SteamGridDB does not have artwork mapped to this Steam App ID. Official Steam artwork will be kept instead.");
+        else id = await FindBestTitleMatchAsync(title, apiKey, cancellationToken);
 
         var coverTask = TryGetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/grids/game/{id}?dimensions=600x900&types=static", apiKey, cancellationToken);
         var heroTask = TryGetFirstUrlAsync($"https://www.steamgriddb.com/api/v2/heroes/game/{id}?types=static", apiKey, cancellationToken);
@@ -189,7 +208,7 @@ public sealed class SteamGridDbService(HttpClient httpClient)
         var hero = await heroTask;
         if (cover.Length == 0 && hero.Length == 0)
             throw new InvalidOperationException("SteamGridDB found the game, but it does not have a usable static cover or hero image yet.");
-        return new ArtworkResult(id.Value, cover, hero);
+        return new ArtworkResult(id, cover, hero);
     }
 
     private async Task<int?> TryFindBySteamIdAsync(int appId, string apiKey, CancellationToken cancellationToken)
