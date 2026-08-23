@@ -5,6 +5,7 @@ publish/
 installer/output/
 installer/previous/
 owner-publish/
+owner-build/
 owner-tools/
 NEXAPLAY - USE THESE/
 *.user

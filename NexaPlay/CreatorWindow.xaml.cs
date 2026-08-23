@@ -14,6 +14,7 @@ public partial class CreatorWindow : Window
     private readonly SettingsService _settingsService;
     private readonly HttpClient _http;
     private readonly HashSet<string> _brokenArtworkIds = new(StringComparer.OrdinalIgnoreCase);
+    private Task<List<GameEntry>>? _artworkScanTask;
     private string _modeStatus = "Local owner mode — changes are saved on this PC.";
     public CatalogDocument Catalog => _catalog;
     public Func<CatalogDocument, Task>? PublishAction { get; set; }
@@ -29,6 +30,11 @@ public partial class CreatorWindow : Window
         _settingsService = settingsService;
         _http = http;
         RefreshList();
+        Loaded += async (_, _) =>
+        {
+            try { await ScanArtworkHealthAsync(); }
+            catch { MissingArtworkOnlyBox.Content = "Missing artwork only (scan unavailable)"; }
+        };
     }
 
     private void RefreshList()
@@ -60,7 +66,15 @@ public partial class CreatorWindow : Window
     private void GameSearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => RefreshList();
     private void Search_Click(object sender, RoutedEventArgs e) { RefreshList(); if (GamesList.Items.Count > 0 && GamesList.SelectedItem is null) GamesList.SelectedIndex = 0; GamesList.Focus(); }
     private void ClearSearch_Click(object sender, RoutedEventArgs e) { GameSearchBox.Clear(); MissingArtworkOnlyBox.IsChecked = false; GameSearchBox.Focus(); }
-    private void MissingArtworkFilter_Changed(object sender, RoutedEventArgs e) => RefreshList();
+    private async void MissingArtworkFilter_Changed(object sender, RoutedEventArgs e)
+    {
+        if (MissingArtworkOnlyBox.IsChecked == true)
+        {
+            try { await ScanArtworkHealthAsync(); }
+            catch (Exception ex) { ShowNotification($"Artwork scan failed: {ex.Message}", true); }
+        }
+        RefreshList();
+    }
     private async void GameSearchBox_KeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { RefreshList(); if (GamesList.Items.Count > 0 && GamesList.SelectedItem is null) GamesList.SelectedIndex = 0; await EditSelectedAsync(); } }
 
     public void SetOwnerMode(bool connected, string serverUrl = "")
@@ -166,9 +180,7 @@ public partial class CreatorWindow : Window
         try
         {
             StatusText.Text = "Scanning the catalog for blank or broken cover artwork…";
-            var missing = await FindMissingArtworkAsync();
-            _brokenArtworkIds.UnionWith(missing.Select(game => game.Id));
-            RefreshList();
+            var missing = await ScanArtworkHealthAsync(true);
             if (missing.Count == 0) { ShowNotification("All catalog games have reachable cover artwork.", false); return; }
 
             var repaired = 0; var failed = new List<string>();
@@ -203,13 +215,29 @@ public partial class CreatorWindow : Window
             await gate.WaitAsync();
             try
             {
-                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(8));
-                return await steam.IsImageUrlAvailableAsync(game.CoverUrl, timeout.Token) ? null : game;
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(12));
+                var coverTask = steam.IsImageUrlAvailableAsync(game.CoverUrl, timeout.Token);
+                var heroTask = steam.IsImageUrlAvailableAsync(game.HeroUrl, timeout.Token);
+                var screenshotTask = steam.IsImageUrlAvailableAsync(game.ScreenshotUrls[0], timeout.Token);
+                await Task.WhenAll(coverTask, heroTask, screenshotTask);
+                return await coverTask && await heroTask && await screenshotTask ? null : game;
             }
             catch { return game; }
             finally { gate.Release(); }
         });
         return (await Task.WhenAll(checks)).Where(game => game is not null).Cast<GameEntry>().ToList();
+    }
+
+    private async Task<List<GameEntry>> ScanArtworkHealthAsync(bool force = false)
+    {
+        if (_artworkScanTask is null || force) _artworkScanTask = FindMissingArtworkAsync();
+        MissingArtworkOnlyBox.Content = "Missing artwork only (scanning…)";
+        var missing = await _artworkScanTask;
+        _brokenArtworkIds.Clear();
+        _brokenArtworkIds.UnionWith(missing.Select(game => game.Id));
+        MissingArtworkOnlyBox.Content = $"Missing artwork only ({missing.Count})";
+        RefreshList();
+        return missing;
     }
 
     private async Task RepairArtworkAsync(GameEntry game)

@@ -5,6 +5,7 @@
 - Keep Add Games, Refresh Metadata, Edit, and Remove immediately available while secondary catalog and artwork tools stay organized in a compact drop-down.
 - Player now checks the live catalog every 10 seconds and immediately when the window regains focus, including migration of older disabled-auto-sync settings.
 - Scan and repair missing/broken artwork in Owner Studio, or repair one selected game's cover, hero, screenshots, and media.
+- Owner Studio now validates artwork links automatically, shows the broken-art count, and provides a visible one-click official Steam artwork repair with previews inside the game editor.
 - Steam artwork now falls back to the official header when a portrait URL is unavailable, and weak title matches are rejected to prevent unrelated artwork.
 - Corrected unreachable Machine Party and GRAIN ROT cover URLs.
 - Filter by all games, single-player, multiplayer, co-op, recently updated, or updates available.

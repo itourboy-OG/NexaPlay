@@ -133,7 +133,12 @@ public sealed class SteamMetadataService(HttpClient httpClient)
         {
             using var request = new HttpRequestMessage(HttpMethod.Head, uri);
             using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            return response.IsSuccessStatusCode && (response.Content.Headers.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ?? false);
+            if (response.IsSuccessStatusCode && (response.Content.Headers.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ?? false)) return true;
+
+            using var fallback = new HttpRequestMessage(HttpMethod.Get, uri);
+            fallback.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(0, 0);
+            using var fallbackResponse = await httpClient.SendAsync(fallback, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            return fallbackResponse.IsSuccessStatusCode && (fallbackResponse.Content.Headers.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ?? false);
         }
         catch when (!cancellationToken.IsCancellationRequested) { return false; }
     }

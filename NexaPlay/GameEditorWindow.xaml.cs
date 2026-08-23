@@ -167,6 +167,39 @@ public partial class GameEditorWindow : Window
         catch (Exception ex) { MessageBox.Show(ex.Message, "Artwork search failed", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = ""; }
     }
 
+    private async void FetchOfficialArtwork_Click(object sender, RoutedEventArgs e)
+    {
+        var title = TitleBox.Text.Trim();
+        if (title.Length == 0) { MessageBox.Show("Enter the game title first.", "Official Steam artwork"); return; }
+        OfficialArtworkButton.IsEnabled = false;
+        try
+        {
+            StatusText.Text = "Getting official artwork from Steam…";
+            SteamMetadata metadata; int appId;
+            if (int.TryParse(SteamIdBox.Text.Trim(), out appId))
+            {
+                metadata = await _steam.FetchAsync(appId);
+                if (!SteamMetadataService.TitlesLikelyMatch(title, metadata.Title))
+                    throw new InvalidOperationException($"Steam App {appId} belongs to {metadata.Title}, not {title}. Correct the Steam App ID first.");
+            }
+            else
+            {
+                var match = await _steam.SearchAsync(title);
+                appId = match.AppId; metadata = match.Metadata;
+                SteamIdBox.Text = appId.ToString(CultureInfo.InvariantCulture);
+            }
+            CoverBox.Text = metadata.CoverUrl;
+            HeroBox.Text = metadata.HeroUrl;
+            ScreenshotsBox.Text = string.Join(Environment.NewLine, metadata.ScreenshotUrls);
+            if (metadata.TrailerUrl.Length > 0) TrailerBox.Text = metadata.TrailerUrl;
+            if (metadata.GameplayUrl.Length > 0) GameplayBox.Text = metadata.GameplayUrl;
+            SgdbIdBox.Clear();
+            StatusText.Text = $"Official {metadata.Title} artwork added. Review the previews, then Save game.";
+        }
+        catch (Exception ex) { MessageBox.Show(ex.Message, "Official artwork failed", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = ""; }
+        finally { OfficialArtworkButton.IsEnabled = true; }
+    }
+
     private void Save_Click(object sender, RoutedEventArgs e)
     {
         var title = TitleBox.Text.Trim();
