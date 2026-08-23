@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "UpdatedUtc": "2026-08-23T22:04:47.7078183Z",
+  "UpdatedUtc": "2026-08-23T22:05:36.0488286Z",
   "CommunityApiUrl": "",
   "Games": [
     {
@@ -690,7 +690,7 @@
       "IsMultiplayer": false,
       "CommunityRating": 4.2,
       "RatingCount": 45383,
-      "UpdatedUtc": "2026-08-23T20:43:42.3669218Z",
+      "UpdatedUtc": "2026-08-23T20:43:00Z",
       "SteamAppId": 2651280,
       "SteamGridDbId": 5295908,
       "CoverUrl": "https://cdn2.steamgriddb.com/grid/2572510b22e85f491270becf2fc166f7.png",
