@@ -17,6 +17,8 @@ public partial class GameDetailsView : UserControl
     public Func<GameEntry, Task>? UninstallAction { get; set; }
     public Func<GameEntry, bool, Task>? FavoriteAction { get; set; }
     public Func<GameEntry, int, Task>? RateAction { get; set; }
+    public Func<GameEntry, Task>? ReportAction { get; set; }
+    public Func<GameEntry, Task>? CompatibilityAction { get; set; }
     public Action<GameEntry>? CancelAction { get; set; }
     public Action? BackAction { get; set; }
     public Action? OpenDownloadsAction { get; set; }
@@ -47,11 +49,15 @@ public partial class GameDetailsView : UserControl
         GameDownloadButton.IsEnabled = !_game.IsBusy;
         UpdateDownloadButton.IsEnabled = !_game.IsBusy && _game.UpdateDownloadUrl.Length > 0;
         FixDownloadButton.IsEnabled = !_game.IsBusy && _game.OnlineFixDownloadUrl.Length > 0;
+        CustomPackageDownloadButton.IsEnabled = !_game.IsBusy && _game.CustomPackageDownloadUrl.Length > 0;
         UpdatePackageCard.Visibility = _game.UpdateDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         OnlineFixPackageCard.Visibility = _game.OnlineFixDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-        DownloadCenterDescription.Text = _game.UpdateDownloadUrl.Length == 0 && _game.OnlineFixDownloadUrl.Length == 0 ? "Download and install the full game." : "Every package works separately. For an existing game outside NexaPlay, choose its folder when applying an update or Online Fix.";
+        CustomPackageCard.Visibility = _game.CustomPackageDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        DownloadCenterDescription.Text = _game.UpdateDownloadUrl.Length == 0 && _game.OnlineFixDownloadUrl.Length == 0 && _game.CustomPackageDownloadUrl.Length == 0 ? "Download and install the full game." : "Every package works separately. For an existing game outside NexaPlay, choose its folder before applying an update, Online Fix, or extra package.";
         UpdateDownloadButton.Content = _game.HasUpdate ? "Install update" : _game.IsInstalled ? "Apply update" : "Choose folder";
         FixDownloadButton.Content = _game.IsInstalled ? "Apply fix" : "Choose folder";
+        CustomPackageDownloadButton.Content = _game.IsInstalled ? "Apply package" : "Choose folder";
+        CustomPackageTitle.Text = _game.CustomPackageLabel.ToUpperInvariant();
         ProgressPanel.Visibility = _game.IsBusy ? Visibility.Visible : Visibility.Collapsed;
         DownloadProgress.Value = _game.Progress; ActivityText.Text = _game.Activity;
         TrailerButton.IsEnabled = _game.TrailerUrl.Length > 0; GameplayButton.IsEnabled = _game.GameplayUrl.Length > 0;
@@ -62,13 +68,20 @@ public partial class GameDetailsView : UserControl
         GameDownloadInfo.Text = $"v{_game.Version}  •  {_game.SizeLabel}";
         UpdateDownloadInfo.Text = $"v{_game.Version}  •  {_game.UpdateSizeLabel}";
         FixDownloadInfo.Text = _game.OnlineFixSizeLabel;
+        CustomPackageDownloadInfo.Text = _game.CustomPackageSizeLabel;
         var info = new List<string> { $"Full game: {_game.SizeLabel}" };
         if (_game.UpdateDownloadUrl.Length > 0) info.Add($"Update: {_game.UpdateSizeLabel}");
         if (_game.OnlineFixDownloadUrl.Length > 0) info.Add($"Online Fix: {_game.OnlineFixSizeLabel}");
+        if (_game.CustomPackageDownloadUrl.Length > 0) info.Add($"{_game.CustomPackageLabel}: {_game.CustomPackageSizeLabel}");
         if (_game.ArchivePassword.Length > 0) info.Add($"Archive password: {_game.ArchivePassword}");
         if (_game.HasIncompleteInstall) info.Add("Recovery: saved archive will be reused.");
-        info.Add(""); info.Add($"Installed: {(_game.IsInstalled ? _game.InstalledVersion : "Not installed")}"); info.Add($"Available: {_game.Version}");
+        info.Add(""); info.Add($"Available version: {_game.Version}");
         DownloadInfoText.Text = string.Join(Environment.NewLine, info);
+        InstalledStatusText.Text = _game.IsInstalled ? $"INSTALLED  •  v{_game.InstalledVersion}" : "NOT INSTALLED IN NEXAPLAY LIBRARY";
+        InstalledStatusCard.Background = new SolidColorBrush(_game.IsInstalled ? Color.FromRgb(18, 48, 39) : Color.FromRgb(40, 23, 29));
+        InstalledStatusCard.BorderBrush = new SolidColorBrush(_game.IsInstalled ? Color.FromRgb(48, 123, 91) : Color.FromRgb(113, 50, 70));
+        InstalledStatusDot.Background = new SolidColorBrush(_game.IsInstalled ? Color.FromRgb(82, 230, 173) : Color.FromRgb(255, 116, 138));
+        InstalledStatusText.Foreground = new SolidColorBrush(_game.IsInstalled ? Color.FromRgb(142, 244, 202) : Color.FromRgb(255, 154, 170));
         RefreshRatingButtons();
     }
 
@@ -78,7 +91,9 @@ public partial class GameDetailsView : UserControl
         var selected = _game.UserRating ?? 0;
         var buttons = new[] { Star1, Star2, Star3, Star4, Star5 };
         for (var i = 0; i < buttons.Length; i++) buttons[i].Foreground = new SolidColorBrush(i < selected ? Color.FromRgb(255, 214, 107) : Color.FromRgb(96, 106, 130));
-        RatingStatus.Text = selected > 0 ? $"You rated this {selected}/5  •  {_game.RatingLabel}" : _communityConnected ? _game.RatingLabel : "COMMUNITY SERVICE NOT CONNECTED";
+        RatingStatus.Text = selected > 0
+            ? $"You rated this {selected}/5  •  {_game.CommunityRatingLabel}"
+            : _communityConnected ? _game.CommunityRatingLabel : "COMMUNITY SERVICE NOT CONNECTED — RATINGS SAVE ON THIS PC";
     }
 
     private void Back_Click(object sender, RoutedEventArgs e) => BackAction?.Invoke();
@@ -87,6 +102,7 @@ public partial class GameDetailsView : UserControl
     private async void DownloadGame_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Game);
     private async void DownloadUpdate_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Update);
     private async void DownloadFix_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.OnlineFix);
+    private async void DownloadCustom_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Custom);
     private async Task RunPackageAsync(DownloadPackageKind kind) { if (_game is not null && PackageAction is not null) await PackageAction(_game, kind); RefreshUi(); }
     private void More_Click(object sender, RoutedEventArgs e)
     {
@@ -104,20 +120,8 @@ public partial class GameDetailsView : UserControl
     private void Trailer_Click(object sender, RoutedEventArgs e) { if (_game is not null) OpenUrl(_game.TrailerUrl); }
     private void Gameplay_Click(object sender, RoutedEventArgs e) { if (_game is not null) OpenUrl(_game.GameplayUrl); }
     private static void OpenUrl(string url) { if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); }
-    private void Report_Click(object sender, RoutedEventArgs e)
-    {
-        if (_game is null) return;
-        var body = $"NexaPlay game report%0D%0A%0D%0AGame: {Uri.EscapeDataString(_game.Title)}%0D%0AVersion: {Uri.EscapeDataString(_game.Version)}%0D%0AInstalled: {Uri.EscapeDataString(_game.InstalledVersion)}%0D%0A%0D%0AProblem: ";
-        if (Uri.TryCreate(_game.ReportUrl, UriKind.Absolute, out var reportUri)) OpenUrl(reportUri.AbsoluteUri);
-        else if (_game.SupportEmail.Length > 0) OpenUrl($"mailto:{Uri.EscapeDataString(_game.SupportEmail)}?subject={Uri.EscapeDataString("NexaPlay report: " + _game.Title)}&body={body}");
-        else MessageBox.Show("SauceBoyz has not connected a report destination for this game yet.", "Report game", MessageBoxButton.OK, MessageBoxImage.Information);
-    }
-    private void CanIRun_Click(object sender, RoutedEventArgs e)
-    {
-        if (_game is null) return;
-        var profile = new HardwareProfileWindow(_game, _settings, new SettingsService()) { Owner = Window.GetWindow(this) };
-        if (profile.ShowDialog() == true) MessageBox.Show(SystemRequirementsService.Check(_game, _settings.LibraryFolder, _settings), $"PC compatibility — {_game.Title}", MessageBoxButton.OK, MessageBoxImage.Information);
-    }
+    private async void Report_Click(object sender, RoutedEventArgs e) { if (_game is not null && ReportAction is not null) await ReportAction(_game); }
+    private async void CanIRun_Click(object sender, RoutedEventArgs e) { if (_game is not null && CompatibilityAction is not null) await CompatibilityAction(_game); }
     private void TechnicalCity_Click(object sender, RoutedEventArgs e)
     {
         if (_game is not null) OpenUrl(SystemRequirementsService.GetTechnicalCityGameUrl(_game.Title));

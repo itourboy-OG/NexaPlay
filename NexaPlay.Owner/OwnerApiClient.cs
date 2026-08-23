@@ -20,9 +20,23 @@ public sealed class OwnerApiClient(HttpClient httpClient)
         using var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
+    public async Task<List<CommunityReport>> GetReportsAsync(string baseUrl, string adminKey)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, Endpoint(baseUrl, "api/admin/reports"));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminKey);
+        using var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<ReportResponse>())?.Reports ?? [];
+    }
     private static Uri Endpoint(string baseUrl, string relative)
     {
         if (!Uri.TryCreate(baseUrl.TrimEnd('/') + "/", UriKind.Absolute, out var root) || (root.Scheme != Uri.UriSchemeHttps && !root.IsLoopback)) throw new InvalidOperationException("Enter the HTTPS NexaPlay Community URL.");
         return new Uri(root, relative);
     }
 }
+
+public sealed record CommunityReport(string Id, string GameId, string Message, string Version, DateTime CreatedUtc)
+{
+    public string CreatedLabel => CreatedUtc.ToLocalTime().ToString("MMM d, yyyy  h:mm tt");
+}
+public sealed record ReportResponse(List<CommunityReport> Reports);

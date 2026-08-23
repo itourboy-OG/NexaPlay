@@ -1,7 +1,7 @@
 {
-  "version": "1.9.7",
-  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.9.7/NexaPlay-Setup-v1.9.7.exe",
-  "sha256": "FC4DFA6651B35A034B89E5DF21E7BD691823D7B255ED7D5FE09DB20520EE7194",
-  "notes": "Latest NexaPlay improvements and fixes from SauceBoyz.",
-  "publishedUtc": "2026-08-21T00:13:22.5661481Z"
+  "version": "1.10.0",
+  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.10.0/NexaPlay-Setup-v1.10.0.exe",
+  "sha256": "3F4E2449E37634B9C4A432849FFB5DF36DB4DE12A4469C58BE09FF9D4C22836E",
+  "notes": "Numbered library pages, compact filters, custom packages, clearer Steam and NexaPlay ratings, in-app reports, and improved download details.",
+  "publishedUtc": "2026-08-23T19:15:55.6001947Z"
 }

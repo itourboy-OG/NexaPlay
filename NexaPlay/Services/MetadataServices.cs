@@ -96,11 +96,16 @@ public sealed class SteamMetadataService(HttpClient httpClient)
             if (firstMovie.TryGetProperty("mp4", out var mp4))
                 trailer = Text(mp4, "max").Length > 0 ? Text(mp4, "max") : Text(mp4, "480");
         }
+        if (trailer.Length == 0) trailer = YouTubeSearch(title, "official trailer");
+        var gameplay = YouTubeSearch(title, "official gameplay");
         var (communityRating, ratingCount) = await FetchRatingAsync(appId, cancellationToken);
         return new SteamMetadata(title, description, developer, publisher, date, genres, tags, isMultiplayer,
             communityRating, ratingCount, minimum, recommended, minimumRamGb, requiredStorageGb,
-            cover, hero, screenshots, trailer);
+            cover, hero, screenshots, trailer, gameplay);
     }
+
+    private static string YouTubeSearch(string title, string kind) =>
+        $"https://www.youtube.com/results?search_query={Uri.EscapeDataString($"{title} {kind}")}";
 
     private async Task<(double Rating, int Count)> FetchRatingAsync(int appId, CancellationToken cancellationToken)
     {

@@ -16,6 +16,7 @@ public partial class CreatorWindow : Window
     private string _modeStatus = "Local owner mode — changes are saved on this PC.";
     public CatalogDocument Catalog => _catalog;
     public Func<CatalogDocument, Task>? PublishAction { get; set; }
+    public Func<Task>? ReportsAction { get; set; }
     public Action? ConfigureArtworkKeyAction { get; set; }
 
     public CreatorWindow(CatalogDocument catalog, CatalogService catalogService, AppSettings settings, SettingsService settingsService, HttpClient http)
@@ -61,6 +62,8 @@ public partial class CreatorWindow : Window
     private void ArtworkKey_Click(object sender, RoutedEventArgs e) => ConfigureArtworkKeyAction?.Invoke();
 
     public void SetArtworkKeyStatus(bool configured) => ArtworkKeyButton.Content = configured ? "SteamGridDB key ✓" : "SteamGridDB key…";
+    public void SetReportsAvailable(bool available) => ReportsButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+    private async void Reports_Click(object sender, RoutedEventArgs e) { if (ReportsAction is not null) await ReportsAction(); }
 
     private async void Add_Click(object sender, RoutedEventArgs e)
     {
@@ -117,7 +120,9 @@ public partial class CreatorWindow : Window
         game.CommunityRating = data.CommunityRating; game.RatingCount = data.RatingCount; game.MinimumRequirements = data.MinimumRequirements;
         game.RecommendedRequirements = data.RecommendedRequirements; game.MinimumRamGb = data.MinimumRamGb; game.RequiredStorageGb = data.RequiredStorageGb;
         game.CoverUrl = data.CoverUrl; game.HeroUrl = data.HeroUrl; game.ScreenshotUrls = [.. data.ScreenshotUrls];
-        if (data.TrailerUrl.Length > 0) game.TrailerUrl = data.TrailerUrl; game.UpdatedUtc = DateTime.UtcNow;
+        if (data.TrailerUrl.Length > 0) game.TrailerUrl = data.TrailerUrl;
+        if (data.GameplayUrl.Length > 0) game.GameplayUrl = data.GameplayUrl;
+        game.UpdatedUtc = DateTime.UtcNow;
     }
     private async void GamesList_MouseDoubleClick(object sender, MouseButtonEventArgs e) => await EditSelectedAsync();
     private async Task EditSelectedAsync()

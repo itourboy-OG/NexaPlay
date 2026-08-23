@@ -21,8 +21,12 @@ try
     const string testArtworkKey = "steamgriddb-owner-only-test-key-123456";
     keyService.SetSteamGridDbKey(keySettings, testArtworkKey);
     Require(keySettings.ProtectedSteamGridDbKey.Length > 0 && !keySettings.ProtectedSteamGridDbKey.Contains(testArtworkKey, StringComparison.Ordinal) && keyService.GetSteamGridDbKey(keySettings) == testArtworkKey, "SteamGridDB key encryption round-trip failed.");
-    var catalog = new CatalogDocument { Games = [new GameEntry { Title = "Test Game", DownloadUrl = "https://example.test/game.zip", UpdateDownloadUrl = "https://example.test/update.zip", OnlineFixDownloadUrl = "https://example.test/fix.zip", Tags = ["CO-OP"], IsMultiplayer = true, CommunityRating = 4.7, RatingCount = 120 }] };
+    var catalog = new CatalogDocument { Games = [new GameEntry { Title = "Test Game", DownloadUrl = "https://example.test/game.zip", UpdateDownloadUrl = "https://example.test/update.zip", OnlineFixDownloadUrl = "https://example.test/fix.zip", CustomPackageName = "English Language Pack", CustomPackageDownloadUrl = "https://example.test/language.zip", CustomPackageSizeBytes = 1024 * 1024, Tags = ["CO-OP"], IsMultiplayer = true, CommunityRating = 4.7, RatingCount = 120 }] };
     CatalogService.Validate(catalog);
+    var ratingGame = catalog.Games.Single();
+    ratingGame.SetCommunityRating(5, 2, 5);
+    Require(ratingGame.RatingLabel.Contains("STEAM") && ratingGame.RatingLabel.Contains("120") && ratingGame.CommunityRatingLabel.Contains("2 VOTES"), "Steam reviews and NexaPlay community votes were not kept separate.");
+    Require(ratingGame.CustomPackageLabel == "English Language Pack" && ratingGame.CustomPackageSizeLabel == "1 MB", "Custom package label or size formatting failed.");
     var duplicateRejected = false;
     try { CatalogService.Validate(new CatalogDocument { Games = [new GameEntry { Id = "same", Title = "One" }, new GameEntry { Id = "same", Title = "Two" }] }); }
     catch (InvalidDataException) { duplicateRejected = true; }
@@ -210,6 +214,7 @@ try
         Require(metadata.IsMultiplayer && metadata.Tags.Any(tag => tag.Contains("Co-op", StringComparison.OrdinalIgnoreCase)), "Steam multiplayer/category automation failed.");
         Require(metadata.CommunityRating > 0 && metadata.RatingCount > 0, "Steam community rating automation failed.");
         Require(metadata.MinimumRequirements.Length > 0 && metadata.MinimumRamGb is > 0, "Steam system-requirements automation failed.");
+        Require(metadata.TrailerUrl.StartsWith("https://") && metadata.GameplayUrl.Contains("youtube.com/results", StringComparison.OrdinalIgnoreCase), "Automatic trailer/gameplay links failed.");
         var match = await new SteamMetadataService(http).SearchAsync("Portal 2");
         Require(match.AppId == 620 && match.Metadata.Title == "Portal 2", "Live Steam title matching failed.");
     }

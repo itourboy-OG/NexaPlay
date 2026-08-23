@@ -27,6 +27,11 @@ function createNexaPlayServer(options = {}) {
       if (request.method === 'GET' && url.pathname === '/health') return sendJson(response, 200, { ok: true, service: 'NexaPlay Community' });
       if (request.method === 'GET' && url.pathname === '/api/catalog') return sendJson(response, 200, readJson(catalogFile, { schemaVersion: 1, games: [] }));
 
+      if (request.method === 'GET' && url.pathname === '/api/admin/reports') {
+        if (!adminKey || !constantTimeEqual(getBearerToken(request), adminKey)) return sendJson(response, 401, { error: 'Owner authorization required.' });
+        return sendJson(response, 200, { reports: readReports(reportsFile).slice(-500).reverse() });
+      }
+
       const ratingMatch = url.pathname.match(/^\/api\/games\/([^/]+)\/rating$/);
       if (request.method === 'GET' && ratingMatch) {
         const gameId = decodeSegment(ratingMatch[1]);
@@ -88,6 +93,10 @@ function setHeaders(response) {
 function sendJson(response, status, value) { response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); response.end(JSON.stringify(value)); }
 function send(response, status, value) { response.writeHead(status); response.end(value); }
 function readJson(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
+function readReports(file) {
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(Boolean).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
+}
 function writeJsonAtomic(file, value) { const temp = `${file}.${process.pid}.${crypto.randomBytes(4).toString('hex')}.tmp`; fs.writeFileSync(temp, JSON.stringify(value, null, 2), 'utf8'); fs.renameSync(temp, file); }
 function hashUser(userId) { return crypto.createHash('sha256').update(userId, 'utf8').digest('hex'); }
 function decodeSegment(value) { const decoded = decodeURIComponent(value); if (!decoded || decoded.length > 200) { const error = new Error('Invalid game ID.'); error.statusCode = 400; throw error; } return decoded; }
