@@ -2,6 +2,7 @@
 
 - Browse large catalogs with 12 games per page, numbered page controls, and a compact filter dropdown.
 - Search Owner Studio instantly by title, developer, publisher, Steam App ID, genre, or tag; one result is selected automatically for quick editing.
+- Keep Add Games, Refresh Metadata, Edit, and Remove immediately available while secondary catalog and artwork tools stay organized in a compact drop-down.
 - Player now checks the live catalog every 10 seconds and immediately when the window regains focus, including migration of older disabled-auto-sync settings.
 - Scan and repair missing/broken artwork in Owner Studio, or repair one selected game's cover, hero, screenshots, and media.
 - Steam artwork now falls back to the official header when a portrait URL is unavailable, and weak title matches are rejected to prevent unrelated artwork.

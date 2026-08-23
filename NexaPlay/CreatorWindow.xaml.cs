@@ -87,8 +87,14 @@ public partial class CreatorWindow : Window
 
     private void ArtworkKey_Click(object sender, RoutedEventArgs e) => ConfigureArtworkKeyAction?.Invoke();
 
-    public void SetArtworkKeyStatus(bool configured) => ArtworkKeyButton.Content = configured ? "SteamGridDB key ✓" : "SteamGridDB key…";
+    public void SetArtworkKeyStatus(bool configured) => ArtworkKeyButton.Header = configured ? "SteamGridDB key ✓" : "SteamGridDB key…";
     public void SetReportsAvailable(bool available) => ReportsButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+
+    private void MoreTools_Click(object sender, RoutedEventArgs e)
+    {
+        MoreToolsButton.ContextMenu.PlacementTarget = MoreToolsButton;
+        MoreToolsButton.ContextMenu.IsOpen = true;
+    }
     private async void Reports_Click(object sender, RoutedEventArgs e) { if (ReportsAction is not null) await ReportsAction(); }
 
     private async void Add_Click(object sender, RoutedEventArgs e)
