@@ -13,6 +13,7 @@ public partial class GameEditorWindow : Window
     private readonly SettingsService _settingsService;
     private readonly SteamMetadataService _steam;
     private readonly SteamGridDbService _artwork;
+    private readonly LinkHealthService _linkHealth;
     private readonly HttpClient _http;
 
     private const string DefaultGuide = "NexaPlay downloads and extracts this game automatically.\n\n1. Wait for the installation to finish.\n2. Open the game page and select Play.\n3. NexaPlay launches Run Me!.bat from the installed game folder.";
@@ -22,7 +23,7 @@ public partial class GameEditorWindow : Window
     {
         InitializeComponent();
         Game = game; _settings = settings; _settingsService = settingsService;
-        _http = http; _steam = new SteamMetadataService(http); _artwork = new SteamGridDbService(http);
+        _http = http; _steam = new SteamMetadataService(http); _artwork = new SteamGridDbService(http); _linkHealth = new LinkHealthService(http);
         Fill();
     }
 
@@ -138,6 +139,33 @@ public partial class GameEditorWindow : Window
     {
         try { StatusText.Text = "Checking file sizes from the download hosts…"; await DetectSizesAsync(); StatusText.Text = "File sizes updated where the host provided them."; }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Size detection failed", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
+
+    private async void CheckLinks_Click(object sender, RoutedEventArgs e)
+    {
+        var draft = new GameEntry
+        {
+            DownloadUrl = DownloadBox.Text.Trim(),
+            UpdateDownloadUrl = UpdateUrlBox.Text.Trim(),
+            OnlineFixDownloadUrl = OnlineFixUrlBox.Text.Trim(),
+            CustomPackageName = CustomPackageNameBox.Text.Trim(),
+            CustomPackageDownloadUrl = CustomPackageUrlBox.Text.Trim()
+        };
+        StatusText.Text = "Checking each configured download link…";
+        var result = await _linkHealth.CheckGameAsync(draft);
+        draft.ApplyLinkHealth(result);
+        var packages = new[]
+        {
+            ("Full game", result.Game),
+            ("Update", result.Update),
+            ("Online Fix", result.OnlineFix),
+            (draft.CustomPackageLabel, result.Custom)
+        }.Where(item => item.Item2 != LinkHealthResult.NotConfigured);
+        StatusText.Text = string.Join("  •  ", packages.Select(item => $"{item.Item1}: {item.Item2.Message}"));
+        if (result.Game.SizeBytes is > 0) SizeBox.Text = FormatEditableSize(result.Game.SizeBytes);
+        if (result.Update.SizeBytes is > 0) UpdateSizeBox.Text = FormatEditableSize(result.Update.SizeBytes);
+        if (result.OnlineFix.SizeBytes is > 0) OnlineFixSizeBox.Text = FormatEditableSize(result.OnlineFix.SizeBytes);
+        if (result.Custom.SizeBytes is > 0) CustomPackageSizeBox.Text = FormatEditableSize(result.Custom.SizeBytes);
     }
 
     private async Task DetectSizesAsync()

@@ -30,9 +30,9 @@ Only distribute content you own or are authorized to redistribute. NexaPlay does
 
 ## Player app and private Owner Studio
 
-Friends receive only `NexaPlay-Setup-v1.10.1.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
+Friends receive only `NexaPlay-Setup-v1.11.2.exe`. The player starts with the bundled catalog, has no Creator Studio or Game Editor navigation, and cannot publish catalog changes.
 
-Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and metadata refresh save to the separate Owner draft automatically. **Save** confirms a local save, **Publish** updates `catalog/nexaplay-catalog.json` on GitHub, and **Done** safely saves before closing.
+Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. Its shield icon distinguishes it from the Player, and opening it creates or repairs a **NexaPlay Creator Studio** desktop shortcut automatically. It uses the GitHub CLI account already signed in on the owner PC, so no owner key is required for GitHub catalog publishing. Add, edit, remove, auto-fill, import, and metadata refresh save to the separate Owner draft automatically. **Save** confirms a local save, **Publish** updates `catalog/nexaplay-catalog.json` on GitHub, and **Done** safely saves before closing.
 
 ## Your first catalog
 
@@ -46,7 +46,7 @@ Keep the latest `NEXAPLAY - USE THESE\NexaPlay-Owner-Studio-*.exe` private. It u
 
 The included `server` folder supplies the real shared catalog, ratings, and reports API. It stores one current vote per player ID, keeps reports private to Owner Studio, and requires the private owner key for catalog/report access. Host it behind HTTPS and keep `NEXAPLAY_ADMIN_KEY` only on the server and owner machine.
 
-Until that server has a public HTTPS address, friends still receive every game bundled in the installer, but future additions require either a new installer or a configured remote catalog. Ratings are saved locally and clearly marked as local until the community service is connected.
+Until that server has a public HTTPS address, friends still receive every game bundled in the installer, but future additions require either a new installer or a configured remote catalog. Steam review scores remain visible without the Community service; shared NexaPlay ratings and reports remain unavailable.
 
 ## GitHub and automatic app updates
 
@@ -77,4 +77,4 @@ Push-Location .\server; npm test; Pop-Location
 .\build-installer.ps1
 ```
 
-Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.10.1.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.
+Both current EXEs are written to the top-level `NEXAPLAY - USE THESE` folder. Share only `NexaPlay-Setup-v1.11.2.exe`; keep the Owner Studio private. The installer is unsigned, so Windows SmartScreen may show **Unknown publisher**. Removing that warning requires a trusted code-signing certificate.

@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private readonly UserStateService _userStateService = new();
     private readonly DownloadHistoryService _downloadHistoryService = new();
     private readonly DownloadService _downloadService;
+    private readonly LinkHealthService _linkHealthService;
     private readonly InstallService _installService = new();
     private readonly Dictionary<string, CancellationTokenSource> _downloads = [];
     private readonly ObservableCollection<GameEntry> _visibleGames = [];
@@ -51,11 +52,12 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.10.1 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.11.2 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
         _downloadService = new DownloadService(_http);
+        _linkHealthService = new LinkHealthService(_http);
         GamesList.ItemsSource = _visibleGames;
         DownloadsList.ItemsSource = _downloadItems;
         QueuedDownloadsList.ItemsSource = _queuedDownloadItems;
@@ -64,9 +66,9 @@ public partial class MainWindow : Window
         DetailsPage.PlayAction = PlayGameAsync;
         DetailsPage.UninstallAction = UninstallGameAsync;
         DetailsPage.FavoriteAction = SetFavoriteAsync;
-        DetailsPage.RateAction = RateGameAsync;
         DetailsPage.ReportAction = ReportGameAsync;
         DetailsPage.CompatibilityAction = CheckCompatibilityAsync;
+        DetailsPage.LinkHealthAction = CheckGameLinksAsync;
         DetailsPage.CancelAction = CancelGameDownload;
         DetailsPage.BackAction = ShowLibraryPage;
         DetailsPage.OpenDownloadsAction = ShowDownloadsPage;
@@ -83,6 +85,13 @@ public partial class MainWindow : Window
         };
         Closed += (_, _) => _catalogRefreshTimer.Stop();
         _toastTimer.Tick += (_, _) => { _toastTimer.Stop(); ToastPanel.Visibility = Visibility.Collapsed; };
+    }
+
+    private async Task CheckGameLinksAsync(GameEntry game)
+    {
+        game.BeginLinkHealthCheck();
+        var snapshot = await _linkHealthService.CheckGameAsync(game);
+        game.ApplyLinkHealth(snapshot);
     }
 
     private async Task InitializeAsync()
@@ -119,7 +128,6 @@ public partial class MainWindow : Window
             }
             RefreshInstallStates();
             ApplyFilter();
-            _ = RefreshCommunityRatingsAsync();
             StatusText.Text = $"Ready  •  Library: {_settings.LibraryFolder}";
             _initialized = true;
             if (!string.IsNullOrWhiteSpace(_settings.RemoteCatalogUrl)) _catalogRefreshTimer.Start();
@@ -133,23 +141,8 @@ public partial class MainWindow : Window
         foreach (var game in _catalog.Games)
         {
             game.IsFavorite = _userStateService.IsFavorite(game.Id);
-            game.UserRating = _userStateService.GetLocalRating(game.Id);
             InstallService.RefreshInstallState(game, _settings.LibraryFolder);
             game.NotifyRuntimeChanged();
-        }
-    }
-
-    private async Task RefreshCommunityRatingsAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_catalog.CommunityApiUrl)) return;
-        foreach (var game in _catalog.Games)
-        {
-            try
-            {
-                var rating = await _communityService.GetRatingAsync(_catalog.CommunityApiUrl, game.Id, _userStateService.CommunityUserId);
-                if (rating is not null) game.SetCommunityRating(rating.Average, rating.Count, rating.UserScore ?? game.UserRating);
-            }
-            catch { }
         }
     }
 
@@ -313,27 +306,6 @@ public partial class MainWindow : Window
         StatusText.Text = favorite ? $"Added {game.Title} to favorites." : $"Removed {game.Title} from favorites.";
     }
 
-    private async Task RateGameAsync(GameEntry game, int score)
-    {
-        score = Math.Clamp(score, 1, 5);
-        await _userStateService.SetLocalRatingAsync(game.Id, score);
-        game.UserRating = score;
-        if (string.IsNullOrWhiteSpace(_catalog.CommunityApiUrl))
-        {
-            game.SetCommunityRating(0, 0, score);
-            ShowToast("Rating saved on this PC", "Shared voting will turn on when the NexaPlay Community server is published.");
-            return;
-        }
-        try
-        {
-            var rating = await _communityService.RateAsync(_catalog.CommunityApiUrl, game.Id, _userStateService.CommunityUserId, score);
-            game.SetCommunityRating(rating.Average, rating.Count, rating.UserScore ?? score);
-            StatusText.Text = $"Rated {game.Title} {score}/5.";
-            ShowToast("Community rating updated", $"Your {score}/5 vote is now included for everyone.");
-        }
-        catch (Exception ex) { ShowError("Could not share rating", ex); }
-    }
-
     private async Task ReportGameAsync(GameEntry game)
     {
         var playerName = string.IsNullOrWhiteSpace(_settings.PlayerName) ? "Player" : _settings.PlayerName.Trim();
@@ -366,6 +338,14 @@ public partial class MainWindow : Window
 
     private async Task ActOnGameAsync(GameEntry game, DownloadPackageKind kind)
     {
+        var packageInfo = DownloadService.GetPackageInfo(game, kind);
+        var linkResult = await _linkHealthService.CheckAsync(packageInfo.Url);
+        game.ApplyLinkHealth(kind, linkResult);
+        if (linkResult.State == LinkHealthState.Broken)
+        {
+            await ShowMessageAsync("Download link needs attention", $"{packageInfo.DisplayName}: {linkResult.Message}\n\nThis is a catalog link problem, not a problem with your PC. SauceBoyz needs to replace the link in Creator Studio and publish the catalog again.");
+            return;
+        }
         string? externalTargetFolder = null;
         if (kind != DownloadPackageKind.Game && !game.IsInstalled)
         {
@@ -649,7 +629,6 @@ public partial class MainWindow : Window
                 else DetailsPage.ShowGame(refreshedGame, _settings, !string.IsNullOrWhiteSpace(_catalog.CommunityApiUrl));
             }
 
-            _ = RefreshCommunityRatingsAsync();
             StatusText.Text = $"Catalog synced at {DateTime.Now:t}  •  {_catalog.Games.Count} games";
         }
         catch (Exception ex)

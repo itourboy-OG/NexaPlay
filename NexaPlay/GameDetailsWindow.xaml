@@ -65,6 +65,6 @@
                 </Grid>
             </StackPanel>
         </ScrollViewer>
-        <Border Grid.Row="1" Background="#0D111B" BorderBrush="#22293C" BorderThickness="0,1,0,0" Padding="14,0"><Grid><TextBlock x:Name="FooterStatus" Text="Ready" Foreground="#8590A8" FontSize="11" VerticalAlignment="Center"/><TextBlock Text="NexaPlay 1.10.1  •  Made by SauceBoyz" HorizontalAlignment="Right" Foreground="#59647B" FontSize="10" VerticalAlignment="Center"/></Grid></Border>
+        <Border Grid.Row="1" Background="#0D111B" BorderBrush="#22293C" BorderThickness="0,1,0,0" Padding="14,0"><Grid><TextBlock x:Name="FooterStatus" Text="Ready" Foreground="#8590A8" FontSize="11" VerticalAlignment="Center"/><TextBlock Text="NexaPlay 1.11.2  •  Made by SauceBoyz" HorizontalAlignment="Right" Foreground="#59647B" FontSize="10" VerticalAlignment="Center"/></Grid></Border>
     </Grid>
 </Window>

@@ -7,19 +7,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>NexaPlay.Owner</AssemblyName>
     <RootNamespace>NexaPlay.Owner</RootNamespace>
-    <Version>1.10.1</Version>
-    <AssemblyVersion>1.10.1.0</AssemblyVersion>
-    <FileVersion>1.10.1.0</FileVersion>
-    <InformationalVersion>1.10.1</InformationalVersion>
+    <Version>1.11.2</Version>
+    <AssemblyVersion>1.11.2.0</AssemblyVersion>
+    <FileVersion>1.11.2.0</FileVersion>
+    <InformationalVersion>1.11.2</InformationalVersion>
     <Company>SauceBoyz</Company>
     <Product>NexaPlay Owner Studio</Product>
-    <ApplicationIcon>..\NexaPlay\Assets\NexaPlay.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\NexaPlay-Owner.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NexaPlay\NexaPlay.csproj" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.9" />
-    <Resource Include="..\NexaPlay\Assets\NexaPlay.ico" Link="Assets\NexaPlay.ico" />
-    <Resource Include="..\NexaPlay\Assets\NexaPlay-512.png" Link="Assets\NexaPlay-512.png" />
+    <Resource Include="Assets\NexaPlay-Owner.ico" />
+    <Resource Include="Assets\NexaPlay-Owner-512.png" />
     <None Include="..\NexaPlay\default-catalog.json" Link="default-catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Page Include="..\NexaPlay\CreatorWindow.xaml" Link="CreatorWindow.xaml" />
     <Compile Include="..\NexaPlay\CreatorWindow.xaml.cs" Link="CreatorWindow.xaml.cs" DependentUpon="CreatorWindow.xaml" />

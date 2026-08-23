@@ -14,7 +14,6 @@ public partial class GameDetailsView : UserControl
 {
     private GameEntry? _game;
     private AppSettings _settings = new();
-    private bool _communityConnected;
     private bool _webViewConfigured;
     private string _activeMediaUrl = "";
     private readonly YouTubeVideoResolver _youtubeResolver = new();
@@ -22,9 +21,9 @@ public partial class GameDetailsView : UserControl
     public Func<GameEntry, Task>? PlayAction { get; set; }
     public Func<GameEntry, Task>? UninstallAction { get; set; }
     public Func<GameEntry, bool, Task>? FavoriteAction { get; set; }
-    public Func<GameEntry, int, Task>? RateAction { get; set; }
     public Func<GameEntry, Task>? ReportAction { get; set; }
     public Func<GameEntry, Task>? CompatibilityAction { get; set; }
+    public Func<GameEntry, Task>? LinkHealthAction { get; set; }
     public Action<GameEntry>? CancelAction { get; set; }
     public Action? BackAction { get; set; }
     public Action? OpenDownloadsAction { get; set; }
@@ -42,11 +41,12 @@ public partial class GameDetailsView : UserControl
     {
         if (_game is not null) _game.PropertyChanged -= Game_PropertyChanged;
         CloseVideo();
-        _game = game; _settings = settings; _communityConnected = communityConnected; DataContext = game; ScreenshotsList.ItemsSource = game.ScreenshotUrls;
-        RatingHelperText.Text = communityConnected ? "Your vote updates the community score for everyone." : "Your vote stays on this PC until SauceBoyz connects the Community service.";
+        _game = game; _settings = settings; DataContext = game; ScreenshotsList.ItemsSource = game.ScreenshotUrls;
+        ReportMenuItem.Visibility = communityConnected ? Visibility.Visible : Visibility.Collapsed;
         game.PropertyChanged += Game_PropertyChanged;
         DetailsScroll.ScrollToTop();
         RefreshUi();
+        _ = RefreshLinkHealthAsync(game);
     }
 
     private void Game_PropertyChanged(object? sender, PropertyChangedEventArgs e) => Dispatcher.Invoke(RefreshUi);
@@ -60,10 +60,10 @@ public partial class GameDetailsView : UserControl
         UninstallMenuItem.IsEnabled = !_game.IsBusy;
         FavoriteButton.Content = _game.IsFavorite ? "♥  FAVORITED" : "♡  FAVORITE";
         GameDownloadButton.Content = _game.HasIncompleteInstall ? "Resume install" : _game.IsInstalled ? "Reinstall" : "Download";
-        GameDownloadButton.IsEnabled = !_game.IsBusy;
-        UpdateDownloadButton.IsEnabled = !_game.IsBusy && _game.UpdateDownloadUrl.Length > 0;
-        FixDownloadButton.IsEnabled = !_game.IsBusy && _game.OnlineFixDownloadUrl.Length > 0;
-        CustomPackageDownloadButton.IsEnabled = !_game.IsBusy && _game.CustomPackageDownloadUrl.Length > 0;
+        GameDownloadButton.IsEnabled = !_game.IsBusy && _game.GameLinkHealth.State != LinkHealthState.Broken;
+        UpdateDownloadButton.IsEnabled = !_game.IsBusy && _game.UpdateDownloadUrl.Length > 0 && _game.UpdateLinkHealth.State != LinkHealthState.Broken;
+        FixDownloadButton.IsEnabled = !_game.IsBusy && _game.OnlineFixDownloadUrl.Length > 0 && _game.OnlineFixLinkHealth.State != LinkHealthState.Broken;
+        CustomPackageDownloadButton.IsEnabled = !_game.IsBusy && _game.CustomPackageDownloadUrl.Length > 0 && _game.CustomLinkHealth.State != LinkHealthState.Broken;
         UpdatePackageCard.Visibility = _game.UpdateDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         OnlineFixPackageCard.Visibility = _game.OnlineFixDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         CustomPackageCard.Visibility = _game.CustomPackageDownloadUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -83,6 +83,11 @@ public partial class GameDetailsView : UserControl
         UpdateDownloadInfo.Text = $"v{_game.Version}  •  {_game.UpdateSizeLabel}";
         FixDownloadInfo.Text = _game.OnlineFixSizeLabel;
         CustomPackageDownloadInfo.Text = _game.CustomPackageSizeLabel;
+        SetLinkStatus(GameLinkStatusText, _game.GameLinkHealth);
+        SetLinkStatus(UpdateLinkStatusText, _game.UpdateLinkHealth);
+        SetLinkStatus(FixLinkStatusText, _game.OnlineFixLinkHealth);
+        SetLinkStatus(CustomLinkStatusText, _game.CustomLinkHealth);
+        UpdateLinkHealthBanner();
         var info = new List<string> { $"Compressed game download: {_game.SizeLabel}" };
         if (_game.RequiredStorageGb is > 0)
             info.Add($"Storage required after extraction: about {_game.RequiredStorageGb:0.#} GB (listed requirement)");
@@ -101,18 +106,6 @@ public partial class GameDetailsView : UserControl
         InstalledStatusCard.BorderBrush = new SolidColorBrush(_game.IsInstalled ? Color.FromRgb(48, 123, 91) : Color.FromRgb(113, 50, 70));
         InstalledStatusDot.Background = new SolidColorBrush(_game.IsInstalled ? Color.FromRgb(82, 230, 173) : Color.FromRgb(255, 116, 138));
         InstalledStatusText.Foreground = new SolidColorBrush(_game.IsInstalled ? Color.FromRgb(142, 244, 202) : Color.FromRgb(255, 154, 170));
-        RefreshRatingButtons();
-    }
-
-    private void RefreshRatingButtons()
-    {
-        if (_game is null) return;
-        var selected = _game.UserRating ?? 0;
-        var buttons = new[] { Star1, Star2, Star3, Star4, Star5 };
-        for (var i = 0; i < buttons.Length; i++) buttons[i].Foreground = new SolidColorBrush(i < selected ? Color.FromRgb(255, 214, 107) : Color.FromRgb(96, 106, 130));
-        RatingStatus.Text = selected > 0
-            ? $"You rated this {selected}/5  •  {_game.CommunityRatingLabel}"
-            : _communityConnected ? _game.CommunityRatingLabel : "COMMUNITY SERVICE NOT CONNECTED — RATINGS SAVE ON THIS PC";
     }
 
     private void Back_Click(object sender, RoutedEventArgs e) => BackAction?.Invoke();
@@ -122,6 +115,14 @@ public partial class GameDetailsView : UserControl
     private async void DownloadUpdate_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Update);
     private async void DownloadFix_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.OnlineFix);
     private async void DownloadCustom_Click(object sender, RoutedEventArgs e) => await RunPackageAsync(DownloadPackageKind.Custom);
+    private async void CheckLinks_Click(object sender, RoutedEventArgs e) { if (_game is not null) await RefreshLinkHealthAsync(_game); }
+    private async Task RefreshLinkHealthAsync(GameEntry game)
+    {
+        if (LinkHealthAction is null) return;
+        try { await LinkHealthAction(game); }
+        catch { }
+        if (ReferenceEquals(_game, game)) RefreshUi();
+    }
     private async Task RunPackageAsync(DownloadPackageKind kind) { if (_game is not null && PackageAction is not null) await PackageAction(_game, kind); RefreshUi(); }
     private void More_Click(object sender, RoutedEventArgs e)
     {
@@ -131,11 +132,6 @@ public partial class GameDetailsView : UserControl
     }
     private void OpenDownloads_Click(object sender, RoutedEventArgs e) => OpenDownloadsAction?.Invoke();
     private async void Favorite_Click(object sender, RoutedEventArgs e) { if (_game is not null && FavoriteAction is not null) await FavoriteAction(_game, !_game.IsFavorite); }
-    private async void Rate_Click(object sender, RoutedEventArgs e)
-    {
-        if (_game is null || RateAction is null || sender is not Button { Tag: string value } || !int.TryParse(value, out var score)) return;
-        await RateAction(_game, score); RefreshUi();
-    }
     private async void Trailer_Click(object sender, RoutedEventArgs e) { if (_game is not null) await PlayMediaAsync(_game.TrailerUrl, $"{_game.Title} — Trailer"); }
     private async void Gameplay_Click(object sender, RoutedEventArgs e) { if (_game is not null) await PlayMediaAsync(_game.GameplayUrl, $"{_game.Title} — Gameplay"); }
     private async Task PlayMediaAsync(string url, string title)
@@ -257,5 +253,35 @@ public partial class GameDetailsView : UserControl
     private void TechnicalCity_Click(object sender, RoutedEventArgs e)
     {
         if (_game is not null) OpenUrl(SystemRequirementsService.GetTechnicalCityGameUrl(_game.Title));
+    }
+
+    private void UpdateLinkHealthBanner()
+    {
+        if (_game is null) return;
+        var (text, background, border, foreground) = _game.OverallLinkHealthState switch
+        {
+            LinkHealthState.Available => ("ALL DOWNLOAD LINKS ARE WORKING", Color.FromRgb(18, 48, 39), Color.FromRgb(48, 123, 91), Color.FromRgb(142, 244, 202)),
+            LinkHealthState.Broken => ($"LINK PROBLEM FOUND  •  {_game.LinkHealthDetails}", Color.FromRgb(57, 22, 29), Color.FromRgb(151, 54, 72), Color.FromRgb(255, 153, 169)),
+            LinkHealthState.Unreachable => ($"COULD NOT VERIFY EVERY LINK  •  {_game.LinkHealthDetails}", Color.FromRgb(55, 43, 20), Color.FromRgb(143, 104, 38), Color.FromRgb(255, 207, 116)),
+            LinkHealthState.Checking => ("CHECKING DOWNLOAD LINKS…", Color.FromRgb(23, 29, 43), Color.FromRgb(56, 67, 94), Color.FromRgb(200, 208, 223)),
+            _ => ("DOWNLOAD LINKS HAVE NOT BEEN CHECKED", Color.FromRgb(23, 29, 43), Color.FromRgb(56, 67, 94), Color.FromRgb(200, 208, 223))
+        };
+        LinkHealthText.Text = text;
+        LinkHealthBanner.Background = new SolidColorBrush(background);
+        LinkHealthBanner.BorderBrush = new SolidColorBrush(border);
+        LinkHealthText.Foreground = new SolidColorBrush(foreground);
+        LinkHealthDot.Background = new SolidColorBrush(foreground);
+    }
+
+    private static void SetLinkStatus(TextBlock target, LinkHealthResult result)
+    {
+        target.Text = result.Message;
+        target.Foreground = new SolidColorBrush(result.State switch
+        {
+            LinkHealthState.Available => Color.FromRgb(82, 230, 173),
+            LinkHealthState.Broken => Color.FromRgb(255, 116, 138),
+            LinkHealthState.Unreachable => Color.FromRgb(255, 196, 92),
+            _ => Color.FromRgb(136, 148, 170)
+        });
     }
 }

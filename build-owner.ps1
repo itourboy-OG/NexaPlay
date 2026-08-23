@@ -12,6 +12,8 @@ $outputDir = Join-Path $projectRoot 'NEXAPLAY - USE THESE'
 $version = [string]$project.Project.PropertyGroup.Version
 if ([string]::IsNullOrWhiteSpace($version)) { throw 'NexaPlay.Owner.csproj does not contain a Version value.' }
 
+& (Join-Path $projectRoot 'tools\build-owner-icon.ps1')
+
 $resolvedRoot = [IO.Path]::GetFullPath($projectRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 $resolvedBuild = [IO.Path]::GetFullPath($buildDir)
 $resolvedPublish = [IO.Path]::GetFullPath($publishDir)
@@ -30,9 +32,27 @@ Get-ChildItem -LiteralPath $outputDir -File -Filter 'NexaPlay-Owner-Studio-v*.ex
     Where-Object { $_.FullName -ne $destination } |
     Remove-Item -Force
 Copy-Item -LiteralPath $source -Destination $destination -Force
+$desktop = [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
+$shortcutPath = Join-Path $desktop 'NexaPlay Creator Studio.lnk'
+if (Test-Path -LiteralPath $desktop) {
+    $shell = New-Object -ComObject WScript.Shell
+    try {
+        $shortcut = $shell.CreateShortcut($shortcutPath)
+        $shortcut.TargetPath = $destination
+        $shortcut.WorkingDirectory = $outputDir
+        $shortcut.Description = 'Open NexaPlay Creator Studio'
+        $shortcut.IconLocation = "$destination,0"
+        $shortcut.Save()
+    }
+    finally {
+        if ($null -ne $shortcut) { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($shortcut) }
+        [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+    }
+}
 $file = Get-Item -LiteralPath $destination
 $hash = Get-FileHash -LiteralPath $destination -Algorithm SHA256
 Write-Host 'Private owner tool ready:' -ForegroundColor Green
 Write-Host "  $($file.FullName)"
 Write-Host "  Size: $([Math]::Round($file.Length / 1MB, 2)) MB"
 Write-Host "  SHA-256: $($hash.Hash)"
+if (Test-Path -LiteralPath $shortcutPath) { Write-Host "  Desktop shortcut: $shortcutPath" }

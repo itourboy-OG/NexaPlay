@@ -13,13 +13,15 @@ public partial class App : Application
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
         try
         {
+            var shortcutService = new DesktopShortcutService();
+            shortcutService.TryCreateOrUpdate();
             var ownerSettingsService = new OwnerSettingsService();
             var ownerSettings = await ownerSettingsService.LoadAsync();
             var adminKey = ownerSettingsService.GetAdminKey(ownerSettings);
             var connected = !string.IsNullOrWhiteSpace(ownerSettings.CommunityUrl) && !string.IsNullOrWhiteSpace(adminKey);
 
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.10.1");
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay-Owner/1.11.2");
             var api = new OwnerApiClient(http);
             var playerCatalogService = new CatalogService(http);
             var catalogService = new CatalogService(http, AppPaths.OwnerCatalogFile);
@@ -40,6 +42,7 @@ public partial class App : Application
             studio.SetGitHubMode(GitHubCatalogPublisher.Repository);
             studio.SetArtworkKeyStatus(settingsService.GetSteamGridDbKey(appSettings).Length > 0);
             studio.SetReportsAvailable(connected);
+            studio.CreateDesktopShortcutAction = shortcutService.CreateOrUpdate;
             studio.ReportsAction = async () =>
             {
                 var reports = await api.GetReportsAsync(ownerSettings.CommunityUrl, adminKey);

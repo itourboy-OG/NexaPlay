@@ -67,6 +67,12 @@ public sealed class DownloadService(HttpClient httpClient)
             File.Move(partialPath, finalPath, true);
             return await VerifyAsync(finalPath, package.Sha256, cancellationToken);
         }
+        if (response.StatusCode == HttpStatusCode.Gone)
+            throw new InvalidDataException($"The {package.DisplayName.ToLowerInvariant()} link has expired (410 Gone). SauceBoyz needs to replace this link in Creator Studio and publish the catalog again.");
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            throw new InvalidDataException($"The {package.DisplayName.ToLowerInvariant()} link is missing (404 Not Found). SauceBoyz needs to replace this link in Creator Studio and publish the catalog again.");
+        if ((int)response.StatusCode is >= 400 and < 500)
+            throw new InvalidDataException($"The {package.DisplayName.ToLowerInvariant()} link is not available ({(int)response.StatusCode} {response.ReasonPhrase}). SauceBoyz needs to check this link in Creator Studio.");
         response.EnsureSuccessStatusCode();
 
         var mediaType = response.Content.Headers.ContentType?.MediaType ?? "";

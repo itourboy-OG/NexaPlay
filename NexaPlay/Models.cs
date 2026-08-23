@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using NexaPlay.Services;
 
 namespace NexaPlay;
 
@@ -66,6 +67,10 @@ public sealed class GameEntry : INotifyPropertyChanged
     [JsonIgnore] public int? UserRating { get; set; }
     [JsonIgnore] public double LiveCommunityRating { get; set; }
     [JsonIgnore] public int LiveCommunityRatingCount { get; set; }
+    [JsonIgnore] public LinkHealthResult GameLinkHealth { get; private set; } = LinkHealthResult.NotConfigured;
+    [JsonIgnore] public LinkHealthResult UpdateLinkHealth { get; private set; } = LinkHealthResult.NotConfigured;
+    [JsonIgnore] public LinkHealthResult OnlineFixLinkHealth { get; private set; } = LinkHealthResult.NotConfigured;
+    [JsonIgnore] public LinkHealthResult CustomLinkHealth { get; private set; } = LinkHealthResult.NotConfigured;
     [JsonIgnore] public string ActionLabel => IsBusy ? "Working…" : IsInstalled ? "Play" : "View game";
     [JsonIgnore] public string GenreLine => Genres.Count == 0 ? "PC GAME" : string.Join("  •  ", Genres.Take(3)).ToUpperInvariant();
     [JsonIgnore] public string TagLine => Tags.Count == 0 ? GenreLine : string.Join("  •  ", Tags.Take(4)).ToUpperInvariant();
@@ -94,6 +99,30 @@ public sealed class GameEntry : INotifyPropertyChanged
     [JsonIgnore] public string ImportantNotesDisplay => CleanSectionText(ImportantNotes, "Important Notes", "Please review these important details before installation");
     [JsonIgnore] public string MinimumRequirementsDisplay => CleanSectionText(MinimumRequirements, "Minimum Requirements", "Minimum");
     [JsonIgnore] public string RecommendedRequirementsDisplay => CleanSectionText(RecommendedRequirements, "Recommended Requirements", "Recommended");
+    [JsonIgnore] public LinkHealthState OverallLinkHealthState
+    {
+        get
+        {
+            var configured = ConfiguredLinkResults().ToList();
+            if (configured.Any(result => result.State == LinkHealthState.Broken)) return LinkHealthState.Broken;
+            if (configured.Any(result => result.State == LinkHealthState.Checking)) return LinkHealthState.Checking;
+            if (configured.Any(result => result.State == LinkHealthState.Unreachable)) return LinkHealthState.Unreachable;
+            if (configured.Count > 0 && configured.All(result => result.State == LinkHealthState.Available)) return LinkHealthState.Available;
+            return LinkHealthState.NotChecked;
+        }
+    }
+    [JsonIgnore] public bool HasBrokenDownloadLink => OverallLinkHealthState == LinkHealthState.Broken;
+    [JsonIgnore] public string LinkHealthSummary => OverallLinkHealthState switch
+    {
+        LinkHealthState.Checking => "Checking links…",
+        LinkHealthState.Available => "All links working",
+        LinkHealthState.Broken => $"{ConfiguredLinkResults().Count(result => result.State == LinkHealthState.Broken)} broken link{(ConfiguredLinkResults().Count(result => result.State == LinkHealthState.Broken) == 1 ? "" : "s")}",
+        LinkHealthState.Unreachable => "Could not verify all",
+        _ => "Not checked"
+    };
+    [JsonIgnore] public string LinkHealthDetails => string.Join("  •  ", ConfiguredPackages()
+        .Where(item => item.Result.State is LinkHealthState.Broken or LinkHealthState.Unreachable)
+        .Select(item => $"{item.Name}: {item.Result.Message}"));
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -120,6 +149,67 @@ public sealed class GameEntry : INotifyPropertyChanged
         OnPropertyChanged(nameof(LiveCommunityRatingCount));
         OnPropertyChanged(nameof(CommunityRatingLabel));
         OnPropertyChanged(nameof(UserRating));
+    }
+
+    public void BeginLinkHealthCheck()
+    {
+        GameLinkHealth = LinkHealthResult.Checking;
+        UpdateLinkHealth = string.IsNullOrWhiteSpace(UpdateDownloadUrl) ? LinkHealthResult.NotConfigured : LinkHealthResult.Checking;
+        OnlineFixLinkHealth = string.IsNullOrWhiteSpace(OnlineFixDownloadUrl) ? LinkHealthResult.NotConfigured : LinkHealthResult.Checking;
+        CustomLinkHealth = string.IsNullOrWhiteSpace(CustomPackageDownloadUrl) ? LinkHealthResult.NotConfigured : LinkHealthResult.Checking;
+        NotifyLinkHealthChanged();
+    }
+
+    public void ApplyLinkHealth(GameLinkHealthSnapshot snapshot)
+    {
+        GameLinkHealth = snapshot.Game;
+        UpdateLinkHealth = snapshot.Update;
+        OnlineFixLinkHealth = snapshot.OnlineFix;
+        CustomLinkHealth = snapshot.Custom;
+        NotifyLinkHealthChanged();
+    }
+
+    public LinkHealthResult GetLinkHealth(DownloadPackageKind kind) => kind switch
+    {
+        DownloadPackageKind.Game => GameLinkHealth,
+        DownloadPackageKind.Update => UpdateLinkHealth,
+        DownloadPackageKind.OnlineFix => OnlineFixLinkHealth,
+        DownloadPackageKind.Custom => CustomLinkHealth,
+        _ => LinkHealthResult.NotConfigured
+    };
+
+    public void ApplyLinkHealth(DownloadPackageKind kind, LinkHealthResult result)
+    {
+        switch (kind)
+        {
+            case DownloadPackageKind.Game: GameLinkHealth = result; break;
+            case DownloadPackageKind.Update: UpdateLinkHealth = result; break;
+            case DownloadPackageKind.OnlineFix: OnlineFixLinkHealth = result; break;
+            case DownloadPackageKind.Custom: CustomLinkHealth = result; break;
+        }
+        NotifyLinkHealthChanged();
+    }
+
+    private IEnumerable<LinkHealthResult> ConfiguredLinkResults() => ConfiguredPackages().Select(item => item.Result);
+
+    private IEnumerable<(string Name, LinkHealthResult Result)> ConfiguredPackages()
+    {
+        yield return ("Full game", GameLinkHealth);
+        if (!string.IsNullOrWhiteSpace(UpdateDownloadUrl)) yield return ("Update", UpdateLinkHealth);
+        if (!string.IsNullOrWhiteSpace(OnlineFixDownloadUrl)) yield return ("Online Fix", OnlineFixLinkHealth);
+        if (!string.IsNullOrWhiteSpace(CustomPackageDownloadUrl)) yield return (CustomPackageLabel, CustomLinkHealth);
+    }
+
+    private void NotifyLinkHealthChanged()
+    {
+        OnPropertyChanged(nameof(GameLinkHealth));
+        OnPropertyChanged(nameof(UpdateLinkHealth));
+        OnPropertyChanged(nameof(OnlineFixLinkHealth));
+        OnPropertyChanged(nameof(CustomLinkHealth));
+        OnPropertyChanged(nameof(OverallLinkHealthState));
+        OnPropertyChanged(nameof(HasBrokenDownloadLink));
+        OnPropertyChanged(nameof(LinkHealthSummary));
+        OnPropertyChanged(nameof(LinkHealthDetails));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null) =>

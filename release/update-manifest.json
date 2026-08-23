@@ -1,7 +1,7 @@
 {
-  "version": "1.10.1",
-  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.10.1/NexaPlay-Setup-v1.10.1.exe",
-  "sha256": "36864D87D6E56843BEB7035451AF0B50D8713D650944535F604E46ED678F97CF",
-  "notes": "Direct Steam-style trailer and gameplay playback inside NexaPlay, clean WebView clipping, and improved fullscreen and 34-inch ultrawide layouts. Community reports now include the game title and chosen player name.",
-  "publishedUtc": "2026-08-23T20:39:23Z"
+  "version": "1.11.2",
+  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.11.2/NexaPlay-Setup-v1.11.2.exe",
+  "sha256": "878CA7ECC2E6CDFA3DF40C8703E103103C36E441F2F5C94AB359C682E17F6FB9",
+  "notes": "Latest NexaPlay improvements and fixes from SauceBoyz.",
+  "publishedUtc": "2026-08-23T21:57:44.6854643Z"
 }

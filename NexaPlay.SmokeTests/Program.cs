@@ -157,6 +157,31 @@ try
     catch (InvalidDataException) { rejected = true; }
     Require(rejected, "HTML landing-page download was not rejected.");
 
+    var expiredLink = await new LinkHealthService(new HttpClient(new FakeHandler(new HttpResponseMessage(HttpStatusCode.Gone)
+    {
+        ReasonPhrase = "Gone"
+    }))).CheckAsync("https://example.test/expired.zip");
+    Require(expiredLink.State == LinkHealthState.Broken && expiredLink.Message.Contains("410 Gone"), "HTTP 410 was not identified as an expired download link.");
+    var healthyContent = new ByteArrayContent([0x50]);
+    healthyContent.Headers.ContentType = new MediaTypeHeaderValue("application/zip");
+    healthyContent.Headers.ContentRange = new ContentRangeHeaderValue(0, 0, 4096);
+    var healthyLink = await new LinkHealthService(new HttpClient(new FakeHandler(new HttpResponseMessage(HttpStatusCode.PartialContent)
+    {
+        Content = healthyContent
+    }))).CheckAsync("https://example.test/game.zip");
+    Require(healthyLink.State == LinkHealthState.Available && healthyLink.SizeBytes == 4096, "A valid ranged archive response was not marked as working or sized correctly.");
+    var linkGame = new GameEntry { DownloadUrl = "https://example.test/expired.zip" };
+    linkGame.ApplyLinkHealth(DownloadPackageKind.Game, expiredLink);
+    Require(linkGame.HasBrokenDownloadLink && linkGame.LinkHealthSummary == "1 broken link" && linkGame.LinkHealthDetails.Contains("Full game"), "Game-level broken-link summary was not updated.");
+    var expiredDownloadRejected = false;
+    try
+    {
+        await new DownloadService(new HttpClient(new FakeHandler(new HttpResponseMessage(HttpStatusCode.Gone) { ReasonPhrase = "Gone" })))
+            .DownloadAsync(new GameEntry { Title = "Expired", Id = "expired", DownloadUrl = "https://example.test/expired.zip" }, library, new Progress<DownloadProgress>(), CancellationToken.None);
+    }
+    catch (InvalidDataException ex) { expiredDownloadRejected = ex.Message.Contains("expired (410 Gone)", StringComparison.OrdinalIgnoreCase); }
+    Require(expiredDownloadRejected, "The downloader did not provide a clear repair message for HTTP 410.");
+
     var speedContent = new ByteArrayContent(new byte[2 * 1024 * 1024]);
     speedContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
     var speedRecorder = new ProgressRecorder();

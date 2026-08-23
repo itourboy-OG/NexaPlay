@@ -1,7 +1,7 @@
 <Window x:Class="NexaPlay.CreatorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="NexaPlay Creator Studio" Width="1040" Height="680" MinWidth="860" MinHeight="560"
+        Title="NexaPlay Creator Studio" Icon="Assets/NexaPlay-Owner.ico" Width="1040" Height="680" MinWidth="860" MinHeight="560"
         WindowStartupLocation="CenterOwner" Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}">
     <Window.Resources>
         <Style x:Key="StudioToolsMenu" TargetType="ContextMenu">
@@ -17,20 +17,22 @@
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid>
             <StackPanel><StackPanel Orientation="Horizontal"><TextBlock Text="CREATOR STUDIO" FontSize="26" FontWeight="Black" /><Border x:Name="ModeBadge" Background="#173B34" BorderBrush="#2E8A70" BorderThickness="1" CornerRadius="3" Padding="9,4" Margin="14,1,0,0" VerticalAlignment="Center"><TextBlock x:Name="ModeBadgeText" Text="LOCAL OWNER MODE" Foreground="#75E8BF" FontSize="9" FontWeight="Bold" /></Border></StackPanel><TextBlock x:Name="ModeHelpText" Text="Changes save on this PC. No server URL or owner key is required." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" /></StackPanel>
-            <Image Source="Assets/NexaPlay-512.png" Width="58" Height="58" HorizontalAlignment="Right" />
+            <Image Source="Assets/NexaPlay-Owner-512.png" Width="58" Height="58" HorizontalAlignment="Right" />
         </Grid>
         <Grid Grid.Row="1" Margin="0,20,0,12">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="400"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="330"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Border Height="42" Background="#111622" BorderBrush="{StaticResource StrokeBrush}" BorderThickness="1" CornerRadius="4">
                 <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌕" Foreground="#6EDFF0" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/><TextBox x:Name="GameSearchBox" Grid.Column="1" BorderThickness="0" Background="Transparent" Padding="0" VerticalContentAlignment="Center" TextChanged="GameSearchBox_TextChanged" KeyDown="GameSearchBox_KeyDown" ToolTip="Search title, developer, publisher, Steam App ID, genres, or tags"/></Grid>
             </Border>
             <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Search" Margin="8,0,0,0" Click="Search_Click"/>
             <Button Grid.Column="2" Style="{StaticResource GhostButton}" Content="Clear" Margin="8,0,0,0" Click="ClearSearch_Click"/>
             <CheckBox x:Name="MissingArtworkOnlyBox" Grid.Column="4" Content="Missing artwork only" Foreground="White" VerticalAlignment="Center" Margin="18,0,2,0" Checked="MissingArtworkFilter_Changed" Unchecked="MissingArtworkFilter_Changed"/>
+            <CheckBox x:Name="BrokenLinksOnlyBox" Grid.Column="5" Content="Broken links only" Foreground="White" VerticalAlignment="Center" Margin="16,0,2,0" Checked="BrokenLinksFilter_Changed" Unchecked="BrokenLinksFilter_Changed"/>
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,16">
             <Button Style="{StaticResource PrimaryButton}" Content="＋ Add Games" Click="Add_Click" />
             <Button x:Name="RefreshAllButton" Style="{StaticResource GhostButton}" Content="↻ Refresh all metadata" Margin="8,0,0,0" Click="RefreshAll_Click" />
+            <Button x:Name="CheckLinksButton" Style="{StaticResource GhostButton}" Content="⌁ Check links" Margin="8,0,0,0" Click="CheckLinks_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Edit" Margin="8,0,0,0" Click="Edit_Click" />
             <Button Style="{StaticResource GhostButton}" Content="Remove" Margin="8,0,0,0" Click="Remove_Click" />
             <Button x:Name="MoreToolsButton" Style="{StaticResource GhostButton}" Content="More tools  ▾" Margin="8,0,0,0" Click="MoreTools_Click">
@@ -44,6 +46,7 @@
                         <MenuItem Style="{StaticResource StudioToolsMenuItem}" Header="Export catalog" Click="Export_Click"/>
                         <Separator Margin="7,4" Background="#3A4561"/>
                         <MenuItem x:Name="ArtworkKeyButton" Style="{StaticResource StudioToolsMenuItem}" Header="SteamGridDB key…" Click="ArtworkKey_Click"/>
+                        <MenuItem Style="{StaticResource StudioToolsMenuItem}" Header="Create desktop shortcut" Click="CreateDesktopShortcut_Click"/>
                         <MenuItem x:Name="ReportsButton" Style="{StaticResource StudioToolsMenuItem}" Header="Problem reports" Visibility="Collapsed" Click="Reports_Click"/>
                     </ContextMenu>
                 </Button.ContextMenu>
@@ -54,11 +57,12 @@
                 <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="4,2"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#342A64"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#222B40"/></Trigger></Style.Triggers></Style></ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Game" Width="250" DisplayMemberBinding="{Binding Title}" />
-                        <GridViewColumn Header="Version" Width="100" DisplayMemberBinding="{Binding Version}" />
-                        <GridViewColumn Header="Steam App ID" Width="120" DisplayMemberBinding="{Binding SteamAppId}" />
-                        <GridViewColumn Header="Developer" Width="170" DisplayMemberBinding="{Binding Developer}" />
-                        <GridViewColumn Header="Download link" Width="300" DisplayMemberBinding="{Binding DownloadUrl}" />
+                        <GridViewColumn Header="Game" Width="210" DisplayMemberBinding="{Binding Title}" />
+                        <GridViewColumn Header="Version" Width="85" DisplayMemberBinding="{Binding Version}" />
+                        <GridViewColumn Header="Link status" Width="145" DisplayMemberBinding="{Binding LinkHealthSummary}" />
+                        <GridViewColumn Header="Steam App ID" Width="105" DisplayMemberBinding="{Binding SteamAppId}" />
+                        <GridViewColumn Header="Developer" Width="145" DisplayMemberBinding="{Binding Developer}" />
+                        <GridViewColumn Header="Download link" Width="270" DisplayMemberBinding="{Binding DownloadUrl}" />
                     </GridView>
                 </ListView.View>
             </ListView>

@@ -13,6 +13,7 @@ public partial class CreatorWindow : Window
     private readonly AppSettings _settings;
     private readonly SettingsService _settingsService;
     private readonly HttpClient _http;
+    private readonly LinkHealthService _linkHealthService;
     private readonly HashSet<string> _brokenArtworkIds = new(StringComparer.OrdinalIgnoreCase);
     private Task<List<GameEntry>>? _artworkScanTask;
     private string _modeStatus = "Local owner mode — changes are saved on this PC.";
@@ -20,6 +21,7 @@ public partial class CreatorWindow : Window
     public Func<CatalogDocument, Task>? PublishAction { get; set; }
     public Func<Task>? ReportsAction { get; set; }
     public Action? ConfigureArtworkKeyAction { get; set; }
+    public Func<string>? CreateDesktopShortcutAction { get; set; }
 
     public CreatorWindow(CatalogDocument catalog, CatalogService catalogService, AppSettings settings, SettingsService settingsService, HttpClient http)
     {
@@ -29,11 +31,16 @@ public partial class CreatorWindow : Window
         _settings = settings;
         _settingsService = settingsService;
         _http = http;
+        _linkHealthService = new LinkHealthService(http);
         RefreshList();
         Loaded += async (_, _) =>
         {
-            try { await ScanArtworkHealthAsync(); }
+            var artworkScan = ScanArtworkHealthAsync();
+            var linkScan = ScanDownloadLinksAsync();
+            try { await artworkScan; }
             catch { MissingArtworkOnlyBox.Content = "Missing artwork only (scan unavailable)"; }
+            try { await linkScan; }
+            catch { BrokenLinksOnlyBox.Content = "Broken links only (scan unavailable)"; }
         };
     }
 
@@ -43,7 +50,8 @@ public partial class CreatorWindow : Window
         var query = GameSearchBox.Text.Trim();
         var games = _catalog.Games.Where(game =>
                 (query.Length == 0 || MatchesSearch(game, query)) &&
-                (MissingArtworkOnlyBox.IsChecked != true || IsArtworkIncomplete(game)))
+                (MissingArtworkOnlyBox.IsChecked != true || IsArtworkIncomplete(game)) &&
+                (BrokenLinksOnlyBox.IsChecked != true || game.HasBrokenDownloadLink))
             .OrderBy(game => game.Title)
             .ToList();
         GamesList.ItemsSource = null;
@@ -65,7 +73,7 @@ public partial class CreatorWindow : Window
 
     private void GameSearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => RefreshList();
     private void Search_Click(object sender, RoutedEventArgs e) { RefreshList(); if (GamesList.Items.Count > 0 && GamesList.SelectedItem is null) GamesList.SelectedIndex = 0; GamesList.Focus(); }
-    private void ClearSearch_Click(object sender, RoutedEventArgs e) { GameSearchBox.Clear(); MissingArtworkOnlyBox.IsChecked = false; GameSearchBox.Focus(); }
+    private void ClearSearch_Click(object sender, RoutedEventArgs e) { GameSearchBox.Clear(); MissingArtworkOnlyBox.IsChecked = false; BrokenLinksOnlyBox.IsChecked = false; GameSearchBox.Focus(); }
     private async void MissingArtworkFilter_Changed(object sender, RoutedEventArgs e)
     {
         if (MissingArtworkOnlyBox.IsChecked == true)
@@ -74,6 +82,51 @@ public partial class CreatorWindow : Window
             catch (Exception ex) { ShowNotification($"Artwork scan failed: {ex.Message}", true); }
         }
         RefreshList();
+    }
+    private void BrokenLinksFilter_Changed(object sender, RoutedEventArgs e) => RefreshList();
+    private async void CheckLinks_Click(object sender, RoutedEventArgs e) => await ScanDownloadLinksAsync(true);
+
+    private async Task ScanDownloadLinksAsync(bool announce = false)
+    {
+        if (!CheckLinksButton.IsEnabled) return;
+        CheckLinksButton.IsEnabled = false;
+        BrokenLinksOnlyBox.Content = "Broken links only (scanning…)";
+        foreach (var game in _catalog.Games) game.BeginLinkHealthCheck();
+        RefreshList();
+
+        var completed = 0;
+        var gate = new SemaphoreSlim(6, 6);
+        try
+        {
+            var checks = _catalog.Games.Select(async game =>
+            {
+                await gate.WaitAsync();
+                try
+                {
+                    var snapshot = await _linkHealthService.CheckGameAsync(game);
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        game.ApplyLinkHealth(snapshot);
+                        completed++;
+                        StatusText.Text = $"Checking download links…  {completed}/{_catalog.Games.Count}";
+                    });
+                }
+                finally { gate.Release(); }
+            });
+            await Task.WhenAll(checks);
+            var broken = _catalog.Games.Count(game => game.HasBrokenDownloadLink);
+            var uncertain = _catalog.Games.Count(game => game.OverallLinkHealthState == LinkHealthState.Unreachable);
+            BrokenLinksOnlyBox.Content = $"Broken links only ({broken})";
+            RefreshList();
+            if (broken > 0)
+            {
+                BrokenLinksOnlyBox.IsChecked = true;
+                ShowNotification($"Found {broken} game{(broken == 1 ? "" : "s")} with expired, missing, blocked, or invalid download links. The list now shows only those games.", true);
+            }
+            else if (announce)
+                ShowNotification(uncertain > 0 ? $"No broken links found, but {uncertain} game{(uncertain == 1 ? "" : "s")} could not be verified right now." : "All configured download links are working.", uncertain > 0);
+        }
+        finally { CheckLinksButton.IsEnabled = true; }
     }
     private async void GameSearchBox_KeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { RefreshList(); if (GamesList.Items.Count > 0 && GamesList.SelectedItem is null) GamesList.SelectedIndex = 0; await EditSelectedAsync(); } }
 
@@ -111,6 +164,16 @@ public partial class CreatorWindow : Window
     }
     private async void Reports_Click(object sender, RoutedEventArgs e) { if (ReportsAction is not null) await ReportsAction(); }
 
+    private void CreateDesktopShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var path = CreateDesktopShortcutAction?.Invoke();
+            ShowNotification(string.IsNullOrWhiteSpace(path) ? "Desktop shortcut is unavailable." : "Creator Studio desktop shortcut is ready.", string.IsNullOrWhiteSpace(path));
+        }
+        catch (Exception ex) { ShowNotification($"Could not create the desktop shortcut: {ex.Message}", true); }
+    }
+
     private async void Add_Click(object sender, RoutedEventArgs e)
     {
         var game = new GameEntry { UpdatedUtc = DateTime.UtcNow };
@@ -118,6 +181,7 @@ public partial class CreatorWindow : Window
         if (editor.ShowDialog() == true)
         {
             _catalog.Games.Add(editor.Game); await SaveAsync($"{editor.Game.Title} was added and saved automatically.");
+            _ = CheckSingleGameLinksAsync(editor.Game);
         }
     }
 
@@ -303,7 +367,16 @@ public partial class CreatorWindow : Window
             var index = _catalog.Games.IndexOf(selected);
             _catalog.Games[index] = editor.Game;
             await SaveAsync($"{editor.Game.Title} was updated and saved automatically.");
+            _ = CheckSingleGameLinksAsync(editor.Game);
         }
+    }
+
+    private async Task CheckSingleGameLinksAsync(GameEntry game)
+    {
+        game.BeginLinkHealthCheck();
+        game.ApplyLinkHealth(await _linkHealthService.CheckGameAsync(game));
+        RefreshList();
+        BrokenLinksOnlyBox.Content = $"Broken links only ({_catalog.Games.Count(item => item.HasBrokenDownloadLink)})";
     }
 
     private async void Duplicate_Click(object sender, RoutedEventArgs e)
