@@ -2,6 +2,7 @@ using NexaPlay.Services;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,11 +10,18 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Windows.Interop;
 
 namespace NexaPlay;
 
 public partial class MainWindow : Window
 {
+    private const int DwmUseImmersiveDarkMode = 20;
+    private const int DwmWindowCornerPreference = 33;
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr windowHandle, int attribute, ref int value, int valueSize);
+
     private readonly HttpClient _http = new(new HttpClientHandler { AllowAutoRedirect = true }) { Timeout = Timeout.InfiniteTimeSpan };
     private readonly CatalogService _catalogService;
     private readonly CommunityService _communityService;
@@ -52,7 +60,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.11.2 (+Windows game library)");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("NexaPlay/1.12.0 (+Windows game library)");
         _catalogService = new CatalogService(_http);
         _communityService = new CommunityService(_http);
         _updateService = new UpdateService(_http);
@@ -85,6 +93,17 @@ public partial class MainWindow : Window
         };
         Closed += (_, _) => _catalogRefreshTimer.Stop();
         _toastTimer.Tick += (_, _) => { _toastTimer.Stop(); ToastPanel.Visibility = Visibility.Collapsed; };
+        SourceInitialized += (_, _) => ApplyWindows11Chrome();
+    }
+
+    private void ApplyWindows11Chrome()
+    {
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)) return;
+        var handle = new WindowInteropHelper(this).Handle;
+        var enabled = 1;
+        var rounded = 2;
+        _ = DwmSetWindowAttribute(handle, DwmUseImmersiveDarkMode, ref enabled, sizeof(int));
+        _ = DwmSetWindowAttribute(handle, DwmWindowCornerPreference, ref rounded, sizeof(int));
     }
 
     private async Task CheckGameLinksAsync(GameEntry game)
@@ -163,8 +182,20 @@ public partial class MainWindow : Window
         foreach (var game in pageGames) _visibleGames.Add(game);
         GameCount.Text = $"{games.Count} GAME{(games.Count == 1 ? "" : "S")}";
         LibraryStatsText.Text = $"{_catalog.Games.Count(g => g.IsInstalled)} INSTALLED  ·  {_catalog.Games.Count(g => g.IsFavorite)} FAVORITES";
-        EmptyState.Visibility = games.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        var isEmpty = games.Count == 0;
+        EmptyState.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
+        GamesList.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
         PaginationBar.Visibility = games.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        if (isEmpty)
+        {
+            EmptyStateTitle.Text = _installedOnly ? "NO INSTALLED GAMES YET" : _favoritesOnly ? "NO FAVORITES YET" : "NO MATCHES FOUND";
+            EmptyStateMessage.Text = _installedOnly
+                ? "Download a game and it will appear here ready to launch."
+                : _favoritesOnly
+                    ? "Save games you want to come back to and they will appear here."
+                    : "Try a different search or filter, or browse the complete catalog.";
+            EmptyStateAction.Content = _installedOnly || _favoritesOnly ? "BROWSE GAMES" : "CLEAR FILTERS";
+        }
         var lastIndex = Math.Min(firstIndex + pageGames.Count, games.Count);
         PageSummaryText.Text = $"SHOWING {firstIndex + 1}–{lastIndex} OF {games.Count}";
         PageNumberText.Text = $"PAGE {_currentLibraryPage} OF {_totalLibraryPages}";
@@ -212,14 +243,14 @@ public partial class MainWindow : Window
     {
         if (game is null)
         {
+            FeaturedPanel.Visibility = Visibility.Collapsed;
             FeaturedPanel.DataContext = null;
             FeaturedHero.Source = null;
-            FeaturedTitle.Text = "No games found";
-            FeaturedDescription.Text = "Sync the SauceBoyz catalog or try a different search.";
             FeaturedAction.Visibility = Visibility.Collapsed;
             FeaturedAction.Tag = null;
             return;
         }
+        FeaturedPanel.Visibility = Visibility.Visible;
         FeaturedPanel.DataContext = game;
         FeaturedAction.Visibility = Visibility.Visible;
         FeaturedTitle.Text = game.Title;
@@ -502,6 +533,19 @@ public partial class MainWindow : Window
     private void Installed_Click(object sender, RoutedEventArgs e) { _installedOnly = true; _favoritesOnly = false; _currentLibraryPage = 1; SetQuickFilter("ALL", false); PageTitle.Text = "INSTALLED"; PageSubtitle.Text = "Ready to launch"; ApplyFilter(); NavigateTo(LibraryPage, InstalledNav); }
     private void Favorites_Click(object sender, RoutedEventArgs e) { _installedOnly = false; _favoritesOnly = true; _currentLibraryPage = 1; SetQuickFilter("ALL", false); PageTitle.Text = "FAVORITES"; PageSubtitle.Text = "Games you saved"; ApplyFilter(); NavigateTo(LibraryPage, FavoritesNav); }
     private void Downloads_Click(object sender, RoutedEventArgs e) => ShowDownloadsPage();
+    private void EmptyStateAction_Click(object sender, RoutedEventArgs e)
+    {
+        if (_installedOnly || _favoritesOnly)
+        {
+            Library_Click(sender, e);
+            return;
+        }
+
+        SearchBox.Clear();
+        SetQuickFilter("ALL", false);
+        _currentLibraryPage = 1;
+        ApplyFilter();
+    }
     private void Profile_Click(object sender, RoutedEventArgs e)
     {
         var window = new PlayerProfileWindow(_settings, _settingsService) { Owner = this };

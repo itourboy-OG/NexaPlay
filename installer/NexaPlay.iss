@@ -1,5 +1,5 @@
 #ifndef MyAppVersion
-  #define MyAppVersion "1.11.2"
+  #define MyAppVersion "1.12.0"
 #endif
 
 #define MyAppName "NexaPlay"

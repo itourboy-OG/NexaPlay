@@ -1,7 +1,7 @@
 {
-  "version": "1.11.2",
-  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.11.2/NexaPlay-Setup-v1.11.2.exe",
-  "sha256": "878CA7ECC2E6CDFA3DF40C8703E103103C36E441F2F5C94AB359C682E17F6FB9",
-  "notes": "Latest NexaPlay improvements and fixes from SauceBoyz.",
-  "publishedUtc": "2026-08-23T21:57:44.6854643Z"
+  "version": "1.12.0",
+  "installerUrl": "https://github.com/itourboy-OG/NexaPlay/releases/download/v1.12.0/NexaPlay-Setup-v1.12.0.exe",
+  "sha256": "891E76CA130AE290C0E78579356343D41F5884F464858D61DDEC677561527905",
+  "notes": "Windows 11 visual refresh with responsive Installed and Downloads pages.",
+  "publishedUtc": "2026-08-31T06:40:49.4563218Z"
 }

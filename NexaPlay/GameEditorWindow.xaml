@@ -7,7 +7,7 @@
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid>
             <StackPanel><TextBlock Text="ADD A GAME" FontSize="28" FontWeight="Black"/><TextBlock Text="Give NexaPlay a title and your download links. It will build the rest of the page for you." Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0"/></StackPanel>
-            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#1C1832" CornerRadius="4" Padding="13,8"><TextBlock Text="NEXAPLAY OWNER 1.11.2  •  AUTO METADATA" Foreground="#C9BAFF" FontSize="10" FontWeight="Bold"/></Border>
+            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#1C1832" CornerRadius="8" Padding="13,8"><TextBlock Text="NEXAPLAY OWNER 1.12.0  •  AUTO METADATA" Foreground="#C9BAFF" FontSize="10" FontWeight="Bold"/></Border>
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,22,0,18">
